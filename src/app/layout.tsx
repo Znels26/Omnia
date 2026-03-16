@@ -19,8 +19,8 @@ export const metadata: Metadata = {
     title: 'Omnia',
   },
   icons: {
-    icon: '/icon.svg',
-    apple: '/icon.svg',
+    icon: '/icon-192.png',
+    apple: '/icon-192.png',
   },
 };
 
