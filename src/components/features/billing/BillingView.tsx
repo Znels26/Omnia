@@ -111,7 +111,11 @@ export function BillingView({ profile, subscription }: any) {
       </div>
 
       {/* Plan cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '20px' }}>
+      <style>{`
+        .billing-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 20px; }
+        @media (max-width: 720px) { .billing-cards { grid-template-columns: 1fr; } }
+      `}</style>
+      <div className="billing-cards">
         {PLANS.map((p) => {
           const price = billingInterval === 'yearly' ? p.price.yearly : p.price.monthly;
           const isCurrent = plan === p.tier;
