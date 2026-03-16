@@ -31,7 +31,7 @@ const TOOLS = [
   },
   {
     id: 'email-sequence' as Tool,
-    label: 'Email Sequence Builder',
+    label: 'Email Sequence',
     emoji: '📧',
     desc: 'Full email nurture sequences that convert subscribers to buyers',
     fields: [
@@ -44,7 +44,7 @@ const TOOLS = [
   },
   {
     id: 'passive-income' as Tool,
-    label: 'Passive Income Ideas',
+    label: 'Passive Income',
     emoji: '💰',
     desc: 'Personalised passive income strategies based on your skills',
     fields: [
@@ -69,6 +69,7 @@ export function AiToolsView({ profile }: { profile: any }) {
   const [output, setOutput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showOutput, setShowOutput] = useState(false);
   const outputRef = useRef<HTMLDivElement>(null);
 
   const tool = TOOLS.find((t) => t.id === activeTool)!;
@@ -78,12 +79,14 @@ export function AiToolsView({ profile }: { profile: any }) {
     setFields({});
     setOutput('');
     setError('');
+    setShowOutput(false);
   };
 
   const handleGenerate = async () => {
     setOutput('');
     setError('');
     setLoading(true);
+    setShowOutput(true);
 
     try {
       const res = await fetch(ENDPOINTS[activeTool], {
@@ -126,133 +129,126 @@ export function AiToolsView({ profile }: { profile: any }) {
     }
   };
 
-  const copyOutput = () => {
-    navigator.clipboard.writeText(output);
-  };
-
   return (
-    <div style={{ padding: '24px', maxWidth: '1100px', margin: '0 auto' }}>
-      {/* Header */}
-      <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 6px' }}>AI Money Tools</h1>
-        <p style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', margin: 0 }}>
-          Tools that work while you sleep — generate assets that make you money.
-        </p>
-      </div>
-
-      {/* Tool tabs */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', flexWrap: 'wrap' }}>
-        {TOOLS.map((t) => (
-          <button
-            key={t.id}
-            onClick={() => handleToolChange(t.id)}
-            style={{
-              padding: '8px 16px',
-              borderRadius: '8px',
-              border: '1px solid',
-              borderColor: activeTool === t.id ? 'hsl(205,90%,48%)' : 'hsl(240 6% 14%)',
-              background: activeTool === t.id ? 'hsl(205 90% 48% / 0.12)' : 'hsl(240 6% 9%)',
-              color: activeTool === t.id ? 'hsl(205,90%,60%)' : 'hsl(240 5% 60%)',
-              fontSize: '13.5px',
-              fontWeight: activeTool === t.id ? 600 : 400,
-              cursor: 'pointer',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-            }}
-          >
-            <span>{t.emoji}</span>
-            {t.label}
-          </button>
-        ))}
-      </div>
-
-      <div style={{ display: 'grid', gridTemplateColumns: '340px 1fr', gap: '20px', alignItems: 'start' }}>
-        {/* Left: form */}
-        <div style={{ background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '12px', padding: '20px' }}>
-          <div style={{ marginBottom: '16px' }}>
-            <p style={{ fontSize: '13px', color: 'hsl(240 5% 55%)', margin: 0 }}>{tool.desc}</p>
-          </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            {tool.fields.map((f) => (
-              <div key={f.key}>
-                <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'hsl(240 5% 65%)', marginBottom: '6px' }}>
-                  {f.label}{f.required && <span style={{ color: 'hsl(205,90%,60%)' }}> *</span>}
-                </label>
-                <input
-                  value={fields[f.key] || ''}
-                  onChange={(e) => setFields((prev) => ({ ...prev, [f.key]: e.target.value }))}
-                  placeholder={f.placeholder}
-                  style={{
-                    width: '100%',
-                    background: 'hsl(240 10% 5%)',
-                    border: '1px solid hsl(240 6% 18%)',
-                    borderRadius: '8px',
-                    padding: '9px 12px',
-                    color: '#e2e8f0',
-                    fontSize: '13px',
-                    outline: 'none',
-                    boxSizing: 'border-box',
-                  }}
-                />
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={handleGenerate}
-            disabled={loading}
-            style={{
-              marginTop: '18px',
-              width: '100%',
-              padding: '11px',
-              background: loading ? 'hsl(240 6% 14%)' : 'hsl(205,90%,48%)',
-              color: loading ? 'hsl(240 5% 50%)' : '#fff',
-              border: 'none',
-              borderRadius: '8px',
-              fontSize: '14px',
-              fontWeight: 600,
-              cursor: loading ? 'not-allowed' : 'pointer',
-            }}
-          >
-            {loading ? 'Generating...' : `Generate ${tool.emoji}`}
-          </button>
+    <>
+      <style>{`
+        .ait-tabs { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .ait-tab { padding: 10px 8px; border-radius: 10px; border: 1px solid hsl(240 6% 14%); background: hsl(240 6% 9%); color: hsl(240 5% 55%); font-size: 13px; font-weight: 500; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; transition: all 0.15s; }
+        .ait-tab.active { border-color: hsl(205,90%,48%); background: hsl(205 90% 48% / 0.12); color: hsl(205,90%,60%); font-weight: 600; }
+        .ait-tab-emoji { font-size: 18px; line-height: 1; }
+        .ait-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; align-items: start; }
+        .ait-output-panel { background: hsl(240 6% 9%); border: 1px solid hsl(240 6% 14%); border-radius: 12px; min-height: 480px; display: flex; flex-direction: column; }
+        .ait-mobile-back { display: none; }
+        @media (max-width: 700px) {
+          .ait-tabs { grid-template-columns: repeat(2, 1fr); }
+          .ait-layout { grid-template-columns: 1fr; }
+          .ait-output-panel { min-height: 400px; }
+          .ait-form-panel { display: block; }
+          .ait-mobile-back { display: flex; }
+        }
+      `}</style>
+      <div className="page" style={{ paddingBottom: '80px' }}>
+        {/* Header */}
+        <div style={{ marginBottom: '20px' }}>
+          <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>AI Money Tools</h1>
+          <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', margin: 0 }}>
+            Generate assets that make you money — leads, content, emails, and more.
+          </p>
         </div>
 
-        {/* Right: output */}
-        <div style={{ background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '12px', minHeight: '500px', display: 'flex', flexDirection: 'column' }}>
-          {error && (
-            <div style={{ padding: '16px 20px', color: '#f87171', fontSize: '13px', borderBottom: '1px solid hsl(240 6% 14%)' }}>
-              {error}
+        {/* Tool picker */}
+        <div className="ait-tabs" style={{ marginBottom: '20px' }}>
+          {TOOLS.map((t) => (
+            <button
+              key={t.id}
+              onClick={() => handleToolChange(t.id)}
+              className={`ait-tab${activeTool === t.id ? ' active' : ''}`}
+            >
+              <span className="ait-tab-emoji">{t.emoji}</span>
+              <span>{t.label}</span>
+            </button>
+          ))}
+        </div>
+
+        <div className="ait-layout">
+          {/* Form panel */}
+          <div className="ait-form-panel" style={{ background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '12px', padding: '20px' }}>
+            <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', margin: '0 0 16px' }}>{tool.desc}</p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              {tool.fields.map((f) => (
+                <div key={f.key}>
+                  <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: 'hsl(240 5% 65%)', marginBottom: '6px' }}>
+                    {f.label}{f.required && <span style={{ color: 'hsl(205,90%,60%)' }}> *</span>}
+                  </label>
+                  <input
+                    value={fields[f.key] || ''}
+                    onChange={(e) => setFields((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                    placeholder={f.placeholder}
+                    style={{
+                      width: '100%', background: 'hsl(240 10% 5%)', border: '1px solid hsl(240 6% 18%)',
+                      borderRadius: '8px', padding: '9px 12px', color: '#e2e8f0', fontSize: '13px',
+                      outline: 'none', boxSizing: 'border-box',
+                    }}
+                  />
+                </div>
+              ))}
             </div>
-          )}
-          {!output && !loading && !error && (
-            <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'hsl(240 5% 40%)', fontSize: '14px', padding: '40px' }}>
-              Fill in the fields and click Generate
-            </div>
-          )}
-          {(output || loading) && (
-            <>
-              <div style={{ padding: '12px 16px', borderBottom: '1px solid hsl(240 6% 14%)', display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                {output && (
-                  <button
-                    onClick={copyOutput}
-                    style={{ padding: '5px 12px', background: 'hsl(240 6% 14%)', border: '1px solid hsl(240 6% 20%)', borderRadius: '6px', color: 'hsl(240 5% 70%)', fontSize: '12px', cursor: 'pointer' }}
-                  >
-                    Copy
-                  </button>
-                )}
+            <button
+              onClick={handleGenerate}
+              disabled={loading}
+              style={{
+                marginTop: '18px', width: '100%', padding: '12px',
+                background: loading ? 'hsl(240 6% 14%)' : 'hsl(205,90%,48%)',
+                color: loading ? 'hsl(240 5% 50%)' : '#fff',
+                border: 'none', borderRadius: '8px', fontSize: '14px', fontWeight: 600,
+                cursor: loading ? 'not-allowed' : 'pointer',
+              }}
+            >
+              {loading ? 'Generating...' : `Generate ${tool.emoji}`}
+            </button>
+          </div>
+
+          {/* Output panel */}
+          <div className="ait-output-panel">
+            {error && (
+              <div style={{ padding: '16px 20px', color: '#f87171', fontSize: '13px', borderBottom: '1px solid hsl(240 6% 14%)' }}>
+                {error}
               </div>
-              <div
-                ref={outputRef}
-                style={{ flex: 1, overflowY: 'auto', padding: '20px', fontSize: '13.5px', lineHeight: '1.75', color: '#e2e8f0', whiteSpace: 'pre-wrap', fontFamily: 'inherit', maxHeight: '600px' }}
-              >
-                {output}
-                {loading && <span style={{ color: 'hsl(205,90%,60%)', animation: 'pulse 1s infinite' }}>▋</span>}
+            )}
+            {!output && !loading && !error && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '8px', color: 'hsl(240 5% 38%)', padding: '40px', textAlign: 'center' }}>
+                <span style={{ fontSize: '32px' }}>{tool.emoji}</span>
+                <p style={{ fontSize: '14px', margin: 0 }}>Fill in the fields and hit Generate</p>
+                <p style={{ fontSize: '12px', margin: 0, color: 'hsl(240 5% 32%)' }}>Your output will appear here</p>
               </div>
-            </>
-          )}
+            )}
+            {(output || loading) && (
+              <>
+                <div style={{ padding: '10px 16px', borderBottom: '1px solid hsl(240 6% 14%)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '12px', color: 'hsl(240 5% 45%)', fontWeight: 600 }}>
+                    {loading ? 'Generating...' : 'Output'}
+                  </span>
+                  {output && (
+                    <button
+                      onClick={() => navigator.clipboard.writeText(output)}
+                      style={{ padding: '4px 12px', background: 'hsl(240 6% 14%)', border: '1px solid hsl(240 6% 20%)', borderRadius: '6px', color: 'hsl(240 5% 70%)', fontSize: '12px', cursor: 'pointer' }}
+                    >
+                      Copy
+                    </button>
+                  )}
+                </div>
+                <div
+                  ref={outputRef}
+                  style={{ flex: 1, overflowY: 'auto', padding: '20px', fontSize: '13.5px', lineHeight: '1.8', color: '#e2e8f0', whiteSpace: 'pre-wrap', fontFamily: 'inherit' }}
+                >
+                  {output}
+                  {loading && <span style={{ color: 'hsl(205,90%,60%)' }}>▋</span>}
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }
