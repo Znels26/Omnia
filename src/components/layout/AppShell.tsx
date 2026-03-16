@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
 LayoutDashboard, MessageSquare, CalendarDays, FileText,
 FolderOpen, Wand2, FileOutput, Receipt, Bell, Settings,
-CreditCard, LogOut, Sparkles, Menu, X
+CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -20,6 +20,8 @@ const NAV = [
 { href: '/document-builder', label: 'Doc Builder', icon: FileOutput },
 { href: '/invoices', label: 'Invoices', icon: Receipt },
 { href: '/reminders', label: 'Reminders', icon: Bell },
+{ href: '/proposal', label: 'Proposals', icon: FileSignature },
+{ href: '/my-stack', label: 'My Stack', icon: Layers },
 { href: '/settings', label: 'Settings', icon: Settings },
 { href: '/billing', label: 'Billing', icon: CreditCard },
 ];

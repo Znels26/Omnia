@@ -42,6 +42,18 @@ function extractImagePrompt(text: string): string {
     .trim() || text.trim();
 }
 
+function isSummariseRequest(text: string): boolean {
+  const t = text.trim();
+  if (/^(\/summaris[ez]|\/sum\s)/i.test(t)) return true;
+  const lines = t.split('\n');
+  if (lines.length > 6 && t.length > 400 && /\b(meeting|transcript|attendees|action items|agenda|minutes|discussed|decided|follow.?up|next steps)\b/i.test(t)) return true;
+  return false;
+}
+
+function extractSummariseContent(text: string): string {
+  return text.replace(/^\/summaris[ez]\s*/i, '').replace(/^\/sum\s+/i, '').trim() || text.trim();
+}
+
 function isSearchRequest(text: string): boolean {
   return /^(\/search\s|search\s+for\s|look\s+up\s|find\s+(news|info)\s+(on|about)\s|latest\s+news\s|what'?s\s+the\s+latest\s|current\s+news\s|breaking\s+news\s|today'?s\s+news\s|news\s+about\s|what\s+happened\s+(to|with)\s)/i.test(text.trim());
 }
@@ -105,6 +117,7 @@ export function AssistantView({ profile, initialChats }: any) {
   const [streaming, setStreaming] = useState(false);
   const [generatingImage, setGeneratingImage] = useState(false);
   const [searching, setSearching] = useState(false);
+  const [summarising, setSummarising] = useState(false);
   const [mode, setMode] = useState(profile?.assistant_mode || 'general');
   const [showModes, setShowModes] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -112,7 +125,7 @@ export function AssistantView({ profile, initialChats }: any) {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const busy = streaming || generatingImage || searching;
+  const busy = streaming || generatingImage || searching || summarising;
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
@@ -202,11 +215,47 @@ export function AssistantView({ profile, initialChats }: any) {
     finally { setSearching(false); }
   }, [ensureChat, messages]);
 
+  const sendSummarise = useCallback(async (rawText: string) => {
+    const content = extractSummariseContent(rawText);
+    const chatId = await ensureChat('Meeting Summary');
+    if (!chatId) return;
+    const userMsg = { id: `u-${Date.now()}`, role: 'user', content: rawText, created_at: new Date().toISOString() };
+    const aiId = `sum-${Date.now()}`;
+    setMessages(p => [...p, userMsg, { id: aiId, role: 'assistant', content: '', created_at: new Date().toISOString() }]);
+    setInput('');
+    setSummarising(true);
+    try {
+      const prompt = `Please summarise the following meeting transcript or notes. Structure your response with these sections:\n## Summary\n## Key Decisions\n## Action Items\n## Next Steps\n\n---\n\n${content}`;
+      const res = await fetch('/api/ai/stream', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId, content: prompt, mode: 'documents', messages: [] }) });
+      if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Summarise failed'); setMessages(p => p.filter(m => m.id !== aiId)); return; }
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let acc = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        for (const line of decoder.decode(value).split('\n')) {
+          if (!line.startsWith('data: ')) continue;
+          const d = line.slice(6);
+          if (d === '[DONE]') continue;
+          try {
+            const p = JSON.parse(d);
+            if (p.token) { acc += p.token; setMessages(prev => prev.map(m => m.id === aiId ? { ...m, content: acc } : m)); }
+            if (p.finalMessage) { setMessages(prev => prev.map(m => m.id === aiId ? p.finalMessage : m)); setChats((prev: any[]) => prev.map(c => c.id === chatId ? { ...c, last_message_at: new Date().toISOString() } : c)); }
+            if (p.error) { toast.error(p.error); setMessages(p => p.filter(m => m.id !== aiId)); }
+          } catch {}
+        }
+      }
+    } catch (e: any) { if (e?.name !== 'AbortError') toast.error('Connection error'); }
+    finally { setSummarising(false); }
+  }, [ensureChat, messages]);
+
   const send = useCallback(async () => {
     const text = input.trim();
     if (!text || busy) return;
     if (isImageRequest(text)) { await sendImage(text); return; }
     if (isSearchRequest(text)) { await sendSearch(text); return; }
+    if (isSummariseRequest(text)) { await sendSummarise(text); return; }
 
     const chatId = await ensureChat(text);
     if (!chatId) return;
@@ -239,7 +288,7 @@ export function AssistantView({ profile, initialChats }: any) {
       }
     } catch (e: any) { if (e?.name !== 'AbortError') toast.error('Connection error'); }
     finally { setStreaming(false); }
-  }, [input, busy, sendImage, sendSearch, ensureChat, mode, messages]);
+  }, [input, busy, sendImage, sendSearch, sendSummarise, ensureChat, mode, messages]);
 
   const copyMsg = useCallback(async (content: string, id: string) => {
     await navigator.clipboard.writeText(content);
@@ -263,6 +312,7 @@ export function AssistantView({ profile, initialChats }: any) {
     if (!t) return null;
     if (isImageRequest(t)) return 'image';
     if (isSearchRequest(t)) return 'search';
+    if (isSummariseRequest(t)) return 'summarise';
     return null;
   }, [input]);
 
@@ -356,7 +406,7 @@ export function AssistantView({ profile, initialChats }: any) {
                 ))}
               </div>
               <p style={{ fontSize: '12px', color: 'hsl(240 5% 40%)', textAlign: 'center', maxWidth: '340px' }}>
-                Tip: Start with <strong style={{ color: 'hsl(240 5% 55%)' }}>"draw"</strong> or <strong style={{ color: 'hsl(240 5% 55%)' }}>"generate image"</strong> for AI art, or <strong style={{ color: 'hsl(240 5% 55%)' }}>"search for"</strong> for live web results.
+                Try: <strong style={{ color: 'hsl(240 5% 55%)' }}>"draw…"</strong> for images · <strong style={{ color: 'hsl(240 5% 55%)' }}>"search for…"</strong> for web · <strong style={{ color: 'hsl(240 5% 55%)' }}>"/summarise"</strong> for meeting notes
               </p>
             </div>
           ) : (
@@ -421,6 +471,12 @@ export function AssistantView({ profile, initialChats }: any) {
                 <span style={{ fontSize: '11px', color: 'hsl(160, 60%, 60%)', whiteSpace: 'nowrap' }}>Web</span>
               </div>
             )}
+            {inputType === 'summarise' && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '8px', background: 'hsl(38 90% 50% / 0.15)', border: '1px solid hsl(38 90% 50% / 0.3)', flexShrink: 0 }}>
+                <span style={{ fontSize: '11px' }}>📋</span>
+                <span style={{ fontSize: '11px', color: 'hsl(38, 90%, 65%)', whiteSpace: 'nowrap' }}>Summary</span>
+              </div>
+            )}
             <button
               onClick={send}
               disabled={!input.trim() || busy}
@@ -431,7 +487,7 @@ export function AssistantView({ profile, initialChats }: any) {
           </div>
           {busy && (
             <p style={{ textAlign: 'center', fontSize: '11px', color: 'hsl(240 5% 45%)', marginTop: '6px' }}>
-              {generatingImage ? '🎨 Generating image…' : searching ? '🔍 Searching the web…' : '⏳ Thinking…'}
+              {generatingImage ? '🎨 Generating image…' : searching ? '🔍 Searching the web…' : summarising ? '📋 Summarising…' : '⏳ Thinking…'}
             </p>
           )}
         </div>

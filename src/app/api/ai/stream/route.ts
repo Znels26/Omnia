@@ -28,7 +28,14 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createAdminSupabaseClient();
-  const systemPrompt = SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.general;
+  const basePrompt = SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.general;
+
+  // Fetch user memories to personalise responses
+  const { data: memoriesData } = await supabase.from('memories').select('content').eq('user_id', user.id).order('created_at', { ascending: false }).limit(20);
+  const memories = memoriesData || [];
+  const systemPrompt = memories.length > 0
+    ? `${basePrompt}\n\nWhat you remember about this user:\n${memories.map((m: any, i: number) => `${i + 1}. ${m.content}`).join('\n')}`
+    : basePrompt;
 
   // Save user message and kick off Anthropic call in parallel
   const [, anthropicResponse] = await Promise.all([
