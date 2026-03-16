@@ -71,7 +71,7 @@ export function NotesView({ profile, initialNotes, initialFolders }: any) {
   };
 
   return (
-    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden' }}>
+    <div className="split-view">
       {/* Sidebar */}
       <div
         style={{ width: '260px', borderRight: '1px solid hsl(240 6% 14%)', display: 'flex', flexDirection: 'column', background: 'hsl(240 10% 4%)', flexShrink: 0 }}

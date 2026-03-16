@@ -442,7 +442,7 @@ export function AssistantView({ profile, initialChats }: any) {
   );
 
   return (
-    <div style={{ display: 'flex', height: '100dvh', overflow: 'hidden', position: 'relative' }}>
+    <div className="split-view" style={{ position: 'relative' }}>
 
       {/* Mobile sidebar overlay */}
       {showSidebar && (
