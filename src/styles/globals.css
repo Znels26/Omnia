@@ -449,6 +449,19 @@ input::placeholder, textarea::placeholder {
   }
 }
 
+/* Billing / pricing card grid - stack on mobile */
+.billing-plans {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 700px) {
+  .billing-plans {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ==========================================
    INVOICE / TABLE LAYOUTS
    ========================================== */

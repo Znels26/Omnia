@@ -1,28 +1,49 @@
 'use client';
 import { useState } from 'react';
-import { CreditCard, Check, Zap, Crown, ExternalLink } from 'lucide-react';
+import { CreditCard, Check, Zap, Crown, ExternalLink, Sparkles, Heart, X } from 'lucide-react';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 const PLANS = [
-  { tier: 'free', name: 'Free', price: { monthly: 0, yearly: 0 }, features: ['20 AI messages/month','10 notes','5 uploads','3 exports','Basic planner'] },
-  { tier: 'plus', name: 'Plus', price: { monthly: 9, yearly: 79 }, features: ['150 AI messages/month','100 notes','25 uploads','25 exports','All AI modes','Document builder','Full planner','50 reminders'] },
-  { tier: 'pro', name: 'Pro', price: { monthly: 19, yearly: 169 }, features: ['500 AI messages/month','Unlimited notes & tasks','100 uploads','100 exports','Invoice generation','Priority support'] },
+  {
+    tier: 'free', name: 'Free', icon: Sparkles, color: 'hsl(240 5% 55%)',
+    price: { monthly: 0, yearly: 0 },
+    features: ['30 AI messages/month', '20 notes', '10 file uploads', '5 exports', 'Basic planner (50 tasks)', '10 reminders'],
+    missing: ['Life Hub (22 tools)', 'AI Money Tools', 'Invoices & proposals'],
+  },
+  {
+    tier: 'plus', name: 'Plus', icon: Zap, color: 'hsl(205,90%,60%)', highlight: true,
+    price: { monthly: 12, yearly: 99 },
+    features: ['500 AI messages/month', 'Unlimited notes & tasks', '50 uploads', '50 exports/month', 'Life Hub — all 22 tools', 'AI Money Tools — all 4 tools', '25 invoices/month', 'Proposals & Doc Builder', '100 reminders', 'All 6 AI modes'],
+    missing: [],
+  },
+  {
+    tier: 'pro', name: 'Pro', icon: Crown, color: 'hsl(262,83%,75%)',
+    price: { monthly: 29, yearly: 249 },
+    features: ['Unlimited AI messages', 'Unlimited everything', '250 uploads', '500 exports', 'Unlimited invoices', 'Life Hub + AI Money Tools', 'Priority support', 'Advanced AI memory'],
+    missing: [],
+  },
 ];
 
 export function BillingView({ profile, subscription }: any) {
-  const [loading, setLoading] = useState<string|null>(null);
-  const [interval, setInterval] = useState<'monthly'|'yearly'>('monthly');
+  const [loading, setLoading] = useState<string | null>(null);
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const plan = profile?.plan_tier || 'free';
 
   const upgrade = async (tier: string) => {
     setLoading(tier);
     try {
-      const res = await fetch('/api/billing/checkout', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tier, interval }) });
+      const res = await fetch('/api/billing/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tier, interval: billingInterval }),
+      });
       const d = await res.json();
       if (d.url) window.location.href = d.url;
       else toast.error(d.error || 'Stripe not configured yet');
-    } finally { setLoading(null); }
+    } finally {
+      setLoading(null);
+    }
   };
 
   const portal = async () => {
@@ -32,68 +53,140 @@ export function BillingView({ profile, subscription }: any) {
       const d = await res.json();
       if (d.url) window.location.href = d.url;
       else toast.error(d.error || 'Not available');
-    } finally { setLoading(null); }
+    } finally {
+      setLoading(null);
+    }
   };
 
   return (
-    <div className="page" style={{ paddingBottom: '80px', maxWidth: '900px' }}>
-      <div style={{ marginBottom: '24px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>Billing & Plans</h1><p style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', marginTop: '2px' }}>Manage your subscription</p></div>
+    <div className="page" style={{ paddingBottom: '80px', maxWidth: '860px' }}>
+      <div style={{ marginBottom: '24px' }}>
+        <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Billing & Plans</h1>
+        <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', margin: 0 }}>Manage your subscription and usage</p>
+      </div>
 
-      <div className="card" style={{ padding: '20px', marginBottom: '24px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      {/* Current plan card */}
+      <div className="card" style={{ padding: '20px', marginBottom: '28px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
-              <CreditCard size={16} color="hsl(205, 90%, 60%)" />
-              <h2 style={{ fontWeight: 600, fontSize: '15px' }}>Current Plan</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+              <CreditCard size={15} color="hsl(205, 90%, 60%)" />
+              <span style={{ fontWeight: 600, fontSize: '14px' }}>Current Plan</span>
             </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
               <span className={`badge badge-${plan}`} style={{ textTransform: 'capitalize', fontSize: '13px', padding: '4px 12px' }}>{plan}</span>
-              {subscription?.status && <span style={{ fontSize: '12px', padding: '3px 8px', borderRadius: '999px', background: subscription.status === 'active' ? 'rgba(52,211,153,0.12)' : 'rgba(239,68,68,0.12)', color: subscription.status === 'active' ? '#34d399' : '#ef4444' }}>{subscription.status}</span>}
+              {subscription?.status && (
+                <span style={{ fontSize: '12px', padding: '3px 9px', borderRadius: '999px', background: subscription.status === 'active' ? 'rgba(52,211,153,0.1)' : 'rgba(239,68,68,0.1)', color: subscription.status === 'active' ? '#34d399' : '#ef4444' }}>
+                  {subscription.status}
+                </span>
+              )}
+              {subscription?.current_period_end && (
+                <span style={{ fontSize: '12px', color: 'hsl(240 5% 50%)' }}>
+                  Renews {formatDate(subscription.current_period_end)}
+                </span>
+              )}
             </div>
-            {subscription?.current_period_end && <p style={{ fontSize: '13px', color: 'hsl(240 5% 55%)', marginTop: '6px' }}>Renews {formatDate(subscription.current_period_end)}</p>}
           </div>
           {subscription?.stripe_customer_id && (
-            <button onClick={portal} disabled={loading === 'portal'} className="btn btn-outline" style={{ gap: '6px' }}><ExternalLink size={14} />{loading === 'portal' ? 'Opening…' : 'Manage Billing'}</button>
+            <button onClick={portal} disabled={loading === 'portal'} className="btn btn-outline" style={{ fontSize: '13px', gap: '6px' }}>
+              <ExternalLink size={13} />
+              {loading === 'portal' ? 'Opening…' : 'Manage Billing'}
+            </button>
           )}
         </div>
       </div>
 
+      {/* Billing toggle */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
-        <span style={{ fontSize: '14px', color: interval === 'monthly' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 55%)' }}>Monthly</span>
-        <button onClick={() => setInterval(i => i === 'monthly' ? 'yearly' : 'monthly')} style={{ width: '44px', height: '24px', borderRadius: '999px', background: interval === 'yearly' ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 20%)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}>
-          <span style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: interval === 'yearly' ? '23px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+        <span style={{ fontSize: '13px', color: billingInterval === 'monthly' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)' }}>Monthly</span>
+        <button
+          onClick={() => setBillingInterval(i => i === 'monthly' ? 'yearly' : 'monthly')}
+          style={{ width: '44px', height: '24px', borderRadius: '999px', background: billingInterval === 'yearly' ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 20%)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s' }}
+        >
+          <span style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: billingInterval === 'yearly' ? '23px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
         </button>
-        <span style={{ fontSize: '14px', color: interval === 'yearly' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 55%)' }}>Yearly <span style={{ color: '#34d399', fontWeight: 600 }}>Save ~30%</span></span>
+        <span style={{ fontSize: '13px', color: billingInterval === 'yearly' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)' }}>
+          Yearly <span style={{ color: '#34d399', fontWeight: 600 }}>Save ~30%</span>
+        </span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
-        {PLANS.map((p, i) => {
-          const price = interval === 'yearly' ? p.price.yearly : p.price.monthly;
+      {/* Plan cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '20px' }}>
+        {PLANS.map((p) => {
+          const price = billingInterval === 'yearly' ? p.price.yearly : p.price.monthly;
           const isCurrent = plan === p.tier;
-          const isPro = p.tier === 'pro';
+          const Icon = p.icon;
+
           return (
-            <div key={p.tier} className="card" style={{ padding: '24px', display: 'flex', flexDirection: 'column', position: 'relative', borderColor: isPro ? 'hsl(205 90% 48% / 0.4)' : undefined, boxShadow: isPro ? '0 0 30px hsl(205 90% 48% / 0.1)' : undefined }}>
-              {isPro && <div style={{ position: 'absolute', top: '-12px', left: '50%', transform: 'translateX(-50%)', padding: '4px 14px', borderRadius: '999px', background: 'hsl(205, 90%, 48%)', color: 'white', fontSize: '11px', fontWeight: 700, whiteSpace: 'nowrap' }}>Most Popular</div>}
-              <div style={{ marginBottom: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  {p.tier === 'pro' ? <Crown size={16} color="#a78bfa" /> : <Zap size={16} color={p.tier === 'plus' ? 'hsl(205, 90%, 60%)' : '#888'} />}
-                  <span style={{ fontWeight: 700, fontSize: '16px' }}>{p.name}</span>
+            <div
+              key={p.tier}
+              className="card"
+              style={{
+                padding: '22px 18px', display: 'flex', flexDirection: 'column', position: 'relative',
+                borderColor: p.highlight ? 'hsl(205 90% 48% / 0.4)' : undefined,
+                boxShadow: p.highlight ? '0 0 30px hsl(205 90% 48% / 0.08)' : undefined,
+              }}
+            >
+              {p.highlight && (
+                <div style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', padding: '3px 12px', borderRadius: '999px', background: 'hsl(205, 90%, 48%)', color: 'white', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap', letterSpacing: '0.05em' }}>
+                  MOST POPULAR
                 </div>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
-                  <span style={{ fontSize: '30px', fontWeight: 800 }}>{price === 0 ? 'Free' : `$${price}`}</span>
-                  {price > 0 && <span style={{ fontSize: '13px', color: 'hsl(240 5% 55%)' }}>/{interval === 'yearly' ? 'yr' : 'mo'}</span>}
-                </div>
-                {interval === 'yearly' && price > 0 && <p style={{ fontSize: '11px', color: 'hsl(240 5% 50%)' }}>${p.price.monthly}/mo billed yearly</p>}
+              )}
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '14px' }}>
+                <Icon size={14} color={p.color} />
+                <span style={{ fontWeight: 700, fontSize: '15px', color: p.color }}>{p.name}</span>
               </div>
-              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
-                {p.features.map(f => <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px' }}><Check size={14} color="#34d399" style={{ flexShrink: 0, marginTop: '1px' }} /><span style={{ color: 'hsl(240 5% 65%)' }}>{f}</span></li>)}
+
+              <div style={{ marginBottom: '18px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '3px' }}>
+                  {price === 0 ? (
+                    <span style={{ fontSize: '28px', fontWeight: 800 }}>Free</span>
+                  ) : (
+                    <>
+                      <span style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', paddingTop: '7px', alignSelf: 'flex-start' }}>£</span>
+                      <span style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em' }}>{price}</span>
+                      <span style={{ fontSize: '12px', color: 'hsl(240 5% 50%)' }}>/{billingInterval === 'yearly' ? 'yr' : 'mo'}</span>
+                    </>
+                  )}
+                </div>
+                {billingInterval === 'yearly' && price > 0 && (
+                  <p style={{ fontSize: '11px', color: '#34d399', margin: '3px 0 0' }}>
+                    Save £{(p.price.monthly * 12) - p.price.yearly} vs monthly
+                  </p>
+                )}
+              </div>
+
+              <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 18px', display: 'flex', flexDirection: 'column', gap: '7px', flex: 1 }}>
+                {p.features.map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontSize: '12px' }}>
+                    <Check size={13} color="#34d399" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <span style={{ color: 'hsl(240 5% 68%)' }}>{f}</span>
+                  </li>
+                ))}
+                {p.missing.map(f => (
+                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontSize: '12px', opacity: 0.35 }}>
+                    <X size={13} color="hsl(240 5% 50%)" style={{ flexShrink: 0, marginTop: '1px' }} />
+                    <span style={{ color: 'hsl(240 5% 50%)' }}>{f}</span>
+                  </li>
+                ))}
               </ul>
+
               {isCurrent ? (
-                <button disabled className="btn" style={{ background: 'hsl(240 6% 16%)', color: 'hsl(240 5% 50%)', cursor: 'default', height: '40px' }}>Current Plan</button>
+                <button disabled className="btn" style={{ background: 'hsl(240 6% 16%)', color: 'hsl(240 5% 45%)', cursor: 'default', height: '38px', fontSize: '13px' }}>
+                  Current Plan
+                </button>
               ) : p.tier === 'free' ? (
-                <button disabled className="btn btn-outline" style={{ height: '40px', opacity: 0.5, cursor: 'not-allowed' }}>Downgrade via portal</button>
+                <button disabled className="btn btn-outline" style={{ height: '38px', opacity: 0.45, cursor: 'not-allowed', fontSize: '13px' }}>
+                  Downgrade via portal
+                </button>
               ) : (
-                <button onClick={() => upgrade(p.tier)} disabled={!!loading} className={`btn ${isPro ? 'btn-primary' : 'btn-outline'}`} style={{ height: '40px', fontWeight: 600 }}>
+                <button
+                  onClick={() => upgrade(p.tier)}
+                  disabled={!!loading}
+                  className={`btn ${p.highlight ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ height: '38px', fontWeight: 600, fontSize: '13px', gap: '5px' }}
+                >
                   {loading === p.tier ? 'Redirecting…' : `Upgrade to ${p.name}`}
                 </button>
               )}
@@ -101,7 +194,10 @@ export function BillingView({ profile, subscription }: any) {
           );
         })}
       </div>
-      <p style={{ textAlign: 'center', fontSize: '13px', color: 'hsl(240 5% 45%)', marginTop: '16px' }}>7-day free trial on paid plans · Cancel anytime</p>
+
+      <p style={{ textAlign: 'center', fontSize: '12px', color: 'hsl(240 5% 40%)', marginTop: '8px' }}>
+        7-day free trial on paid plans · Cancel anytime · No hidden fees
+      </p>
     </div>
   );
 }

@@ -35,7 +35,7 @@ export function fileIcon(type: string) {
 }
 
 export const PLAN_LIMITS = {
-  free:  { ai: 20, notes: 10, files: 5, tasks: 25, reminders: 5, content: 10, exports: 3, invoices: 0 },
-  plus:  { ai: 150, notes: 100, files: 25, tasks: 200, reminders: 50, content: 75, exports: 25, invoices: 0 },
-  pro:   { ai: 500, notes: -1, files: 100, tasks: -1, reminders: 200, content: 300, exports: 100, invoices: -1 },
+  free:  { ai: 30,   notes: 20,  files: 10,  tasks: 50,  reminders: 10,  content: 15,  exports: 5,   invoices: 0  },
+  plus:  { ai: 500,  notes: -1,  files: 50,  tasks: -1,  reminders: 100, content: 200, exports: 50,  invoices: 25 },
+  pro:   { ai: -1,   notes: -1,  files: 250, tasks: -1,  reminders: -1,  content: -1,  exports: 500, invoices: -1 },
 };
