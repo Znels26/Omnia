@@ -505,6 +505,12 @@ html {
 
 a { color: inherit; text-decoration: none; }
 
+/* Show note actions on hover (desktop), always on mobile */
+.note-item:hover .note-actions { opacity: 1 !important; }
+@media (max-width: 768px) {
+  .note-actions { opacity: 1 !important; }
+}
+
 /* Prevent tables and wide content from breaking layout */
 table { max-width: 100%; overflow-x: auto; display: block; }
 img { max-width: 100%; height: auto; }
