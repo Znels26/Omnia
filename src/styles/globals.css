@@ -135,9 +135,11 @@ h1, h2, h3, h4, h5, h6 {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid hsl(var(--border));
-  padding: 0 16px;
-  height: 52px;
-  align-items: center;
+  /* Push content below the notch / status bar in PWA standalone mode */
+  padding: env(safe-area-inset-top, 0px) 16px 0;
+  height: calc(52px + env(safe-area-inset-top, 0px));
+  align-items: flex-end;
+  padding-bottom: 8px;
   justify-content: space-between;
   width: 100%;
 }
@@ -408,7 +410,7 @@ input::placeholder, textarea::placeholder {
    ========================================== */
 .split-view {
   display: flex;
-  height: calc(100dvh - 52px); /* subtract mobile header */
+  height: calc(100dvh - 52px - env(safe-area-inset-top, 0px));
   overflow: hidden;
 }
 
