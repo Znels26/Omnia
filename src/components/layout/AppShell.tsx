@@ -6,7 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
 LayoutDashboard, MessageSquare, CalendarDays, FileText,
 FolderOpen, Wand2, FileOutput, Receipt, Bell, Settings,
-CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers
+CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -44,6 +44,7 @@ await createClient().auth.signOut();
 router.push('/login');
 };
 
+const isOwner = profile?.email === 'zacharynelson96@gmail.com';
 const initial = (profile?.display_name || profile?.email || 'U')[0].toUpperCase();
 const planColor: Record<string, string> = { free: '#888', plus: 'hsl(205,90%,60%)', pro: 'hsl(262,83%,75%)' };
 
@@ -100,6 +101,12 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
   {/* Nav links */}
   <nav style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
     {NAV.map(item => <NavLink key={item.href} {...item} />)}
+    {isOwner && (
+      <>
+        <div style={{ height: '1px', background: 'hsl(240 6% 14%)', margin: '6px 4px' }} />
+        <NavLink href="/admin" label="Owner Dashboard" icon={ShieldCheck} />
+      </>
+    )}
   </nav>
 
   {/* User profile footer */}
