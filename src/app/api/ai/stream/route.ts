@@ -28,21 +28,35 @@ export async function POST(req: NextRequest) {
   }
 
   const supabase = createAdminSupabaseClient();
-
-  // Save user message
-  await supabase.from('chat_messages').insert({
-    chat_id: chatId,
-    user_id: user.id,
-    role: 'user',
-    content: content.trim(),
-  });
-
   const systemPrompt = SYSTEM_PROMPTS[mode] || SYSTEM_PROMPTS.general;
 
-  const anthropicMessages = [
-    ...messages.slice(-8).map((m: any) => ({ role: m.role, content: m.content })),
-    { role: 'user', content: content.trim() },
-  ];
+  // Save user message and kick off Anthropic call in parallel
+  const [, anthropicResponse] = await Promise.all([
+    supabase.from('chat_messages').insert({ chat_id: chatId, user_id: user.id, role: 'user', content: content.trim() }),
+    fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 2048,
+        system: systemPrompt,
+        messages: [
+          ...messages.slice(-8).map((m: any) => ({ role: m.role, content: m.content })),
+          { role: 'user', content: content.trim() },
+        ],
+        stream: true,
+      }),
+    }),
+  ]);
+
+  if (!anthropicResponse.ok) {
+    const err = await anthropicResponse.json();
+    return NextResponse.json({ error: err.error?.message || 'Anthropic API error' }, { status: 502 });
+  }
 
   const encoder = new TextEncoder();
   let accumulated = '';
@@ -50,31 +64,7 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       try {
-        const response = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-api-key': apiKey,
-            'anthropic-version': '2023-06-01',
-          },
-          body: JSON.stringify({
-            model: 'claude-sonnet-4-5',
-            max_tokens: 2048,
-            system: systemPrompt,
-            messages: anthropicMessages,
-            stream: true,
-          }),
-        });
-
-        if (!response.ok) {
-          const err = await response.json();
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: err.error?.message || 'Anthropic API error' })}\n\n`));
-          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
-          controller.close();
-          return;
-        }
-
-        const reader = response.body!.getReader();
+        const reader = anthropicResponse.body!.getReader();
         const dec = new TextDecoder();
 
         while (true) {
@@ -89,7 +79,6 @@ export async function POST(req: NextRequest) {
             try {
               const parsed = JSON.parse(data);
 
-              // Anthropic streaming events
               if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
                 const token = parsed.delta.text || '';
                 if (token) {
@@ -99,22 +88,17 @@ export async function POST(req: NextRequest) {
               }
 
               if (parsed.type === 'message_stop') {
-                // Save assistant message
-                const { data: msg } = await supabase
-                  .from('chat_messages')
-                  .insert({ chat_id: chatId, user_id: user.id, role: 'assistant', content: accumulated })
-                  .select()
-                  .single();
-
-                // Update chat
-                await supabase.from('chats').update({
-                  last_message_at: new Date().toISOString(),
-                  ...(messages.length === 0 ? { title: content.slice(0, 60) } : {}),
-                }).eq('id', chatId).eq('user_id', user.id);
-
-                // Update usage counter
-                const { data: u } = await supabase.from('usage_counters').select('ai_requests_used').eq('user_id', user.id).single();
-                if (u) await supabase.from('usage_counters').update({ ai_requests_used: (u.ai_requests_used || 0) + 1 }).eq('user_id', user.id);
+                // Parallelize all post-stream DB writes
+                const [{ data: msg }] = await Promise.all([
+                  supabase.from('chat_messages').insert({ chat_id: chatId, user_id: user.id, role: 'assistant', content: accumulated }).select().single(),
+                  supabase.from('chats').update({
+                    last_message_at: new Date().toISOString(),
+                    ...(messages.length === 0 ? { title: content.slice(0, 60) } : {}),
+                  }).eq('id', chatId).eq('user_id', user.id),
+                  supabase.from('usage_counters').select('ai_requests_used').eq('user_id', user.id).single().then(({ data: u }) =>
+                    u ? supabase.from('usage_counters').update({ ai_requests_used: (u.ai_requests_used || 0) + 1 }).eq('user_id', user.id) : null
+                  ),
+                ]);
 
                 if (msg) {
                   controller.enqueue(encoder.encode(`data: ${JSON.stringify({ finalMessage: msg })}\n\n`));
