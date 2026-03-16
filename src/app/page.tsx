@@ -143,14 +143,14 @@ export default function HomePage() {
         <div style={{ background: 'hsl(205 90% 48% / 0.06)', border: '1px solid hsl(205 90% 48% / 0.2)', borderRadius: '20px', padding: '40px 32px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.1)', border: '1px solid hsl(205 90% 48% / 0.2)', marginBottom: '20px' }}>
             <TrendingUp size={12} color="hsl(205, 90%, 60%)" />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(205, 90%, 60%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Most tools: £10-40/month each</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(205, 90%, 60%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Separate tools cost £10–40/month each</span>
           </div>
-          <h2 style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.02em' }}>Get all of them for less</h2>
+          <h2 style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.02em' }}>Get everything for <span style={{ color: 'hsl(205, 90%, 60%)' }}>£25/month</span></h2>
           <p style={{ fontSize: '15px', color: 'hsl(240 5% 55%)', marginBottom: '28px', lineHeight: 1.65 }}>
-            Omnia Plus covers everything — AI assistant, Life Hub (22 tools), Content Studio, Invoices, Proposals and more.
+            One subscription replaces your AI assistant, productivity planner, finance tools, content studio, invoicing, and more.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '320px', margin: '0 auto 28px' }}>
-            {['Free plan to get started', '22 Life Hub tools', 'AI Money Tools suite', 'Unlimited AI assistant', 'Export to PDF, Word & Excel'].map(item => (
+            {['Start free — no card required', '22 Life Hub tools included', 'AI Money Tools suite', 'Unlimited AI assistant', 'Export to PDF, Word & Excel'].map(item => (
               <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'hsl(142 70% 40% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Check size={11} color="hsl(142, 70%, 55%)" />
