@@ -133,4 +133,181 @@ ${description ? `<p>${description}</p>` : ''}
 <p>Looking forward to hearing from you.</p>
 <p style="color:#64748b;font-size:12px;margin-top:16px">Sent on behalf of ${senderEmail} via Omnia</p>
 `),
+
+  churnRisk: (name: string) =>
+    base("We miss you, " + name + " 👋", `
+<p>Hey ${name}, it looks like you haven't been on Omnia in a while.</p>
+<p>Here's what's been added since your last visit:</p>
+<ul>
+<li>Improved AI memory — remembers your preferences across sessions</li>
+<li>Faster Life Hub with all 22 tools refreshed</li>
+<li>Smarter task scheduling with AI suggestions</li>
+</ul>
+<p>Your data is safe and ready when you come back.</p>
+<div class="divider"></div>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="btn">Come Back to Omnia →</a>
+`),
+
+  upgradePrompt: (name: string, limitHit: string) =>
+    base("You're maxing out Omnia ⚡", `
+<p>Hey ${name}, great news — you're getting serious value out of Omnia!</p>
+<p>You've hit your <strong>${limitHit}</strong> limit. Upgrade to unlock more:</p>
+<ul>
+<li>Unlimited AI messages</li>
+<li>250+ file uploads</li>
+<li>500 exports/month</li>
+<li>Priority support</li>
+<li>Advanced AI memory</li>
+</ul>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/billing" class="btn">Upgrade Now →</a>
+`),
+
+  dunning: (name: string, day: number, amount: string) =>
+    base(day >= 7 ? "Final notice: Payment failed ⚠️" : "Payment failed — action needed 💳", `
+<p>Hey ${name},</p>
+${day === 1 ? `<p>Your payment of <strong>${amount}</strong> didn't go through. This is just a heads-up — we'll retry automatically.</p>` : ''}
+${day === 3 ? `<p>We've tried to charge <strong>${amount}</strong> again but it failed. Please update your payment method to keep your subscription active.</p>` : ''}
+${day >= 7 ? `<p>This is your final notice. Your payment of <strong>${amount}</strong> has failed and your subscription will be cancelled if not resolved today.</p>` : ''}
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/billing" class="btn">Update Payment →</a>
+`),
+
+  trialExpiry: (name: string, daysLeft: number) =>
+    base(daysLeft > 0 ? `Your trial ends in ${daysLeft} day${daysLeft > 1 ? 's' : ''} ⏳` : "Your trial has ended", `
+<p>Hey ${name},</p>
+${daysLeft > 0 ? `<p>Your free trial expires in <strong>${daysLeft} day${daysLeft > 1 ? 's' : ''}</strong>. Don't lose access to your data and AI tools.</p>` : '<p>Your free trial has ended. Your account has been moved to the free plan.</p>'}
+<p>Upgrade now to keep everything running:</p>
+<ul>
+<li>All your notes, tasks, and invoices stay intact</li>
+<li>Unlimited AI messages</li>
+<li>Full Life Hub access</li>
+</ul>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/billing" class="btn">${daysLeft > 0 ? 'Upgrade Before It Expires' : 'Reactivate Now'} →</a>
+`),
+
+  downgraded: (name: string) =>
+    base("Your plan has been updated", `
+<p>Hey ${name}, your subscription has ended and your account has been moved to the <strong>free plan</strong>.</p>
+<p>You can still access:</p>
+<ul>
+<li>30 AI messages/month</li>
+<li>20 notes</li>
+<li>Basic planner</li>
+</ul>
+<p>Your existing data is safe. Upgrade anytime to restore full access.</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/billing" class="btn">Reactivate Subscription →</a>
+`),
+
+  onboardingNudge: (name: string, step: string) =>
+    base("You're almost set up, " + name + "! 🚀", `
+<p>Hey ${name}, you're so close to getting the most out of Omnia.</p>
+<p>Next step: <strong>${step}</strong></p>
+<p>It only takes a minute and unlocks a much better experience.</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="btn">Complete Setup →</a>
+`),
+
+  firstWin: (name: string, type: string, title: string) =>
+    base("Your first " + type + "! 🎉", `
+<p>Hey ${name}, you just completed your first <strong>${type}</strong>:</p>
+<h2>${title}</h2>
+<p>That's how it starts. Keep the momentum going — small wins add up to big results.</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="btn">Keep Going →</a>
+`),
+
+  goalDeadlineReminder: (name: string, goalTitle: string, daysLeft: number, aiMotivation: string) =>
+    base(`Goal due in ${daysLeft} days: ${goalTitle}`, `
+<p>Hey ${name}, your goal is coming up fast.</p>
+<h2>${goalTitle}</h2>
+<p style="color:#f59e0b">⏳ ${daysLeft} days remaining</p>
+<div class="divider"></div>
+<p>${aiMotivation}</p>
+<div class="divider"></div>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/planner" class="btn">Update Progress →</a>
+`),
+
+  inactiveFeatureNudge: (name: string, featureName: string, featureDescription: string, link: string) =>
+    base("Did you know about " + featureName + "? 💡", `
+<p>Hey ${name}, here's a tip you might have missed.</p>
+<h2>${featureName}</h2>
+<p>${featureDescription}</p>
+<p>It's already included in your plan — give it a try!</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}${link}" class="btn">Try It Now →</a>
+`),
+
+  milestoneCelebration: (name: string, count: number, item: string) =>
+    base(`${count} ${item}! You're on a roll 🏆`, `
+<p>Hey ${name}, you just hit a big milestone:</p>
+<div style="text-align:center;padding:24px 0">
+<span style="font-size:48px;font-weight:800;color:#f59e0b">${count}</span>
+<p style="font-size:18px;font-weight:600;color:#fff;margin:4px 0">${item}</p>
+</div>
+<p>That's a serious achievement. Keep pushing — you're building something great.</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="btn">View Dashboard →</a>
+`),
+
+  contentIdeas: (name: string, ideas: string[]) =>
+    base("Your 5 AI content ideas this week 💡", `
+<p>Hey ${name}, here are 5 personalised content ideas generated just for you.</p>
+<div class="divider"></div>
+<ul>${ideas.map((idea, i) => `<li><strong>${i + 1}.</strong> ${idea}</li>`).join('')}</ul>
+<div class="divider"></div>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/create" class="btn">Create Content →</a>
+`),
+
+  financialInsight: (name: string, insight: string) =>
+    base("Your weekly financial insight 💰", `
+<p>Hey ${name}, here's your AI-powered financial analysis for the week.</p>
+<div class="divider"></div>
+<p>${insight.replace(/\n/g, '</p><p>')}</p>
+<div class="divider"></div>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/life-hub" class="btn">View Money Tools →</a>
+`),
+
+  fitnessInsight: (name: string, insight: string) =>
+    base("Your weekly fitness progress 💪", `
+<p>Hey ${name}, here's your personalised fitness analysis.</p>
+<div class="divider"></div>
+<p>${insight.replace(/\n/g, '</p><p>')}</p>
+<div class="divider"></div>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/life-hub" class="btn">View Fitness Tracker →</a>
+`),
+
+  winBack: (name: string, improvementHighlight: string) =>
+    base("A lot has changed at Omnia, " + name, `
+<p>Hey ${name}, it's been a while since you last used Omnia.</p>
+<p>Here's what's new and improved since you left:</p>
+<p>${improvementHighlight}</p>
+<p>We'd love to have you back. Your account is still active and your data is safe.</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="btn">Come Back →</a>
+`),
+
+  nps: (name: string) =>
+    base("Quick question, " + name + " 🙏", `
+<p>Hey ${name}, you've been using Omnia for a while now and your feedback means a lot to us.</p>
+<p style="font-size:16px;font-weight:600;color:#fff">How likely are you to recommend Omnia to a friend?</p>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin:16px 0">
+${[1,2,3,4,5,6,7,8,9,10].map(n => `<a href="${process.env.NEXT_PUBLIC_APP_URL}/nps?score=${n}" style="display:inline-block;width:36px;height:36px;line-height:36px;text-align:center;border-radius:8px;background:#1e1e2e;color:#e2e8f0;text-decoration:none;font-weight:600;font-size:13px">${n}</a>`).join('')}
+</div>
+<p style="font-size:12px;color:#475569">1 = Not at all likely · 10 = Extremely likely</p>
+`),
+
+  testimonialRequest: (name: string) =>
+    base("Would you share your story? ⭐", `
+<p>Hey ${name}, you've been an Omnia user for 30 days now — that's amazing!</p>
+<p>Would you mind leaving a quick review? It takes less than 2 minutes and helps other people discover Omnia.</p>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/review" class="btn">Leave a Review →</a>
+<p style="font-size:12px;color:#475569;margin-top:12px">You'll never get this email again — we only ask once.</p>
+`),
+
+  upgradeAnniversary: (name: string, planTier: string, bonusTip: string) =>
+    base("Happy anniversary, " + name + "! 🎂", `
+<p>Hey ${name}, it's been exactly one year since you upgraded to <strong>${planTier}</strong>. Thank you for being an incredible Omnia member.</p>
+<div class="divider"></div>
+<h2>Pro Tip of the Month</h2>
+<p>${bonusTip}</p>
+<div class="divider"></div>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/dashboard" class="btn">Open Omnia →</a>
+`),
+
+  adminAlert: (subject: string, body: string) =>
+    base(`⚠️ Admin Alert: ${subject}`, `<p>${body.replace(/\n/g, '</p><p>')}</p>`),
 };
