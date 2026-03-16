@@ -410,7 +410,8 @@ input::placeholder, textarea::placeholder {
    ========================================== */
 .split-view {
   display: flex;
-  height: calc(100dvh - 52px - env(safe-area-inset-top, 0px));
+  /* subtract mobile header + bottom nav + their safe-area insets */
+  height: calc(100dvh - 52px - env(safe-area-inset-top, 0px) - 60px - env(safe-area-inset-bottom, 0px));
   overflow: hidden;
 }
 
