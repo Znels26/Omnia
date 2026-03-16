@@ -312,6 +312,16 @@ export function CodeStudioView({ profile }: { profile: any }) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
+  // Deep-link: /code-studio?prompt=... auto-opens AI panel with pre-filled prompt
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const urlPrompt = params.get('prompt');
+    if (urlPrompt) {
+      setAiPrompt(decodeURIComponent(urlPrompt));
+      setShowAI(true);
+    }
+  }, []);
+
   // Live preview for HTML/React
   useEffect(() => {
     if (lang !== 'html' && lang !== 'react') return;

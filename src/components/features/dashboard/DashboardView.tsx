@@ -3,17 +3,19 @@ import Link from 'next/link';
 import {
   MessageSquare, CalendarDays, FileText, Wand2, FileOutput,
   Bell, ArrowRight, Sparkles, Clock, Zap, BarChart3, Brain,
-  FileSignature, DollarSign, Heart, CheckCircle2,
+  FileSignature, DollarSign, Heart, CheckCircle2, Code2, FolderOpen,
 } from 'lucide-react';
 import { timeAgo, formatDate, PLAN_LIMITS } from '@/lib/utils';
 
 const QUICK_ACTIONS = [
-  { href: '/assistant',      label: 'New Chat',   icon: MessageSquare, color: '#38aaf5', bg: 'rgba(56,170,245,0.12)' },
-  { href: '/planner',        label: 'Add Task',   icon: CalendarDays,  color: '#fbbf24', bg: 'rgba(251,191,36,0.12)'  },
-  { href: '/notes',          label: 'New Note',   icon: FileText,      color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
-  { href: '/content-studio', label: 'Create',     icon: Wand2,         color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
-  { href: '/invoices',       label: 'Invoice',    icon: FileOutput,    color: '#34d399', bg: 'rgba(52,211,153,0.12)'  },
-  { href: '/reminders',      label: 'Reminder',   icon: Bell,          color: '#fb923c', bg: 'rgba(251,146,60,0.12)'  },
+  { href: '/assistant',      label: 'Chat',     icon: MessageSquare, color: '#38aaf5', bg: 'rgba(56,170,245,0.12)' },
+  { href: '/planner',        label: 'Task',     icon: CalendarDays,  color: '#fbbf24', bg: 'rgba(251,191,36,0.12)'  },
+  { href: '/notes',          label: 'Note',     icon: FileText,      color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
+  { href: '/content-studio', label: 'Content',  icon: Wand2,         color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
+  { href: '/code-studio',    label: 'Code',     icon: Code2,         color: '#c084fc', bg: 'rgba(192,132,252,0.12)' },
+  { href: '/invoices',       label: 'Invoice',  icon: FileOutput,    color: '#34d399', bg: 'rgba(52,211,153,0.12)'  },
+  { href: '/reminders',      label: 'Reminder', icon: Bell,          color: '#fb923c', bg: 'rgba(251,146,60,0.12)'  },
+  { href: '/files',          label: 'Files',    icon: FolderOpen,    color: '#60a5fa', bg: 'rgba(96,165,250,0.12)'  },
 ];
 
 const AI_TOOLS = [
@@ -21,6 +23,7 @@ const AI_TOOLS = [
   { href: '/ai-tools',        label: 'AI Money Tools',    desc: 'Lead magnets, SEO, emails', icon: DollarSign,    color: 'hsl(142,70%,55%)',  bg: 'hsl(142 70% 40% / 0.1)', border: 'hsl(142 70% 40% / 0.2)' },
   { href: '/proposal',        label: 'Proposals',         desc: 'Win clients with AI',       icon: FileSignature, color: 'hsl(205,90%,60%)',  bg: 'hsl(205 90% 48% / 0.1)', border: 'hsl(205 90% 48% / 0.2)' },
   { href: '/settings#memory', label: 'AI Memory',         desc: 'Teach Omnia about you',     icon: Brain,         color: 'hsl(160,60%,55%)',  bg: 'hsl(160 60% 40% / 0.1)', border: 'hsl(160 60% 40% / 0.2)' },
+  { href: '/code-studio',    label: 'Code Studio',       desc: 'IDE + live preview + AI',   icon: Code2,         color: 'hsl(262,83%,75%)',  bg: 'hsl(262 83% 58% / 0.1)', border: 'hsl(262 83% 58% / 0.2)', pro: true },
 ];
 
 const PRIORITY_COLORS: Record<string, string> = { low: '#6b7280', medium: '#fbbf24', high: '#fb923c', urgent: '#ef4444' };
@@ -36,14 +39,11 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
   return (
     <div className="page" style={{ paddingBottom: '80px' }}>
       <style>{`
-        .qa-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; }
-        .ai-tools-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .qa-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+        .ai-tools-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
         .dash-main { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,2fr); gap: 16px; }
-        @media (max-width: 1000px) {
-          .ai-tools-row { grid-template-columns: repeat(2, 1fr); }
-        }
         @media (max-width: 700px) {
-          .qa-grid { grid-template-columns: repeat(3, 1fr); }
+          .qa-grid { grid-template-columns: repeat(4, 1fr); }
           .ai-tools-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
           .dash-main { grid-template-columns: 1fr; }
         }
@@ -80,14 +80,17 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
       {/* ── AI Tools ── */}
       <SectionLabel>AI Tools</SectionLabel>
       <div className="ai-tools-row" style={{ marginBottom: '28px' }}>
-        {AI_TOOLS.map(({ href, label, desc, icon: Icon, color, bg, border }) => (
+        {AI_TOOLS.map(({ href, label, desc, icon: Icon, color, bg, border, pro }: any) => (
           <Link key={href} href={href} style={{ textDecoration: 'none' }}>
             <div className="card card-hover" style={{ padding: '14px 16px', borderColor: border, background: bg, display: 'flex', alignItems: 'center', gap: '12px' }}>
               <div style={{ width: '34px', height: '34px', borderRadius: '10px', background: 'hsl(240 10% 5%)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                 <Icon size={16} color={color} />
               </div>
-              <div style={{ minWidth: 0 }}>
-                <p style={{ fontSize: '13px', fontWeight: 600, color: 'hsl(0 0% 90%)', margin: '0 0 2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
+              <div style={{ minWidth: 0, flex: 1 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '2px' }}>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'hsl(0 0% 90%)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</p>
+                  {pro && <span style={{ fontSize: '9px', fontWeight: 700, padding: '1px 5px', borderRadius: '4px', background: 'hsl(262 83% 58% / 0.2)', color: 'hsl(262,83%,75%)', flexShrink: 0 }}>PRO</span>}
+                </div>
                 <p style={{ fontSize: '11px', color: 'hsl(240 5% 48%)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{desc}</p>
               </div>
             </div>
