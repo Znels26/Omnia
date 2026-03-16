@@ -6,7 +6,8 @@ import { usePathname, useRouter } from 'next/navigation';
 import {
 LayoutDashboard, MessageSquare, CalendarDays, FileText,
 FolderOpen, Wand2, FileOutput, Receipt, Bell, Settings,
-CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck
+CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck,
+DollarSign, CalendarClock, Share2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -17,6 +18,7 @@ const NAV = [
 { href: '/notes', label: 'Notes', icon: FileText },
 { href: '/files', label: 'Files', icon: FolderOpen },
 { href: '/content-studio', label: 'Content Studio', icon: Wand2 },
+{ href: '/ai-tools', label: 'AI Money Tools', icon: DollarSign },
 { href: '/document-builder', label: 'Doc Builder', icon: FileOutput },
 { href: '/invoices', label: 'Invoices', icon: Receipt },
 { href: '/reminders', label: 'Reminders', icon: Bell },
@@ -24,6 +26,11 @@ const NAV = [
 { href: '/my-stack', label: 'My Stack', icon: Layers },
 { href: '/settings', label: 'Settings', icon: Settings },
 { href: '/billing', label: 'Billing', icon: CreditCard },
+];
+
+const COMING_SOON = [
+{ label: 'Content Scheduler', icon: CalendarClock },
+{ label: 'Social Auto-Poster', icon: Share2 },
 ];
 
 const MOBILE_NAV = [
@@ -101,6 +108,30 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
   {/* Nav links */}
   <nav style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
     {NAV.map(item => <NavLink key={item.href} {...item} />)}
+
+    {/* Coming Soon */}
+    <div style={{ height: '1px', background: 'hsl(240 6% 14%)', margin: '8px 4px 6px' }} />
+    <p style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 38%)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px', margin: '0 0 4px' }}>Coming Soon</p>
+    {COMING_SOON.map(({ label, icon: Icon }) => (
+      <div
+        key={label}
+        style={{
+          display: 'flex', alignItems: 'center', gap: '10px',
+          padding: '9px 12px', borderRadius: '8px',
+          fontSize: '13.5px', color: 'hsl(240 5% 38%)',
+          cursor: 'default', userSelect: 'none',
+        }}
+      >
+        <Icon size={16} />
+        {label}
+        <span style={{
+          marginLeft: 'auto', fontSize: '9px', fontWeight: 700,
+          background: 'hsl(240 6% 14%)', color: 'hsl(240 5% 45%)',
+          padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
+        }}>Soon</span>
+      </div>
+    ))}
+
     {isOwner && (
       <>
         <div style={{ height: '1px', background: 'hsl(240 6% 14%)', margin: '6px 4px' }} />
