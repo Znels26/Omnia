@@ -19,9 +19,9 @@ const TOOLS: Tool[] = [
     id: 'budget-planner', label: 'Budget Planner', emoji: '📊', category: 'finance',
     desc: 'Set monthly budgets by category and get a personalised spending plan',
     fields: [
-      { key: 'income', label: 'Monthly income (after tax)', placeholder: 'e.g. £3,200', required: true },
-      { key: 'fixedExpenses', label: 'Fixed expenses', placeholder: 'e.g. rent £900, phone £40' },
-      { key: 'goal', label: 'Main financial goal', placeholder: 'e.g. save £500/month, build emergency fund' },
+      { key: 'income', label: 'Monthly income (after tax)', placeholder: 'e.g. $3,200', required: true },
+      { key: 'fixedExpenses', label: 'Fixed expenses', placeholder: 'e.g. rent $900, phone $40' },
+      { key: 'goal', label: 'Main financial goal', placeholder: 'e.g. save $500/month, build emergency fund' },
       { key: 'lifestyle', label: 'Lifestyle notes', placeholder: 'e.g. eat out often, gym membership, car' },
     ],
   },
@@ -31,7 +31,7 @@ const TOOLS: Tool[] = [
     fields: [
       { key: 'sources', label: 'Income sources', placeholder: 'e.g. freelance design, salary, side hustle', required: true },
       { key: 'employmentType', label: 'Employment type', placeholder: 'e.g. freelancer, PAYE, both' },
-      { key: 'target', label: 'Monthly income target', placeholder: 'e.g. £4,000' },
+      { key: 'target', label: 'Monthly income target', placeholder: 'e.g. $4,000' },
     ],
   },
   {
@@ -40,7 +40,7 @@ const TOOLS: Tool[] = [
     fields: [
       { key: 'spendingAreas', label: 'Main spending areas', placeholder: 'e.g. food, subscriptions, eating out', required: true },
       { key: 'painPoints', label: 'Pain points', placeholder: 'e.g. overspending on food, surprise costs' },
-      { key: 'budget', label: 'Monthly budget', placeholder: 'e.g. £1,500 disposable' },
+      { key: 'budget', label: 'Monthly budget', placeholder: 'e.g. $1,500 disposable' },
     ],
   },
   {
@@ -48,16 +48,16 @@ const TOOLS: Tool[] = [
     desc: 'Set savings targets and get a step-by-step roadmap to hit them',
     fields: [
       { key: 'goal', label: 'Savings goal', placeholder: 'e.g. house deposit, holiday, emergency fund', required: true },
-      { key: 'targetAmount', label: 'Target amount', placeholder: 'e.g. £10,000', required: true },
-      { key: 'currentSavings', label: 'Current savings', placeholder: 'e.g. £1,200' },
-      { key: 'monthlySavings', label: 'Can save per month', placeholder: 'e.g. £400' },
+      { key: 'targetAmount', label: 'Target amount', placeholder: 'e.g. $10,000', required: true },
+      { key: 'currentSavings', label: 'Current savings', placeholder: 'e.g. $1,200' },
+      { key: 'monthlySavings', label: 'Can save per month', placeholder: 'e.g. $400' },
     ],
   },
   {
     id: 'investment-ideas', label: 'Investment Ideas', emoji: '📈', category: 'finance',
     desc: 'AI suggests investment strategies matched to your risk profile',
     fields: [
-      { key: 'amount', label: 'Amount to invest', placeholder: 'e.g. £5,000 lump sum or £200/month', required: true },
+      { key: 'amount', label: 'Amount to invest', placeholder: 'e.g. $5,000 lump sum or $200/month', required: true },
       { key: 'riskTolerance', label: 'Risk tolerance', placeholder: 'e.g. low, moderate, high' },
       { key: 'horizon', label: 'Investment timeline', placeholder: 'e.g. 5 years, long-term retirement' },
       { key: 'experience', label: 'Investment experience', placeholder: 'e.g. complete beginner, some ISA experience' },
@@ -67,8 +67,8 @@ const TOOLS: Tool[] = [
     id: 'debt-payoff', label: 'Debt Payoff Planner', emoji: '🔓', category: 'finance',
     desc: 'Enter your debts and AI creates an optimised payoff strategy',
     fields: [
-      { key: 'debts', label: 'Your debts', placeholder: 'e.g. credit card £2k @ 24%, student loan £8k @ 4%', required: true },
-      { key: 'monthlyPayment', label: 'Monthly payment available', placeholder: 'e.g. £300' },
+      { key: 'debts', label: 'Your debts', placeholder: 'e.g. credit card $2k @ 24%, student loan $8k @ 4%', required: true },
+      { key: 'monthlyPayment', label: 'Monthly payment available', placeholder: 'e.g. $300' },
       { key: 'priority', label: 'Priority', placeholder: 'e.g. pay off ASAP, reduce interest first' },
     ],
   },
@@ -76,20 +76,20 @@ const TOOLS: Tool[] = [
     id: 'tax-estimator', label: 'Tax Estimator', emoji: '🧮', category: 'finance',
     desc: 'Estimate your tax bill and find legal ways to reduce it',
     fields: [
-      { key: 'grossIncome', label: 'Gross income', placeholder: 'e.g. £45,000 / year', required: true },
+      { key: 'grossIncome', label: 'Gross income', placeholder: 'e.g. $45,000 / year', required: true },
       { key: 'region', label: 'Country/Region', placeholder: 'e.g. UK, US (state)' },
-      { key: 'expenses', label: 'Business/allowable expenses', placeholder: 'e.g. home office £50/month, equipment £400' },
-      { key: 'otherIncome', label: 'Other income', placeholder: 'e.g. rental income £500/month' },
+      { key: 'expenses', label: 'Business/allowable expenses', placeholder: 'e.g. home office $50/month, equipment $400' },
+      { key: 'otherIncome', label: 'Other income', placeholder: 'e.g. rental income $500/month' },
     ],
   },
   {
     id: 'financial-health', label: 'Financial Health Score', emoji: '❤️‍🔥', category: 'finance',
     desc: 'Get a score out of 100 and a 30-day plan to improve it',
     fields: [
-      { key: 'income', label: 'Monthly income', placeholder: 'e.g. £3,500', required: true },
-      { key: 'expenses', label: 'Monthly expenses', placeholder: 'e.g. £2,800' },
-      { key: 'savingsRate', label: 'Savings rate', placeholder: 'e.g. 10%, £300/month, or none' },
-      { key: 'debt', label: 'Total debt', placeholder: 'e.g. £4,000 credit card, £12,000 car loan' },
+      { key: 'income', label: 'Monthly income', placeholder: 'e.g. $3,500', required: true },
+      { key: 'expenses', label: 'Monthly expenses', placeholder: 'e.g. $2,800' },
+      { key: 'savingsRate', label: 'Savings rate', placeholder: 'e.g. 10%, $300/month, or none' },
+      { key: 'debt', label: 'Total debt', placeholder: 'e.g. $4,000 credit card, $12,000 car loan' },
       { key: 'emergencyFund', label: 'Emergency fund', placeholder: 'e.g. 1 month expenses, none' },
     ],
   },
@@ -97,9 +97,9 @@ const TOOLS: Tool[] = [
     id: 'net-worth', label: 'Net Worth Tracker', emoji: '💎', category: 'finance',
     desc: 'Track assets vs liabilities and build a plan to grow your net worth',
     fields: [
-      { key: 'assets', label: 'Assets', placeholder: 'e.g. savings £5k, car £8k, investments £2k', required: true },
-      { key: 'liabilities', label: 'Liabilities', placeholder: 'e.g. student loan £12k, credit card £1k' },
-      { key: 'goal', label: 'Net worth goal', placeholder: 'e.g. reach £100k by 35' },
+      { key: 'assets', label: 'Assets', placeholder: 'e.g. savings $5k, car $8k, investments $2k', required: true },
+      { key: 'liabilities', label: 'Liabilities', placeholder: 'e.g. student loan $12k, credit card $1k' },
+      { key: 'goal', label: 'Net worth goal', placeholder: 'e.g. reach $100k by 35' },
     ],
   },
   {
@@ -107,9 +107,9 @@ const TOOLS: Tool[] = [
     desc: 'AI creates a personalised passive income plan based on your skills',
     fields: [
       { key: 'skills', label: 'Your skills', placeholder: 'e.g. design, writing, coding, marketing', required: true },
-      { key: 'capital', label: 'Starting capital', placeholder: 'e.g. £500, £2,000, or none' },
+      { key: 'capital', label: 'Starting capital', placeholder: 'e.g. $500, $2,000, or none' },
       { key: 'timePerWeek', label: 'Hours per week', placeholder: 'e.g. 5-10 hours' },
-      { key: 'incomeGoal', label: 'Monthly passive income goal', placeholder: 'e.g. £500/month within 6 months' },
+      { key: 'incomeGoal', label: 'Monthly passive income goal', placeholder: 'e.g. $500/month within 6 months' },
     ],
   },
   {
@@ -117,7 +117,7 @@ const TOOLS: Tool[] = [
     desc: 'Connect invoices to revenue tracking and improve cash flow',
     fields: [
       { key: 'businessType', label: 'Business type', placeholder: 'e.g. freelance designer, agency, consultant', required: true },
-      { key: 'avgInvoice', label: 'Average invoice value', placeholder: 'e.g. £1,200' },
+      { key: 'avgInvoice', label: 'Average invoice value', placeholder: 'e.g. $1,200' },
       { key: 'paymentTerms', label: 'Payment terms', placeholder: 'e.g. net 30, due on receipt' },
       { key: 'latePayments', label: 'Late payment issues', placeholder: 'e.g. 30% of clients pay late' },
     ],
@@ -152,7 +152,7 @@ const TOOLS: Tool[] = [
       { key: 'restrictions', label: 'Dietary restrictions', placeholder: 'e.g. vegetarian, dairy-free, no nuts' },
       { key: 'calories', label: 'Calorie target', placeholder: 'e.g. 1,800 calories or "calculate for me"' },
       { key: 'cookingSkill', label: 'Cooking skill', placeholder: 'e.g. beginner, can follow recipes, confident' },
-      { key: 'budget', label: 'Weekly food budget', placeholder: 'e.g. £50, £80' },
+      { key: 'budget', label: 'Weekly food budget', placeholder: 'e.g. $50, $80' },
     ],
   },
   {
@@ -203,7 +203,7 @@ const TOOLS: Tool[] = [
     fields: [
       { key: 'goal', label: 'Goal', placeholder: 'e.g. build muscle, lose fat, improve endurance', required: true },
       { key: 'current', label: 'Current supplements', placeholder: 'e.g. whey protein, creatine, or none' },
-      { key: 'budget', label: 'Monthly budget', placeholder: 'e.g. £30, £60' },
+      { key: 'budget', label: 'Monthly budget', placeholder: 'e.g. $30, $60' },
       { key: 'diet', label: 'Diet type', placeholder: 'e.g. omnivore, vegetarian, vegan' },
     ],
   },

@@ -143,9 +143,9 @@ export default function HomePage() {
         <div style={{ background: 'hsl(205 90% 48% / 0.06)', border: '1px solid hsl(205 90% 48% / 0.2)', borderRadius: '20px', padding: '40px 32px' }}>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.1)', border: '1px solid hsl(205 90% 48% / 0.2)', marginBottom: '20px', whiteSpace: 'nowrap' }}>
             <TrendingUp size={12} color="hsl(205, 90%, 60%)" />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(205, 90%, 60%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Other tools: £10–40/mo each</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(205, 90%, 60%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Other tools: $10–40/mo each</span>
           </div>
-          <h2 style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.02em' }}>Get everything for <span style={{ color: 'hsl(205, 90%, 60%)' }}>£25/month</span></h2>
+          <h2 style={{ fontSize: 'clamp(22px, 4vw, 34px)', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.02em' }}>Get everything for <span style={{ color: 'hsl(205, 90%, 60%)' }}>$25/month</span></h2>
           <p style={{ fontSize: '15px', color: 'hsl(240 5% 55%)', marginBottom: '28px', lineHeight: 1.65 }}>
             One subscription replaces your AI assistant, productivity planner, finance tools, content studio, invoicing, and more.
           </p>

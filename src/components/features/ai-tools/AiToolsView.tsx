@@ -50,8 +50,8 @@ const TOOLS = [
     fields: [
       { key: 'skills', label: 'Your skills & expertise', placeholder: 'e.g. graphic design, copywriting, coding', required: true },
       { key: 'timePerWeek', label: 'Hours per week available', placeholder: 'e.g. 5-10 hours' },
-      { key: 'startingCapital', label: 'Starting capital', placeholder: 'e.g. £500 or none' },
-      { key: 'goals', label: 'Income goals', placeholder: 'e.g. £2k/month within a year' },
+      { key: 'startingCapital', label: 'Starting capital', placeholder: 'e.g. $500 or none' },
+      { key: 'goals', label: 'Income goals', placeholder: 'e.g. $2k/month within a year' },
     ],
   },
 ];

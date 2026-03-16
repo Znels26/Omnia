@@ -147,7 +147,7 @@ export function ProposalView({ profile }: any) {
                   <div>{label('Deliverables')}<textarea value={form.deliverables} onChange={e => f('deliverables', e.target.value)} placeholder="e.g. 5-page website, mobile-responsive, CMS integration" rows={2} style={{ resize: 'none' }} /></div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>{label('Timeline')}<input value={form.timeline} onChange={e => f('timeline', e.target.value)} placeholder="e.g. 4 weeks" /></div>
-                    <div>{label('Budget')}<input value={form.budget} onChange={e => f('budget', e.target.value)} placeholder="e.g. £3,500" /></div>
+                    <div>{label('Budget')}<input value={form.budget} onChange={e => f('budget', e.target.value)} placeholder="e.g. $3,500" /></div>
                   </div>
                 </>
               )}
