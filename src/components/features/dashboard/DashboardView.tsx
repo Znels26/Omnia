@@ -1,6 +1,6 @@
 'use client';
 import Link from 'next/link';
-import { MessageSquare, CalendarDays, FileText, Wand2, FileOutput, Bell, Plus, ArrowRight, Sparkles, Clock, Zap, BarChart3 } from 'lucide-react';
+import { MessageSquare, CalendarDays, FileText, Wand2, FileOutput, Bell, ArrowRight, Sparkles, Clock, Zap, BarChart3, Brain, FileSignature, Layers, ClipboardList } from 'lucide-react';
 import { timeAgo, formatDate, PLAN_LIMITS } from '@/lib/utils';
 
 const QUICK_ACTIONS = [
@@ -11,6 +11,13 @@ const QUICK_ACTIONS = [
   { href: '/document-builder', label: 'Export', icon: FileOutput, color: '#34d399', bg: 'rgba(52,211,153,0.1)' },
   { href: '/reminders', label: 'Reminder', icon: Bell, color: '#fb923c', bg: 'rgba(251,146,60,0.1)' },
 ];
+const AI_TOOLS = [
+  { href: '/proposal', label: 'Proposal Generator', desc: 'Write client proposals in seconds', icon: FileSignature, color: 'hsl(205, 90%, 60%)', bg: 'hsl(205 90% 48% / 0.1)', border: 'hsl(205 90% 48% / 0.2)' },
+  { href: '/my-stack', label: 'Replace My Stack', desc: 'See what Omnia replaces', icon: Layers, color: 'hsl(262, 83%, 75%)', bg: 'hsl(262 83% 58% / 0.1)', border: 'hsl(262 83% 58% / 0.2)' },
+  { href: '/assistant', label: 'Meeting Summariser', desc: 'Paste notes, get instant summary', icon: ClipboardList, color: 'hsl(38, 90%, 65%)', bg: 'hsl(38 90% 50% / 0.1)', border: 'hsl(38 90% 50% / 0.2)' },
+  { href: '/settings#memory', label: 'AI Memory', desc: 'Teach Omnia about you', icon: Brain, color: 'hsl(160, 60%, 55%)', bg: 'hsl(160 60% 40% / 0.1)', border: 'hsl(160 60% 40% / 0.2)' },
+];
+
 const PRIORITY_COLORS: any = { low: '#6b7280', medium: '#fbbf24', high: '#fb923c', urgent: '#ef4444' };
 
 export function DashboardView({ profile, tasks, reminders, notes, chats, exports, usage }: any) {
@@ -22,6 +29,7 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
 
   return (
     <div className="page" style={{ paddingBottom: '80px' }}>
+      <DashboardStyles />
       <div style={{ marginBottom: '24px' }}>
         <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', marginBottom: '4px' }}>{formatDate(new Date(), 'EEEE, MMMM d')}</p>
         <h1 style={{ fontSize: '24px', fontWeight: 700 }}>{greeting}, {name} 👋</h1>
@@ -37,6 +45,26 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
             </div>
           </Link>
         ))}
+      </div>
+
+      {/* AI Tools */}
+      <div style={{ marginBottom: '24px' }}>
+        <p style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', color: 'hsl(240 5% 45%)', textTransform: 'uppercase', marginBottom: '10px' }}>AI Tools</p>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }} className="ai-tools-grid">
+          {AI_TOOLS.map(({ href, label, desc, icon: Icon, color, bg, border }) => (
+            <Link key={href} href={href} style={{ textDecoration: 'none' }}>
+              <div className="card card-hover" style={{ padding: '14px 16px', borderColor: border, background: bg, display: 'flex', flexDirection: 'column', gap: '8px', height: '100%' }}>
+                <div style={{ width: '32px', height: '32px', borderRadius: '9px', background: 'hsl(240 10% 6%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Icon size={16} color={color} />
+                </div>
+                <div>
+                  <p style={{ fontSize: '13px', fontWeight: 600, color: 'hsl(0 0% 90%)', marginBottom: '2px' }}>{label}</p>
+                  <p style={{ fontSize: '11px', color: 'hsl(240 5% 52%)', lineHeight: 1.4 }}>{desc}</p>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '16px' }}>
@@ -129,6 +157,14 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
     </div>
   );
 }
+
+const DashboardStyles = () => (
+  <style>{`
+    @media (max-width: 640px) {
+      .ai-tools-grid { grid-template-columns: repeat(2, 1fr) !important; }
+    }
+  `}</style>
+);
 
 function Section({ title, icon, link, children }: any) {
   return (
