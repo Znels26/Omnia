@@ -113,8 +113,8 @@ export function AdminView() {
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }} className="admin-3col">
         <StatCard label="Free" value={totals.free.toLocaleString()} sub={`${totals.users > 0 ? ((totals.free/totals.users)*100).toFixed(0) : 0}% of users`} icon={Users} color="#888" />
-        <StatCard label="Plus ($9/mo)" value={totals.plus.toLocaleString()} sub={`$${revenue.plusCount * 9}/mo`} icon={Zap} color="hsl(205,90%,60%)" />
-        <StatCard label="Pro ($19/mo)" value={totals.pro.toLocaleString()} sub={`$${revenue.proCount * 19}/mo`} icon={Crown} color="hsl(262,83%,75%)" />
+        <StatCard label="Plus ($25/mo)" value={totals.plus.toLocaleString()} sub={`$${revenue.plusCount * 25}/mo`} icon={Zap} color="hsl(205,90%,60%)" />
+        <StatCard label="Pro ($40/mo)" value={totals.pro.toLocaleString()} sub={`$${revenue.proCount * 40}/mo`} icon={Crown} color="hsl(262,83%,75%)" />
       </div>
 
       {/* Charts row */}

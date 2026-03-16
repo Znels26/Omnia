@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 
 const OWNER_EMAIL = 'zacharynelson96@gmail.com';
-const PLUS_PRICE = 9;
-const PRO_PRICE = 19;
+const PLUS_PRICE = 25;
+const PRO_PRICE = 40;
 
 function tzToRegion(tz: string): string {
   if (!tz) return 'Unknown';
