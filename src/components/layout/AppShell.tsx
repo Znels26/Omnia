@@ -95,7 +95,6 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
 </button>
 </div>
 
-```
   {/* Nav links */}
   <nav style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
     {NAV.map(item => <NavLink key={item.href} {...item} />)}
@@ -121,7 +120,6 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
     </div>
   </div>
 </>
-```
 
 );
 
@@ -132,7 +130,6 @@ return (
 <SidebarInner />
 </aside>
 
-```
   {/* ── MOBILE HEADER ── */}
   <header className="mobile-header">
     <button
@@ -209,7 +206,6 @@ return (
     })}
   </nav>
 </>
-```
 
 );
 }
