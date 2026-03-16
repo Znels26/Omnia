@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
-import { MessageSquare, Plus, Pin, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft } from 'lucide-react';
+import { MessageSquare, Plus, Pin, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon } from 'lucide-react';
 import { timeAgo } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -22,10 +22,32 @@ const STARTERS: any = {
   documents: ['Summarize a document', 'Extract key info', 'Analyze this content', 'Create table of contents'],
 };
 
+function isImageRequest(text: string): boolean {
+  const t = text.toLowerCase().trim();
+  return /^(\/image\s|generate\s+(an?\s+)?image\s|create\s+(an?\s+)?image\s|draw\s|imagine\s|make\s+(an?\s+)?image\s|paint\s|render\s+a\s|show\s+me\s+(an?\s+)?image\s|generate\s+(a\s+)?picture\s|create\s+(a\s+)?picture\s)/.test(t);
+}
+
+function extractImagePrompt(text: string): string {
+  return text
+    .replace(/^\/image\s+/i, '')
+    .replace(/^generate\s+(an?\s+)?image\s+(of\s+)?/i, '')
+    .replace(/^create\s+(an?\s+)?image\s+(of\s+)?/i, '')
+    .replace(/^draw\s+(an?\s+|me\s+)?/i, '')
+    .replace(/^imagine\s+/i, '')
+    .replace(/^make\s+(an?\s+)?image\s+(of\s+)?/i, '')
+    .replace(/^paint\s+(an?\s+|me\s+)?/i, '')
+    .replace(/^render\s+a\s+/i, '')
+    .replace(/^show\s+me\s+(an?\s+)?image\s+(of\s+)?/i, '')
+    .replace(/^generate\s+(a\s+)?picture\s+(of\s+)?/i, '')
+    .replace(/^create\s+(a\s+)?picture\s+(of\s+)?/i, '')
+    .trim() || text.trim();
+}
+
 // Simple markdown renderer
 function renderMarkdown(text: string) {
   if (!text) return '';
   return text
+    .replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+)\)/g, '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:8px 0;display:block" />')
     .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
     .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
     .replace(/\*(.*?)\*/g, '<em>$1</em>')
@@ -50,6 +72,7 @@ export function AssistantView({ profile, initialChats }: any) {
   const [showModes, setShowModes] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [generatingImage, setGeneratingImage] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -78,9 +101,50 @@ export function AssistantView({ profile, initialChats }: any) {
     }
   };
 
+  const sendImage = async (rawText: string) => {
+    const prompt = extractImagePrompt(rawText);
+    let chatId = activeChatId;
+    if (!chatId) {
+      const res = await fetch('/api/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode, title: rawText.slice(0, 60) }) });
+      if (!res.ok) { toast.error('Failed to create chat'); return; }
+      const { chat } = await res.json();
+      chatId = chat.id;
+      setChats((p: any[]) => [chat, ...p]);
+      setActiveChatId(chat.id);
+    }
+    const userMsg = { id: `u-${Date.now()}`, role: 'user', content: rawText, created_at: new Date().toISOString() };
+    const loadingId = `img-${Date.now()}`;
+    const loadingMsg = { id: loadingId, role: 'assistant', content: '', created_at: new Date().toISOString() };
+    setMessages(p => [...p, userMsg, loadingMsg]);
+    setInput('');
+    setGeneratingImage(true);
+    try {
+      const res = await fetch('/api/ai/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ chatId, prompt }),
+      });
+      if (!res.ok) {
+        const d = await res.json();
+        toast.error(d.error || 'Image generation failed');
+        setMessages(p => p.filter(m => m.id !== loadingId));
+        return;
+      }
+      const { message } = await res.json();
+      setMessages(p => p.map(m => m.id === loadingId ? message : m));
+      setChats((p: any[]) => p.map(c => c.id === chatId ? { ...c, last_message_at: new Date().toISOString() } : c));
+    } catch (e: any) {
+      toast.error('Connection error');
+      setMessages(p => p.filter(m => m.id !== loadingId));
+    } finally {
+      setGeneratingImage(false);
+    }
+  };
+
   const send = async () => {
     const text = input.trim();
-    if (!text || streaming) return;
+    if (!text || streaming || generatingImage) return;
+    if (isImageRequest(text)) { await sendImage(text); return; }
     let chatId = activeChatId;
     if (!chatId) {
       const res = await fetch('/api/ai/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mode, title: text.slice(0, 60) }) });
@@ -279,17 +343,23 @@ export function AssistantView({ profile, initialChats }: any) {
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } }}
-              placeholder={`Message Omnia (${mode})…`}
+              placeholder={`Message Omnia — or "draw a sunset" to generate an image…`}
               rows={1}
               style={{ flex: 1, background: 'transparent', border: 'none', outline: 'none', resize: 'none', fontSize: '14px', lineHeight: '1.5', padding: 0, maxHeight: '120px', color: 'hsl(0 0% 88%)', fontFamily: 'inherit' }}
               onInput={e => { const t = e.target as HTMLTextAreaElement; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }}
             />
+            {isImageRequest(input.trim()) && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '8px', background: 'hsl(280 80% 55% / 0.15)', border: '1px solid hsl(280 80% 55% / 0.3)', flexShrink: 0 }}>
+                <ImageIcon size={12} color="hsl(280, 80%, 70%)" />
+                <span style={{ fontSize: '11px', color: 'hsl(280, 80%, 70%)', whiteSpace: 'nowrap' }}>Image</span>
+              </div>
+            )}
             <button
               onClick={send}
-              disabled={!input.trim() || streaming}
-              style={{ width: '34px', height: '34px', borderRadius: '10px', background: input.trim() && !streaming ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 16%)', border: 'none', cursor: input.trim() && !streaming ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
+              disabled={!input.trim() || streaming || generatingImage}
+              style={{ width: '34px', height: '34px', borderRadius: '10px', background: input.trim() && !streaming && !generatingImage ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 16%)', border: 'none', cursor: input.trim() && !streaming && !generatingImage ? 'pointer' : 'not-allowed', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}
             >
-              <Send size={15} color={input.trim() && !streaming ? 'white' : 'hsl(240 5% 45%)'} />
+              <Send size={15} color={input.trim() && !streaming && !generatingImage ? 'white' : 'hsl(240 5% 45%)'} />
             </button>
           </div>
         </div>
