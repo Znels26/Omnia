@@ -24,6 +24,7 @@ const PLANS = [
       'AI Money Tools',
       'Invoices & proposals',
       'Content Studio',
+      'Code Studio (Pro only)',
     ],
   },
   {
@@ -47,7 +48,9 @@ const PLANS = [
       '100 reminders',
       'Content Studio (200 pieces)',
     ],
-    missing: [],
+    missing: [
+      'Code Studio (Pro only)',
+    ],
   },
   {
     tier: 'pro',
@@ -62,6 +65,9 @@ const PLANS = [
       '500 exports / month',
       'Unlimited invoices',
       'Life Hub + AI Money Tools',
+      'Code Studio — full IDE + AI codegen',
+      'Python & Node.js execution (E2B)',
+      'One-click Vercel deployment',
       'Priority support',
       'Advanced AI memory',
       'API access (coming soon)',

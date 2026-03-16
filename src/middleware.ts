@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-const PROTECTED = ['/dashboard', '/assistant', '/planner', '/notes', '/files', '/content-studio', '/document-builder', '/invoices', '/reminders', '/settings', '/billing', '/admin', '/proposal', '/my-stack'];
+const PROTECTED = ['/dashboard', '/assistant', '/planner', '/notes', '/files', '/content-studio', '/code-studio', '/document-builder', '/invoices', '/reminders', '/settings', '/billing', '/admin', '/proposal', '/my-stack'];
 const AUTH_ONLY = ['/login', '/signup'];
 
 export async function middleware(request: NextRequest) {

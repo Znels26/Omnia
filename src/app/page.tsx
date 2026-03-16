@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   Sparkles, MessageSquare, CalendarDays, FileText, Wand2, FileOutput,
   Receipt, Bell, ArrowRight, DollarSign, Heart, FileSignature,
-  Brain, TrendingUp, Dumbbell, Check,
+  Brain, TrendingUp, Dumbbell, Check, Code2,
 } from 'lucide-react';
 
 const FEATURES = [
@@ -16,6 +16,7 @@ const FEATURES = [
   { icon: Receipt,        label: 'Invoices',           desc: 'Professional PDF invoices — create, send and chase payment',       color: '#10b981', bg: 'rgba(16,185,129,0.1)'  },
   { icon: FileSignature,  label: 'Proposals',          desc: 'AI-written client proposals that win more business',               color: '#e879f9', bg: 'rgba(232,121,249,0.1)' },
   { icon: Bell,           label: 'Reminders',          desc: 'Smart reminders with recurrence — never miss a deadline',         color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
+  { icon: Code2,          label: 'Code Studio',        desc: 'Full IDE with Monaco, live preview, AI codegen & Vercel deploy', color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', pro: true },
   { icon: Brain,          label: 'AI Memory',          desc: 'Omnia learns about you so every response feels personal',          color: '#c084fc', bg: 'rgba(192,132,252,0.1)' },
   { icon: Sparkles,       label: 'AI Everywhere',      desc: 'Summaries, suggestions and AI inside every feature',              color: '#818cf8', bg: 'rgba(129,140,248,0.1)' },
 ];
@@ -30,6 +31,7 @@ const LIFE_HUB_EXAMPLES = [
 const REPLACES = [
   'ChatGPT', 'Notion', 'Todoist', 'MyFitnessPal', 'YNAB', 'Calendly',
   'Canva (content)', 'FreshBooks (invoices)', 'Mailchimp (emails)', 'Typeform (proposals)',
+  'CodeSandbox', 'Replit (IDE)',
 ];
 
 export default function HomePage() {
@@ -123,11 +125,14 @@ export default function HomePage() {
       <section style={{ maxWidth: '1100px', margin: '0 auto', padding: '0 24px 60px' }}>
         <div style={{ textAlign: 'center', marginBottom: '36px' }}>
           <h2 style={{ fontSize: 'clamp(24px, 4vw, 38px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '12px' }}>Everything in one place</h2>
-          <p style={{ fontSize: '16px', color: 'hsl(240 5% 55%)' }}>12 powerful features, one subscription, zero juggling between apps.</p>
+          <p style={{ fontSize: '16px', color: 'hsl(240 5% 55%)' }}>13 powerful features, one subscription, zero juggling between apps.</p>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(210px, 1fr))', gap: '14px' }}>
-          {FEATURES.map(f => (
-            <div key={f.label} style={{ padding: '20px', background: 'hsl(240 6% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '14px' }}>
+          {FEATURES.map((f: any) => (
+            <div key={f.label} style={{ padding: '20px', background: 'hsl(240 6% 7%)', border: `1px solid ${f.pro ? 'hsl(262 83% 58% / 0.2)' : 'hsl(240 6% 14%)'}`, borderRadius: '14px', position: 'relative' }}>
+              {f.pro && (
+                <span style={{ position: 'absolute', top: '10px', right: '10px', fontSize: '9px', fontWeight: 700, padding: '2px 7px', borderRadius: '999px', background: 'hsl(262 83% 58% / 0.15)', color: 'hsl(262,83%,75%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro</span>
+              )}
               <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                 <f.icon size={19} color={f.color} />
               </div>
@@ -150,7 +155,7 @@ export default function HomePage() {
             One subscription replaces your AI assistant, productivity planner, finance tools, content studio, invoicing, and more.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '320px', margin: '0 auto 28px' }}>
-            {['Start free — no card required', '22 Life Hub tools included', 'AI Money Tools suite', 'Unlimited AI assistant', 'Export to PDF, Word & Excel'].map(item => (
+            {['Start free — no card required', '22 Life Hub tools included', 'AI Money Tools suite', 'Code Studio IDE + Vercel deploy (Pro)', 'Unlimited AI assistant', 'Export to PDF, Word & Excel'].map(item => (
               <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'hsl(142 70% 40% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Check size={11} color="hsl(142, 70%, 55%)" />
