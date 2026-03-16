@@ -58,8 +58,9 @@ export function ContentView({ profile, initialItems }: any) {
 
   return (
     <div className="page" style={{ paddingBottom: '80px' }}>
+      <style>{`.content-studio-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:768px){.content-studio-grid{grid-template-columns:1fr}}`}</style>
       <div style={{ marginBottom: '24px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>Content Studio</h1><p style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', marginTop: '2px' }}>Generate captions, posts, blogs, scripts with AI</p></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+      <div className="content-studio-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
             {TYPES.map(t => (

@@ -57,7 +57,8 @@ export function DocumentBuilderView({ profile }: any) {
   return (
     <div className="page" style={{ paddingBottom: '80px', maxWidth: '960px' }}>
       <div style={{ marginBottom: '24px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>Document Builder</h1><p style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', marginTop: '2px' }}>Create and export documents in any format</p></div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px' }}>
+      <style>{`.docbuilder-grid{display:grid;grid-template-columns:1fr 280px;gap:20px}@media(max-width:768px){.docbuilder-grid{grid-template-columns:1fr}}`}</style>
+      <div className="docbuilder-grid">
         <div>
           <div style={{ display: 'flex', background: 'hsl(240 6% 9%)', borderRadius: '10px', padding: '4px', marginBottom: '16px' }}>
             {[{ v: 'write', l: 'Write' }, { v: 'ai', l: '✨ AI Generate' }].map(t => (

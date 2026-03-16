@@ -1,0 +1,26 @@
+{
+  "name": "Omnia",
+  "short_name": "Omnia",
+  "description": "AI Assistant, Planner, Notes, Content Studio — all in one.",
+  "start_url": "/dashboard",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0f",
+  "theme_color": "#1a8cd8",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

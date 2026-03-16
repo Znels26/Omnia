@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Full bleed background for maskable (no rounded corners) -->
+  <rect width="512" height="512" fill="#0a0a0f"/>
+  <circle cx="256" cy="256" r="160" fill="hsl(205,90%,48%)" opacity="0.08"/>
+  <path d="M256 108 L268 204 L364 216 L268 228 L256 324 L244 228 L148 216 L244 204 Z" fill="#1a8cd8"/>
+  <path d="M340 130 L346 158 L374 164 L346 170 L340 198 L334 170 L306 164 L334 158 Z" fill="#1a8cd8" opacity="0.55"/>
+  <path d="M172 314 L176 334 L196 338 L176 342 L172 362 L168 342 L148 338 L168 334 Z" fill="#1a8cd8" opacity="0.38"/>
+</svg>
