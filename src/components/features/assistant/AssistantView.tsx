@@ -1,8 +1,47 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { MessageSquare, Plus, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon, Search } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon, Search, ArrowRight } from 'lucide-react';
+import Link from 'next/link';
 import { timeAgo } from '@/lib/utils';
 import toast from 'react-hot-toast';
+
+interface ToolSuggestion { label: string; href: string; emoji: string; reason: string; }
+
+function detectToolSuggestion(content: string): ToolSuggestion | null {
+  const t = content.toLowerCase();
+  // Finance
+  if (/\b(budget|budgeting|overspend|monthly spend|spending plan|financial plan)\b/.test(t))
+    return { label: 'Budget Planner', href: '/life-hub', emoji: '📊', reason: 'Create a personalised budget in Life Hub' };
+  if (/\b(invest|investment|stocks?|etf|isa|portfolio|passive income|dividends?)\b/.test(t))
+    return { label: 'Investment Ideas', href: '/life-hub', emoji: '📈', reason: 'Get AI investment suggestions in Life Hub' };
+  if (/\b(debt|loan|credit card|pay off|interest rate|snowball|avalanche)\b/.test(t))
+    return { label: 'Debt Payoff Planner', href: '/life-hub', emoji: '🔓', reason: 'Build a debt payoff plan in Life Hub' };
+  if (/\b(tax|self.?assessment|national insurance|hmrc|freelance tax|tax return)\b/.test(t))
+    return { label: 'Tax Estimator', href: '/life-hub', emoji: '🧮', reason: 'Estimate your tax bill in Life Hub' };
+  if (/\b(savings?|save money|emergency fund|saving goal|savings pot)\b/.test(t))
+    return { label: 'Savings Goals', href: '/life-hub', emoji: '🏦', reason: 'Set up a savings roadmap in Life Hub' };
+  if (/\b(net worth|assets|liabilities|financial health|wealth)\b/.test(t))
+    return { label: 'Financial Health Score', href: '/life-hub', emoji: '❤️‍🔥', reason: 'Score your finances in Life Hub' };
+  // Fitness
+  if (/\b(workout|gym|exercise|weight training|strength training|muscle|lifting)\b/.test(t))
+    return { label: 'Workout Planner', href: '/life-hub', emoji: '🏋️', reason: 'Get a personalised workout plan in Life Hub' };
+  if (/\b(meal plan|meal prep|eat|diet|nutrition|calories?|macros?|protein)\b/.test(t))
+    return { label: 'Meal Planner', href: '/life-hub', emoji: '🥗', reason: 'Generate a weekly meal plan in Life Hub' };
+  if (/\b(weight loss|fat loss|lose weight|cut|bulk|body fat|bmi)\b/.test(t))
+    return { label: 'Calorie & Macro Tracker', href: '/life-hub', emoji: '🔢', reason: 'Get your exact macro targets in Life Hub' };
+  if (/\b(supplement|creatine|protein powder|pre.?workout|recovery|sleep quality)\b/.test(t))
+    return { label: 'Supplement Guide', href: '/life-hub', emoji: '💊', reason: 'Get evidence-based supplement advice in Life Hub' };
+  if (/\b(fitness goal|fitness challenge|30 day|habit streak|step goal|running)\b/.test(t))
+    return { label: 'Challenge Creator', href: '/life-hub', emoji: '🏆', reason: 'Create a 30-day fitness challenge in Life Hub' };
+  // AI Money Tools
+  if (/\b(lead magnet|freebie|opt.?in|email list|grow.+list)\b/.test(t))
+    return { label: 'Lead Magnet Builder', href: '/ai-tools', emoji: '🧲', reason: 'Build your lead magnet with AI Money Tools' };
+  if (/\b(seo|blog post|keyword|rank|search engine|content strategy)\b/.test(t))
+    return { label: 'SEO Blog Writer', href: '/ai-tools', emoji: '✍️', reason: 'Write an SEO blog post with AI Money Tools' };
+  if (/\b(email sequence|nurture|drip campaign|email marketing|welcome sequence)\b/.test(t))
+    return { label: 'Email Sequence Builder', href: '/ai-tools', emoji: '📧', reason: 'Build your email sequence with AI Money Tools' };
+  return null;
+}
 
 const MODES = [
   { value: 'general', label: '✨ General' },
@@ -122,6 +161,7 @@ export function AssistantView({ profile, initialChats }: any) {
   const [showModes, setShowModes] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
+  const [dismissedSuggestion, setDismissedSuggestion] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -432,11 +472,30 @@ export function AssistantView({ profile, initialChats }: any) {
                       <span className="typing" />
                     )}
                     {msg.role === 'assistant' && msg.content && (
-                      <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid hsl(240 6% 20%)' }}>
-                        <button onClick={() => copyMsg(msg.content, msg.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 0', touchAction: 'manipulation' }}>
-                          {copied === msg.id ? <><Check size={12} color="#34d399" /> Copied</> : <><Copy size={12} /> Copy</>}
-                        </button>
-                      </div>
+                      <>
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid hsl(240 6% 20%)' }}>
+                          <button onClick={() => copyMsg(msg.content, msg.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 0', touchAction: 'manipulation' }}>
+                            {copied === msg.id ? <><Check size={12} color="#34d399" /> Copied</> : <><Copy size={12} /> Copy</>}
+                          </button>
+                        </div>
+                        {/* Contextual tool suggestion — only on last AI message */}
+                        {!streaming && messages[messages.length - 1]?.id === msg.id && (() => {
+                          const suggestion = detectToolSuggestion(msg.content);
+                          if (!suggestion || dismissedSuggestion === msg.id) return null;
+                          return (
+                            <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', borderRadius: '10px', background: 'hsl(205 90% 48% / 0.07)', border: '1px solid hsl(205 90% 48% / 0.2)' }}>
+                              <span style={{ fontSize: '16px', flexShrink: 0 }}>{suggestion.emoji}</span>
+                              <div style={{ flex: 1, minWidth: 0 }}>
+                                <p style={{ fontSize: '11px', color: 'hsl(240 5% 55%)', margin: '0 0 3px' }}>{suggestion.reason}</p>
+                                <Link href={suggestion.href} style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(205,90%,60%)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                                  Try {suggestion.label} <ArrowRight size={11} />
+                                </Link>
+                              </div>
+                              <button onClick={() => setDismissedSuggestion(msg.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 40%)', fontSize: '16px', lineHeight: 1, padding: '2px', flexShrink: 0, touchAction: 'manipulation' }}>×</button>
+                            </div>
+                          );
+                        })()}
+                      </>
                     )}
                   </div>
                 </div>

@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   MessageSquare, CalendarDays, FileText, Wand2, FileOutput,
   Bell, ArrowRight, Sparkles, Clock, Zap, BarChart3, Brain,
-  FileSignature, Layers, ClipboardList, DollarSign,
+  FileSignature, Layers, ClipboardList, DollarSign, Heart,
 } from 'lucide-react';
 import { timeAgo, formatDate, PLAN_LIMITS } from '@/lib/utils';
 
@@ -17,10 +17,10 @@ const QUICK_ACTIONS = [
 ];
 
 const AI_TOOLS = [
+  { href: '/life-hub',        label: 'Life Hub',            desc: 'Finance & fitness — 22 AI tools',    icon: Heart,         color: 'hsl(340,80%,65%)',   bg: 'hsl(340 80% 55% / 0.08)',  border: 'hsl(340 80% 55% / 0.18)' },
   { href: '/proposal',       label: 'Proposal Generator',  desc: 'Write client proposals in seconds',  icon: FileSignature, color: 'hsl(205,90%,60%)',  bg: 'hsl(205 90% 48% / 0.08)',  border: 'hsl(205 90% 48% / 0.18)' },
   { href: '/ai-tools',       label: 'AI Money Tools',      desc: 'Lead magnets, SEO blogs, emails',    icon: DollarSign,    color: 'hsl(142,70%,55%)',   bg: 'hsl(142 70% 40% / 0.08)',  border: 'hsl(142 70% 40% / 0.18)' },
   { href: '/my-stack',       label: 'Replace My Stack',    desc: 'See what Omnia replaces',            icon: Layers,        color: 'hsl(262,83%,75%)',   bg: 'hsl(262 83% 58% / 0.08)',  border: 'hsl(262 83% 58% / 0.18)' },
-  { href: '/assistant',      label: 'Meeting Summariser',  desc: 'Paste notes, get instant summary',   icon: ClipboardList, color: 'hsl(38,90%,65%)',    bg: 'hsl(38 90% 50% / 0.08)',   border: 'hsl(38 90% 50% / 0.18)' },
   { href: '/settings#memory',label: 'AI Memory',           desc: 'Teach Omnia about you',              icon: Brain,         color: 'hsl(160,60%,55%)',   bg: 'hsl(160 60% 40% / 0.08)',  border: 'hsl(160 60% 40% / 0.18)' },
 ];
 
@@ -192,6 +192,9 @@ const DashboardStyles = () => (
     .ai-tools-grid { grid-template-columns: repeat(5,1fr) !important; }
     .dash-grid     { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,2fr); gap: 16px; }
 
+    @media (max-width: 1100px) {
+      .ai-tools-grid { grid-template-columns: repeat(3,1fr) !important; }
+    }
     @media (max-width: 900px) {
       .ai-tools-grid { grid-template-columns: repeat(3,1fr) !important; }
     }

@@ -7,7 +7,7 @@ import {
 LayoutDashboard, MessageSquare, CalendarDays, FileText,
 FolderOpen, Wand2, FileOutput, Receipt, Bell, Settings,
 CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck,
-DollarSign, CalendarClock, Share2
+DollarSign, CalendarClock, Share2, Heart
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -19,6 +19,7 @@ const NAV = [
 { href: '/files', label: 'Files', icon: FolderOpen },
 { href: '/content-studio', label: 'Content Studio', icon: Wand2 },
 { href: '/ai-tools', label: 'AI Money Tools', icon: DollarSign },
+{ href: '/life-hub', label: 'Life Hub', icon: Heart },
 { href: '/document-builder', label: 'Doc Builder', icon: FileOutput },
 { href: '/invoices', label: 'Invoices', icon: Receipt },
 { href: '/reminders', label: 'Reminders', icon: Bell },
@@ -37,7 +38,7 @@ const MOBILE_NAV = [
 { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
 { href: '/assistant', label: 'AI', icon: MessageSquare },
 { href: '/planner', label: 'Planner', icon: CalendarDays },
-{ href: '/notes', label: 'Notes', icon: FileText },
+{ href: '/life-hub', label: 'Life Hub', icon: Heart },
 { href: '/content-studio', label: 'Create', icon: Wand2 },
 ];
 
