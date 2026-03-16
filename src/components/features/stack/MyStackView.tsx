@@ -22,6 +22,15 @@ const STACK_MAP: Record<string, { feature: string; description: string; icon: st
   'clickup': { feature: 'Planner', description: 'Tasks and project management', icon: '✅' },
   'things': { feature: 'Planner', description: 'Task management', icon: '✅' },
   'any.do': { feature: 'Planner', description: 'To-do lists and planning', icon: '✅' },
+  'basecamp': { feature: 'Planner', description: 'Project and task management', icon: '✅' },
+  'height': { feature: 'Planner', description: 'Task and project tracking', icon: '✅' },
+  // Habit tracking
+  'habitica': { feature: 'Planner — Habits', description: 'Habit tracking with streaks', icon: '✅' },
+  'streaks': { feature: 'Planner — Habits', description: 'Daily habit streaks', icon: '✅' },
+  'habitify': { feature: 'Planner — Habits', description: 'Habit tracking and streaks', icon: '✅' },
+  'finch': { feature: 'Planner — Habits', description: 'Daily habit building', icon: '✅' },
+  'wayoflife': { feature: 'Planner — Habits', description: 'Habit and lifestyle tracking', icon: '✅' },
+  'strides': { feature: 'Planner — Goals & Habits', description: 'Goal and habit tracking', icon: '✅' },
   // AI assistants
   'chatgpt': { feature: 'AI Assistant', description: 'Conversational AI with memory', icon: '🤖' },
   'claude': { feature: 'AI Assistant', description: 'Powered by Claude under the hood', icon: '🤖' },
@@ -31,38 +40,89 @@ const STACK_MAP: Record<string, { feature: string; description: string; icon: st
   'jasper': { feature: 'Content Studio', description: 'AI content creation', icon: '✍️' },
   'copy.ai': { feature: 'Content Studio', description: 'AI copywriting', icon: '✍️' },
   'writesonic': { feature: 'Content Studio', description: 'AI content generation', icon: '✍️' },
-  // Content
-  'buffer': { feature: 'Content Studio', description: 'Social media content planning', icon: '✍️' },
-  'hootsuite': { feature: 'Content Studio', description: 'Social content management', icon: '✍️' },
-  'later': { feature: 'Content Studio', description: 'Content scheduling', icon: '✍️' },
+  'rytr': { feature: 'Content Studio', description: 'AI writing assistant', icon: '✍️' },
+  'hypotenuse': { feature: 'Content Studio', description: 'AI content generation', icon: '✍️' },
+  // Content creation (Omnia generates content — does not schedule/publish)
+  'buffer': { feature: 'Content Studio', description: 'AI-generated social media captions and posts', icon: '✍️' },
+  'hootsuite': { feature: 'Content Studio', description: 'AI-generated social content', icon: '✍️' },
+  'later': { feature: 'Content Studio', description: 'AI-generated content for social platforms', icon: '✍️' },
+  'sproutsocial': { feature: 'Content Studio', description: 'AI-generated social media content', icon: '✍️' },
   // Files
   'dropbox': { feature: 'Files', description: 'File storage and management', icon: '📁' },
   'googledrive': { feature: 'Files', description: 'Cloud file storage', icon: '📁' },
   'onedrive': { feature: 'Files', description: 'File storage', icon: '📁' },
   'box': { feature: 'Files', description: 'Cloud file management', icon: '📁' },
-  // Invoices & finance
+  // Invoices & business finance
   'freshbooks': { feature: 'Invoices', description: 'Invoice creation and tracking', icon: '💰' },
   'wave': { feature: 'Invoices', description: 'Free invoicing', icon: '💰' },
   'paymo': { feature: 'Invoices', description: 'Invoicing and time tracking', icon: '💰' },
   'bonsai': { feature: 'Invoices', description: 'Freelance invoicing', icon: '💰' },
-  'honeybook': { feature: 'Invoices', description: 'Client proposals and invoices', icon: '💰' },
+  'honeybook': { feature: 'Invoices + Proposals', description: 'Client proposals and invoices', icon: '💰' },
   'quickbooks': { feature: 'Invoices', description: 'Professional invoicing', icon: '💰' },
   'xero': { feature: 'Invoices', description: 'Business invoicing', icon: '💰' },
   'invoiceninja': { feature: 'Invoices', description: 'Invoice management', icon: '💰' },
-  // Reminders
+  'stripe': { feature: 'Invoices', description: 'Client billing and invoicing', icon: '💰' },
+  'dubsado': { feature: 'Invoices + Proposals', description: 'Client invoices and proposals', icon: '💰' },
+  // Personal finance (Life Hub)
+  'ynab': { feature: 'Life Hub — Budget Planner', description: 'AI-powered budgeting and expense tracking', icon: '💵' },
+  'mint': { feature: 'Life Hub — Budget Planner', description: 'Budget tracking and financial health', icon: '💵' },
+  'personalcapital': { feature: 'Life Hub — Net Worth Tracker', description: 'Net worth and investment tracking', icon: '💵' },
+  'monarchmoney': { feature: 'Life Hub — Budget Planner', description: 'Budget and financial planning', icon: '💵' },
+  'copilotmoney': { feature: 'Life Hub — Budget Planner', description: 'Personal finance and budgeting', icon: '💵' },
+  'empower': { feature: 'Life Hub — Financial Health Score', description: 'Financial health and net worth', icon: '💵' },
+  'wealthfront': { feature: 'Life Hub — Investment Ideas', description: 'Investment planning and ideas', icon: '💵' },
+  'acorns': { feature: 'Life Hub — Investment Ideas', description: 'Investment ideas and passive income', icon: '💵' },
+  'clarity': { feature: 'Life Hub — Budget Planner', description: 'Budget and bill management', icon: '💵' },
+  // Fitness & health (Life Hub)
+  'myfitnesspal': { feature: 'Life Hub — Calorie & Macro Tracker', description: 'Calorie tracking and meal planning', icon: '🏋️' },
+  'cronometer': { feature: 'Life Hub — Calorie & Macro Tracker', description: 'Nutrition and macro tracking', icon: '🏋️' },
+  'loseit': { feature: 'Life Hub — Calorie & Macro Tracker', description: 'Calorie tracking and weight goals', icon: '🏋️' },
+  'fitbod': { feature: 'Life Hub — Workout Planner', description: 'AI workout planning and tracking', icon: '🏋️' },
+  'hevy': { feature: 'Life Hub — Workout Planner', description: 'Workout tracking and planning', icon: '🏋️' },
+  'strongapp': { feature: 'Life Hub — Workout Planner', description: 'Strength training planner', icon: '🏋️' },
+  'noom': { feature: 'Life Hub — Meal Planner + AI Trainer', description: 'Meal planning and wellness coaching', icon: '🏋️' },
+  'whoop': { feature: 'Life Hub — Recovery Planner', description: 'Recovery and body metrics tracking', icon: '🏋️' },
+  'strava': { feature: 'Life Hub — Progress Tracker', description: 'Fitness progress and activity tracking', icon: '🏋️' },
+  'healthifyme': { feature: 'Life Hub — Meal Planner', description: 'Diet and nutrition planning', icon: '🏋️' },
+  '8fit': { feature: 'Life Hub — Workout + Meal Planner', description: 'Workout and meal planning', icon: '🏋️' },
+  // Email marketing & sequences (AI Money Tools)
+  'mailchimp': { feature: 'AI Money Tools — Email Sequences', description: 'AI-generated email nurture sequences', icon: '📧' },
+  'convertkit': { feature: 'AI Money Tools — Email Sequences', description: 'AI-written email automation sequences', icon: '📧' },
+  'activecampaign': { feature: 'AI Money Tools — Email Sequences', description: 'AI email sequence builder', icon: '📧' },
+  'klaviyo': { feature: 'AI Money Tools — Email Sequences', description: 'AI-generated email sequences', icon: '📧' },
+  'drip': { feature: 'AI Money Tools — Email Sequences', description: 'AI email sequence builder', icon: '📧' },
+  'beehiiv': { feature: 'AI Money Tools — Email Sequences', description: 'AI-written newsletters and sequences', icon: '📧' },
+  'flodesk': { feature: 'AI Money Tools — Email Sequences', description: 'AI email sequence creation', icon: '📧' },
+  // SEO (AI Money Tools)
+  'semrush': { feature: 'AI Money Tools — SEO Blog Writer', description: 'AI-generated SEO-optimised blog content', icon: '🔍' },
+  'ahrefs': { feature: 'AI Money Tools — SEO Blog Writer', description: 'AI SEO blog writing', icon: '🔍' },
+  'surferseo': { feature: 'AI Money Tools — SEO Blog Writer', description: 'AI-written SEO-optimised articles', icon: '🔍' },
+  'clearscope': { feature: 'AI Money Tools — SEO Blog Writer', description: 'AI SEO content generation', icon: '🔍' },
+  'frase': { feature: 'AI Money Tools — SEO Blog Writer', description: 'AI SEO blog writing and optimisation', icon: '🔍' },
+  'marketmuse': { feature: 'AI Money Tools — SEO Blog Writer', description: 'AI content and SEO writing', icon: '🔍' },
+  // Lead generation (AI Money Tools)
+  'leadpages': { feature: 'AI Money Tools — Lead Magnet Builder', description: 'AI-generated lead magnets and freebies', icon: '🎯' },
+  'optinmonster': { feature: 'AI Money Tools — Lead Magnet Builder', description: 'AI lead magnet creation', icon: '🎯' },
+  'thriveleads': { feature: 'AI Money Tools — Lead Magnet Builder', description: 'AI-generated lead magnets', icon: '🎯' },
+  // Reminders & calendar
   'fantastical': { feature: 'Reminders', description: 'Smart reminders and scheduling', icon: '🔔' },
   'googlecalendar': { feature: 'Reminders', description: 'Event and reminder management', icon: '🔔' },
-  'calendly': { feature: 'Reminders', description: 'Schedule and reminder management', icon: '🔔' },
+  'applecalendar': { feature: 'Reminders', description: 'Calendar reminders and events', icon: '🔔' },
   'tick tick': { feature: 'Reminders + Planner', description: 'Tasks and reminders', icon: '🔔' },
   'ticktick': { feature: 'Reminders + Planner', description: 'Tasks and reminders', icon: '🔔' },
+  'reclaim': { feature: 'Reminders + Planner', description: 'Smart scheduling and task management', icon: '🔔' },
   // Documents
   'googledocs': { feature: 'Doc Builder', description: 'AI-powered document creation', icon: '📄' },
   'word': { feature: 'Doc Builder', description: 'Professional document writing', icon: '📄' },
   'pages': { feature: 'Doc Builder', description: 'Document creation', icon: '📄' },
+  'dropboxpaper': { feature: 'Doc Builder', description: 'AI document writing and collaboration', icon: '📄' },
+  'coda': { feature: 'Notes + Doc Builder', description: 'Rich docs and note organisation', icon: '📄' },
   // Proposals
-  'proposify': { feature: 'Proposal Generator', description: 'AI-written client proposals', icon: '📋' },
-  'pandadoc': { feature: 'Proposal Generator', description: 'Smart proposal generation', icon: '📋' },
-  'qwilr': { feature: 'Proposal Generator', description: 'Professional proposals', icon: '📋' },
+  'proposify': { feature: 'Proposals', description: 'AI-written client proposals', icon: '📋' },
+  'pandadoc': { feature: 'Proposals', description: 'Smart proposal generation', icon: '📋' },
+  'qwilr': { feature: 'Proposals', description: 'Professional proposals', icon: '📋' },
+  'better proposals': { feature: 'Proposals', description: 'AI-generated client proposals', icon: '📋' },
+  'betterproposals': { feature: 'Proposals', description: 'AI-generated client proposals', icon: '📋' },
 };
 
 function normalise(tool: string) {
@@ -147,7 +207,7 @@ export function MyStackView() {
 
           {/* Sample logos */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', justifyContent: 'center', paddingTop: '8px' }}>
-            {['Notion', 'Todoist', 'ChatGPT', 'Freshbooks', 'Dropbox', 'Asana', 'Buffer', 'Proposify', 'Calendly', 'Google Docs'].map(t => (
+            {['Notion', 'Todoist', 'ChatGPT', 'YNAB', 'MyFitnessPal', 'Fitbod', 'Mailchimp', 'Freshbooks', 'Dropbox', 'Asana', 'SEMrush', 'ConvertKit', 'Proposify', 'Google Docs'].map(t => (
               <span key={t} style={{ padding: '4px 10px', borderRadius: '999px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 16%)', fontSize: '12px', color: 'hsl(240 5% 55%)' }}>{t}</span>
             ))}
           </div>
