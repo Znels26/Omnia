@@ -20,6 +20,6 @@ export async function POST(req: NextRequest) {
     await s.from('subscriptions').upsert({ user_id: user.id, stripe_customer_id: customerId }, { onConflict: 'user_id' });
   }
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const session = await stripe.checkout.sessions.create({ customer: customerId, mode: 'subscription', payment_method_types: ['card'], line_items: [{ price: priceId, quantity: 1 }], success_url: `${appUrl}/billing?success=true`, cancel_url: `${appUrl}/billing`, trial_period_days: 7, allow_promotion_codes: true, metadata: { omnia_user_id: user.id } });
+  const session = await stripe.checkout.sessions.create({ customer: customerId, mode: 'subscription', payment_method_types: ['card'], line_items: [{ price: priceId, quantity: 1 }], success_url: `${appUrl}/billing?success=true`, cancel_url: `${appUrl}/billing`, subscription_data: { trial_period_days: 7 }, allow_promotion_codes: true, metadata: { omnia_user_id: user.id } });
   return NextResponse.json({ url: session.url });
 }
