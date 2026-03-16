@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { MessageSquare, Plus, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon, Search, ArrowRight } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon, Search, ArrowRight, BookOpen, ListPlus } from 'lucide-react';
 import Link from 'next/link';
 import { timeAgo } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -25,13 +25,13 @@ function detectToolSuggestion(content: string): ToolSuggestion | null {
   // Fitness
   if (/\b(workout|gym|exercise|weight training|strength training|muscle|lifting)\b/.test(t))
     return { label: 'Workout Planner', href: '/life-hub', emoji: '🏋️', reason: 'Get a personalised workout plan in Life Hub' };
-  if (/\b(meal plan|meal prep|eat|diet|nutrition|calories?|macros?|protein)\b/.test(t))
+  if (/\b(meal plan|meal prep|eat healthy|diet|nutrition|calories?|macros?|protein)\b/.test(t))
     return { label: 'Meal Planner', href: '/life-hub', emoji: '🥗', reason: 'Generate a weekly meal plan in Life Hub' };
   if (/\b(weight loss|fat loss|lose weight|cut|bulk|body fat|bmi)\b/.test(t))
     return { label: 'Calorie & Macro Tracker', href: '/life-hub', emoji: '🔢', reason: 'Get your exact macro targets in Life Hub' };
   if (/\b(supplement|creatine|protein powder|pre.?workout|recovery|sleep quality)\b/.test(t))
     return { label: 'Supplement Guide', href: '/life-hub', emoji: '💊', reason: 'Get evidence-based supplement advice in Life Hub' };
-  if (/\b(fitness goal|fitness challenge|30 day|habit streak|step goal|running)\b/.test(t))
+  if (/\b(fitness goal|fitness challenge|30.?day|habit streak|step goal|running plan)\b/.test(t))
     return { label: 'Challenge Creator', href: '/life-hub', emoji: '🏆', reason: 'Create a 30-day fitness challenge in Life Hub' };
   // AI Money Tools
   if (/\b(lead magnet|freebie|opt.?in|email list|grow.+list)\b/.test(t))
@@ -40,7 +40,38 @@ function detectToolSuggestion(content: string): ToolSuggestion | null {
     return { label: 'SEO Blog Writer', href: '/ai-tools', emoji: '✍️', reason: 'Write an SEO blog post with AI Money Tools' };
   if (/\b(email sequence|nurture|drip campaign|email marketing|welcome sequence)\b/.test(t))
     return { label: 'Email Sequence Builder', href: '/ai-tools', emoji: '📧', reason: 'Build your email sequence with AI Money Tools' };
+  // Content Studio
+  if (/\b(caption|instagram|social post|twitter|linkedin|tiktok|facebook post|content ideas?)\b/.test(t))
+    return { label: 'Content Studio', href: '/content-studio', emoji: '✨', reason: 'Generate polished content in Content Studio' };
+  if (/\b(video script|youtube script|podcast script|script for)\b/.test(t))
+    return { label: 'Script Writer', href: '/content-studio', emoji: '🎬', reason: 'Write your script in Content Studio' };
+  // Document Builder
+  if (/\b(write a report|create a document|export.*(pdf|word|docx)|formal document|business report|presentation slides?)\b/.test(t))
+    return { label: 'Document Builder', href: '/document-builder', emoji: '📄', reason: 'Build and export this document' };
+  // Invoices
+  if (/\b(invoice|client billing|bill.+client|charge.+client|payment.+due|hourly rate)\b/.test(t))
+    return { label: 'Invoices', href: '/invoices', emoji: '🧾', reason: 'Create and send an invoice' };
+  // Proposals
+  if (/\b(business proposal|client proposal|pitch.+client|scope of work|proposal for)\b/.test(t))
+    return { label: 'Proposals', href: '/proposal', emoji: '📋', reason: 'Generate a professional proposal' };
+  // Planner / tasks
+  if (/\b(to.?do list|task list|action items?|next steps?|project plan|set.+goals?|deadline)\b/.test(t))
+    return { label: 'Planner', href: '/planner', emoji: '📅', reason: 'Add these tasks and goals to your Planner' };
+  // Reminders
+  if (/\b(remind me|set.+reminder|don.?t forget|follow.?up|schedule.+alert)\b/.test(t))
+    return { label: 'Reminders', href: '/reminders', emoji: '🔔', reason: 'Set a reminder so you don\'t forget' };
+  // My Stack
+  if (/\b(software.+use|tools? i use|subscription|saas|app stack|tech stack)\b/.test(t))
+    return { label: 'My Stack', href: '/my-stack', emoji: '🗂️', reason: 'Track your tools and subscriptions in My Stack' };
   return null;
+}
+
+// Detect if a response looks like saveable content (plan, list, notes-worthy)
+function detectSaveActions(content: string): { saveNote: boolean; saveTask: boolean } {
+  const t = content.toLowerCase();
+  const saveNote = content.length > 120 && /\b(here('s| is)|below|following|summary|overview|guide|tips?|steps?|plan|advice)\b/.test(t);
+  const saveTask = /(\n[-*]\s|\n\d+\.\s)/.test(content) && /\b(steps?|tasks?|action|to.?do|next|plan|checklist)\b/.test(t);
+  return { saveNote, saveTask };
 }
 
 const MODES = [
@@ -162,6 +193,7 @@ export function AssistantView({ profile, initialChats }: any) {
   const [copied, setCopied] = useState<string | null>(null);
   const [showSidebar, setShowSidebar] = useState(false);
   const [dismissedSuggestion, setDismissedSuggestion] = useState<string | null>(null);
+  const [savedMsgIds, setSavedMsgIds] = useState<Set<string>>(new Set());
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -335,6 +367,20 @@ export function AssistantView({ profile, initialChats }: any) {
     setCopied(id); setTimeout(() => setCopied(null), 2000); toast.success('Copied!');
   }, []);
 
+  const saveToNotes = useCallback(async (content: string, msgId: string) => {
+    const title = content.split('\n')[0].replace(/^#+\s*/, '').slice(0, 60) || 'AI Response';
+    const res = await fetch('/api/notes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, content }) });
+    if (res.ok) { toast.success('Saved to Notes!'); setSavedMsgIds(p => new Set([...p, `note-${msgId}`])); }
+    else { const d = await res.json(); toast.error(d.error || 'Failed to save'); }
+  }, []);
+
+  const saveToPlanner = useCallback(async (content: string, msgId: string) => {
+    const title = content.split('\n')[0].replace(/^#+\s*/, '').slice(0, 80) || 'AI Task';
+    const res = await fetch('/api/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title, notes: content, priority: 'medium', status: 'pending' }) });
+    if (res.ok) { toast.success('Added to Planner!'); setSavedMsgIds(p => new Set([...p, `task-${msgId}`])); }
+    else { const d = await res.json(); toast.error(d.error || 'Failed to add'); }
+  }, []);
+
   const deleteChat = useCallback(async (chatId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     if (!confirm('Delete this chat?')) return;
@@ -473,10 +519,25 @@ export function AssistantView({ profile, initialChats }: any) {
                     )}
                     {msg.role === 'assistant' && msg.content && (
                       <>
-                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid hsl(240 6% 20%)' }}>
+                        <div style={{ marginTop: '8px', paddingTop: '8px', borderTop: '1px solid hsl(240 6% 20%)', display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
                           <button onClick={() => copyMsg(msg.content, msg.id)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 0', touchAction: 'manipulation' }}>
                             {copied === msg.id ? <><Check size={12} color="#34d399" /> Copied</> : <><Copy size={12} /> Copy</>}
                           </button>
+                          {(() => {
+                            const { saveNote, saveTask } = detectSaveActions(msg.content);
+                            return <>
+                              {saveNote && (
+                                <button onClick={() => saveToNotes(msg.content, msg.id)} disabled={savedMsgIds.has(`note-${msg.id}`)} style={{ background: 'none', border: 'none', cursor: savedMsgIds.has(`note-${msg.id}`) ? 'default' : 'pointer', color: savedMsgIds.has(`note-${msg.id}`) ? '#34d399' : 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 0', touchAction: 'manipulation' }}>
+                                  <BookOpen size={12} /> {savedMsgIds.has(`note-${msg.id}`) ? 'Saved' : 'Save to Notes'}
+                                </button>
+                              )}
+                              {saveTask && (
+                                <button onClick={() => saveToPlanner(msg.content, msg.id)} disabled={savedMsgIds.has(`task-${msg.id}`)} style={{ background: 'none', border: 'none', cursor: savedMsgIds.has(`task-${msg.id}`) ? 'default' : 'pointer', color: savedMsgIds.has(`task-${msg.id}`) ? '#34d399' : 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', padding: '4px 0', touchAction: 'manipulation' }}>
+                                  <ListPlus size={12} /> {savedMsgIds.has(`task-${msg.id}`) ? 'Added' : 'Add to Planner'}
+                                </button>
+                              )}
+                            </>;
+                          })()}
                         </div>
                         {/* Contextual tool suggestion — only on last AI message */}
                         {!streaming && messages[messages.length - 1]?.id === msg.id && (() => {

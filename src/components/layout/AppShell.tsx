@@ -10,6 +10,7 @@ CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck,
 DollarSign, CalendarClock, Share2, Heart
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { PWAInstallBanner } from './PWAInstallBanner';
 
 const NAV = [
 { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -219,6 +220,9 @@ return (
   <main className="main-content">
     {children}
   </main>
+
+  {/* ── PWA INSTALL BANNER ── */}
+  <PWAInstallBanner />
 
   {/* ── MOBILE BOTTOM NAV ── */}
   <nav className="mobile-nav">
