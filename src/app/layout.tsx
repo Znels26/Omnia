@@ -1,0 +1,30 @@
+import type { Metadata } from 'next';
+import '@/styles/globals.css';
+import { Toaster } from 'react-hot-toast';
+
+export const metadata: Metadata = {
+  title: { default: 'Omnia — One AI subscription that replaces them all', template: '%s | Omnia' },
+  description: 'AI Assistant, Planner, Notes, Content Studio, Document Builder — all in one beautiful app.',
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en" suppressHydrationWarning>
+      <body>
+        {children}
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            style: {
+              background: 'hsl(240 8% 9%)',
+              color: 'hsl(0 0% 90%)',
+              border: '1px solid hsl(240 6% 16%)',
+              borderRadius: '10px',
+              fontSize: '14px',
+            },
+          }}
+        />
+      </body>
+    </html>
+  );
+}
