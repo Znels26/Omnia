@@ -22,7 +22,10 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // getSession() reads from the signed cookie — no network call to Supabase.
+  // getUser() makes a round-trip to verify; we only need that in actual page handlers.
+  const { data: { session } } = await supabase.auth.getSession();
+  const user = session?.user ?? null;
   const path = request.nextUrl.pathname;
 
   if (user && AUTH_ONLY.some(p => path.startsWith(p))) {

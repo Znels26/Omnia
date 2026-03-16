@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 export async function POST(req: NextRequest) {
   const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -12,5 +13,6 @@ export async function POST(req: NextRequest) {
   const { data, error } = await s.from('notes').insert({ user_id: user.id, title: body.title || 'Untitled Note', content: body.content || '', content_preview: (body.content || '').replace(/[#*`]/g,'').trim().slice(0,200), word_count: (body.content || '').split(/\s+/).filter(Boolean).length, folder_id: body.folder_id || null }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
   await s.from('usage_counters').update({ notes_count: (u?.notes_count || 0) + 1 }).eq('user_id', user.id);
+  revalidateTag('notes'); revalidateTag('dashboard');
   return NextResponse.json({ note: data }, { status: 201 });
 }

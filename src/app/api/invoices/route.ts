@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 export async function POST(req: NextRequest) {
   const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -14,5 +15,6 @@ export async function POST(req: NextRequest) {
   if (body.items?.length) {
     await s.from('invoice_items').insert(body.items.map((item: any, idx: number) => ({ invoice_id: inv.id, description: item.description, quantity: item.quantity, unit_price_cents: item.unit_price_cents, total_cents: item.total_cents, sort_order: idx })));
   }
+  revalidateTag('invoices');
   return NextResponse.json({ invoice: { ...inv, items: body.items || [] } }, { status: 201 });
 }

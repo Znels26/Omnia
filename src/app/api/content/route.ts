@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 
 export async function POST(req: NextRequest) {
@@ -36,6 +37,6 @@ export async function POST(req: NextRequest) {
 
   const { data: u } = await s.from('usage_counters').select('content_count').eq('user_id', user.id).single();
   if (u) await s.from('usage_counters').update({ content_count: (u.content_count || 0) + 1 }).eq('user_id', user.id);
-
+  revalidateTag('content');
   return NextResponse.json({ item }, { status: 201 });
 }

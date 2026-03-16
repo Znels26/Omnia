@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 export async function POST(req: NextRequest) {
   const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -21,5 +22,6 @@ export async function POST(req: NextRequest) {
   if (dbError) return NextResponse.json({ error: dbError.message }, { status: 500 });
   const { data: u } = await s.from('usage_counters').select('files_count').eq('user_id', user.id).single();
   if (u) await s.from('usage_counters').update({ files_count: (u.files_count || 0) + 1 }).eq('user_id', user.id);
+  revalidateTag('files');
   return NextResponse.json({ file: fileRecord }, { status: 201 });
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 export async function GET() {
   const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -12,5 +13,6 @@ export async function POST(req: NextRequest) {
   const s = createAdminSupabaseClient();
   const { data, error } = await s.from('chats').insert({ user_id: user.id, mode: body.mode || 'general', title: body.title || 'New Chat' }).select().single();
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  revalidateTag('chats'); revalidateTag('dashboard');
   return NextResponse.json({ chat: data });
 }

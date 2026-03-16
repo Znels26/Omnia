@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { revalidateTag } from 'next/cache';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ invoiceId: string }> }) {
   const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -44,5 +45,6 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   const { invoiceId } = await params;
   await createAdminSupabaseClient().from('invoices').delete().eq('id', invoiceId).eq('user_id', user.id);
+  revalidateTag('invoices');
   return NextResponse.json({ success: true });
 }
