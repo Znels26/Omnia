@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -45,13 +46,15 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     goals.map(async (goal: any) => {
       const profile = goal.profiles;
-      if (!profile?.email_notifications) return;
+      if (!profile) return;
 
       const name = profile.display_name || profile.full_name || 'there';
       const motivation = await generateMotivation(goal.title, goal.progress);
 
-      await sendEmail({
-        to: profile.email,
+      await queueEmail({
+        userId: goal.user_id,
+        emailType: 'goal_deadline',
+        priority: 2,
         subject: `7 days left on your goal: ${goal.title}`,
         html: templates.goalDeadlineReminder(name, goal.title, 7, motivation),
       });

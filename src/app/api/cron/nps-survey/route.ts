@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -17,8 +18,7 @@ export async function GET(req: NextRequest) {
   // Users who joined exactly ~60 days ago
   const { data: candidates } = await s
     .from('profiles')
-    .select('id, email, display_name, full_name, email_notifications')
-    .eq('email_notifications', true)
+    .select('id, display_name, full_name')
     .gte('created_at', sixtyOneDaysAgo)
     .lt('created_at', sixtyDaysAgo);
 
@@ -38,9 +38,11 @@ export async function GET(req: NextRequest) {
       if (already) return;
 
       const name = user.display_name || user.full_name || 'there';
-      await sendEmail({
-        to: user.email,
-        subject: 'Quick question about Omnia 🙏',
+      await queueEmail({
+        userId: user.id,
+        emailType: 'nps',
+        priority: 4,
+        subject: 'Quick question about Omnia',
         html: templates.nps(name),
       });
 

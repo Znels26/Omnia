@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -55,11 +56,13 @@ export async function GET(req: NextRequest) {
           .eq('id', userId)
           .maybeSingle();
 
-        if (!profile?.email_notifications) return;
+        if (!profile) return;
 
         const name = profile.display_name || profile.full_name || 'there';
-        await sendEmail({
-          to: profile.email,
+        await queueEmail({
+          userId,
+          emailType: 'milestone',
+          priority: 3,
           subject: `${hitThreshold} ${milestone.label} — you're on a roll! 🏆`,
           html: templates.milestoneCelebration(name, hitThreshold, milestone.label),
         });

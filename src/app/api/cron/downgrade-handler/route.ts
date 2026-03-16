@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -36,14 +37,14 @@ export async function GET(req: NextRequest) {
       if (profile.plan_tier !== 'free') {
         await s.from('profiles').update({ plan_tier: 'free', updated_at: now }).eq('id', sub.user_id);
 
-        if (profile.email_notifications) {
-          const name = profile.display_name || profile.full_name || 'there';
-          await sendEmail({
-            to: profile.email,
-            subject: 'Your Omnia subscription has ended',
-            html: templates.downgraded(name),
-          });
-        }
+        const name = profile.display_name || profile.full_name || 'there';
+        await queueEmail({
+          userId: sub.user_id,
+          emailType: 'downgrade',
+          priority: 1,
+          subject: 'Your Omnia subscription has ended',
+          html: templates.downgraded(name),
+        });
         downgraded++;
       }
     })

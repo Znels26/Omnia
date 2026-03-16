@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -23,7 +24,6 @@ export async function GET(req: NextRequest) {
 
   await Promise.allSettled(
     (firstTasks ?? []).map(async (task: any) => {
-      if (!task.profiles?.email_notifications) return;
 
       // Check if this is their first completed task
       const { count } = await s
@@ -44,8 +44,10 @@ export async function GET(req: NextRequest) {
       if (already) return;
 
       const name = task.profiles.display_name || task.profiles.full_name || 'there';
-      await sendEmail({
-        to: task.profiles.email,
+      await queueEmail({
+        userId: task.user_id,
+        emailType: 'first_win',
+        priority: 2,
         subject: `You did it, ${name}! First task complete 🎉`,
         html: templates.firstWin(name, 'task', task.title),
       });
@@ -63,7 +65,6 @@ export async function GET(req: NextRequest) {
 
   await Promise.allSettled(
     (firstInvoices ?? []).map(async (inv: any) => {
-      if (!inv.profiles?.email_notifications) return;
 
       const { count } = await s
         .from('invoices')
@@ -82,8 +83,10 @@ export async function GET(req: NextRequest) {
       if (already) return;
 
       const name = inv.profiles.display_name || inv.profiles.full_name || 'there';
-      await sendEmail({
-        to: inv.profiles.email,
+      await queueEmail({
+        userId: inv.user_id,
+        emailType: 'first_win',
+        priority: 2,
         subject: `First invoice created, ${name}! 🎉`,
         html: templates.firstWin(name, 'invoice', `Invoice ${inv.invoice_number}`),
       });

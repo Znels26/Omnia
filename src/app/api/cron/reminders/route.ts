@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -18,7 +19,7 @@ export async function GET(req: NextRequest) {
   // Fetch reminders that fire within this 15-min window
   const { data: reminders } = await s
     .from('reminders')
-    .select('id, user_id, title, description, recurrence, remind_at, profiles(email, display_name, full_name, email_notifications)')
+    .select('id, user_id, title, description, recurrence, remind_at, profiles(display_name, full_name)')
     .eq('status', 'pending')
     .gte('remind_at', windowStart)
     .lte('remind_at', windowEnd);
@@ -29,11 +30,11 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     reminders.map(async (r: any) => {
       const profile = r.profiles;
-      if (!profile?.email_notifications) return;
-
-      const name = profile.display_name || profile.full_name || 'there';
-      await sendEmail({
-        to: profile.email,
+      const name = profile?.display_name || profile?.full_name || 'there';
+      await queueEmail({
+        userId: r.user_id,
+        emailType: 'reminder',
+        priority: 2,
         subject: `Reminder: ${r.title}`,
         html: templates.reminder(name, r.title, r.description),
       });

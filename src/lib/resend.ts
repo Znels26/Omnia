@@ -40,8 +40,9 @@ li{font-size:14px;color:#94a3b8;line-height:1.7}
 <h1>${title}</h1>
 ${body}
 </div>
-<div class="footer">Omnia · You're receiving this because you have email notifications enabled.<br>
-<a href="${process.env.NEXT_PUBLIC_APP_URL}/settings" style="color:#475569">Manage notifications</a></div>
+<div class="footer">Omnia · omnia-ai.space · hello@omnia-ai.space<br>
+123 Example Street, Sydney NSW 2000, Australia<br>
+<a href="${process.env.NEXT_PUBLIC_APP_URL}/settings" style="color:#475569">Manage email preferences</a></div>
 </div></body></html>`;
 }
 

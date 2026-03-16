@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -43,8 +44,7 @@ export async function GET(req: NextRequest) {
 
   const { data: users } = await s
     .from('profiles')
-    .select('id, email, display_name, full_name, email_notifications, plan_tier')
-    .eq('email_notifications', true)
+    .select('id, email, display_name, full_name, plan_tier')
     .in('plan_tier', ['plus', 'pro']);
 
   if (!users?.length) return NextResponse.json({ sent: 0 });
@@ -61,9 +61,11 @@ export async function GET(req: NextRequest) {
     const name = user.display_name || user.full_name || 'there';
     const insight = await generateFitnessInsight(name, habits, streaks ?? {});
 
-    await sendEmail({
-      to: user.email,
-      subject: 'Your weekly fitness & habits review 💪',
+    await queueEmail({
+      userId: user.id,
+      emailType: 'fitness_insight',
+      priority: 3,
+      subject: 'Your weekly fitness & habits review',
       html: templates.fitnessInsight(name, insight),
     });
     sent++;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -27,8 +28,6 @@ export async function GET(req: NextRequest) {
   let nudged = 0;
   await Promise.allSettled(
     newUsers.map(async (user) => {
-      if (!user.email_notifications) return;
-
       const { data: already } = await s
         .from('cron_email_log')
         .select('id')
@@ -39,8 +38,10 @@ export async function GET(req: NextRequest) {
       if (already) return;
 
       const name = user.display_name || user.full_name || 'there';
-      await sendEmail({
-        to: user.email,
+      await queueEmail({
+        userId: user.id,
+        emailType: 'onboarding_nudge',
+        priority: 2,
         subject: `You're almost set up on Omnia, ${name} 🚀`,
         html: templates.onboardingNudge(name, 'Complete your profile and try the AI assistant'),
       });

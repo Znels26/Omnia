@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -15,8 +16,7 @@ export async function GET(req: NextRequest) {
 
   const { data: profiles } = await s
     .from('profiles')
-    .select('id, email, display_name, full_name')
-    .eq('email_notifications', true);
+    .select('id, display_name, full_name');
 
   if (!profiles?.length) return NextResponse.json({ sent: 0 });
 
@@ -32,8 +32,10 @@ export async function GET(req: NextRequest) {
 
       if (!tasks?.length && !reminders?.length && !goals?.length) return;
 
-      await sendEmail({
-        to: profile.email,
+      await queueEmail({
+        userId: profile.id,
+        emailType: 'morning_briefing',
+        priority: 2,
         subject: `Good morning! Your Omnia briefing for ${today}`,
         html: templates.morningBriefing(name, tasks || [], reminders || [], goals || []),
       });

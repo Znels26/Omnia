@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -23,7 +24,7 @@ export async function GET(req: NextRequest) {
   // Find subscriptions that were cancelled exactly 30 days ago
   const { data: cancelledSubs } = await s
     .from('subscriptions')
-    .select('user_id, profiles(email, display_name, full_name, email_notifications)')
+    .select('user_id, profiles(display_name, full_name)')
     .eq('status', 'canceled')
     .gte('updated_at', thirtyOneDaysAgo)
     .lt('updated_at', thirtyDaysAgo);
@@ -34,7 +35,7 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     cancelledSubs.map(async (sub: any) => {
       const profile = sub.profiles;
-      if (!profile?.email_notifications) return;
+      if (!profile) return;
 
       const { data: already } = await s
         .from('cron_email_log')
@@ -48,8 +49,10 @@ export async function GET(req: NextRequest) {
       const name = profile.display_name || profile.full_name || 'there';
       const improvement = IMPROVEMENTS[Math.floor(Math.random() * IMPROVEMENTS.length)];
 
-      await sendEmail({
-        to: profile.email,
+      await queueEmail({
+        userId: sub.user_id,
+        emailType: 'win_back',
+        priority: 4,
         subject: `${name}, a lot has changed at Omnia`,
         html: templates.winBack(name, improvement),
       });

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -28,7 +29,7 @@ export async function GET(req: NextRequest) {
 
   const { data: rows } = await s
     .from('usage_counters')
-    .select('user_id, ai_requests_used, notes_count, files_count, exports_count, invoices_count, profiles(email, display_name, full_name, plan_tier, email_notifications)');
+    .select('user_id, ai_requests_used, notes_count, files_count, exports_count, invoices_count, profiles(display_name, full_name, plan_tier)');
 
   if (!rows?.length) return NextResponse.json({ emailed: 0 });
 
@@ -36,7 +37,7 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     rows.map(async (row: any) => {
       const profile = row.profiles;
-      if (!profile?.email_notifications || profile.plan_tier === 'pro') return;
+      if (!profile || profile.plan_tier === 'pro') return;
 
       const planLimits = LIMITS[profile.plan_tier] ?? {};
       const hitLimit = Object.entries(planLimits).find(
@@ -44,7 +45,6 @@ export async function GET(req: NextRequest) {
       );
       if (!hitLimit) return;
 
-      // Don't email again within 7 days
       const { data: recent } = await s
         .from('cron_email_log')
         .select('sent_at')
@@ -58,9 +58,11 @@ export async function GET(req: NextRequest) {
       const name = profile.display_name || profile.full_name || 'there';
       const limitLabel = LIMIT_LABELS[hitLimit[0]] ?? hitLimit[0];
 
-      await sendEmail({
-        to: profile.email,
-        subject: "You're getting serious about Omnia ⚡",
+      await queueEmail({
+        userId: row.user_id,
+        emailType: 'upgrade_prompt',
+        priority: 4,
+        subject: "You're getting serious about Omnia",
         html: templates.upgradePrompt(name, `80%+ of your ${limitLabel} limit`),
       });
 

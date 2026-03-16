@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -17,7 +18,7 @@ export async function GET(req: NextRequest) {
   // Alert 7 days and 1 day before renewal
   const { data: subs } = await s
     .from('subscriptions')
-    .select('user_id, plan_tier, current_period_end, profiles(email, display_name, full_name, email_notifications)')
+    .select('user_id, plan_tier, current_period_end, profiles(display_name, full_name)')
     .neq('plan_tier', 'free')
     .eq('status', 'active')
     .eq('cancel_at_period_end', false);
@@ -28,17 +29,19 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     subs.map(async (sub: any) => {
       const profile = sub.profiles;
-      if (!profile?.email_notifications || !sub.current_period_end) return;
+      if (!sub.current_period_end) return;
 
       const renewalDay = sub.current_period_end.split('T')[0];
       if (renewalDay !== in7Days && renewalDay !== tomorrow) return;
 
       const planPrices: Record<string, string> = { plus: '$19/mo', pro: '$49/mo' };
-      const name = profile.display_name || profile.full_name || 'there';
+      const name = profile?.display_name || profile?.full_name || 'there';
       const renewalDate = new Date(sub.current_period_end).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-      await sendEmail({
-        to: profile.email,
+      await queueEmail({
+        userId: sub.user_id,
+        emailType: 'subscription_alert',
+        priority: 2,
         subject: `Your Omnia ${sub.plan_tier} plan renews ${renewalDay === tomorrow ? 'tomorrow' : 'in 7 days'}`,
         html: templates.subscriptionAlert(name, sub.plan_tier, renewalDate, planPrices[sub.plan_tier] || ''),
       });

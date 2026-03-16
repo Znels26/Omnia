@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -35,7 +36,7 @@ export async function GET(req: NextRequest) {
   const s = createAdminSupabaseClient();
   const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
 
-  const { data: profiles } = await s.from('profiles').select('id, email, display_name, full_name').eq('email_notifications', true);
+  const { data: profiles } = await s.from('profiles').select('id, display_name, full_name');
   if (!profiles?.length) return NextResponse.json({ sent: 0 });
 
   let sent = 0;
@@ -48,9 +49,11 @@ export async function GET(req: NextRequest) {
       ]);
 
       const summary = await generateWeeklySummary(profile, tasks || [], goals || [], notes || []);
-      await sendEmail({
-        to: profile.email,
-        subject: 'Your Omnia Weekly Review 📊',
+      await queueEmail({
+        userId: profile.id,
+        emailType: 'weekly_review',
+        priority: 3,
+        subject: 'Your Omnia Weekly Review',
         html: templates.weeklyReview(profile.display_name || 'there', summary),
       });
       sent++;

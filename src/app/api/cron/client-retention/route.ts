@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -45,14 +46,16 @@ export async function GET(req: NextRequest) {
     [...byUser.entries()].map(async ([, userInvoices]) => {
       const first = userInvoices[0];
       const profile = first.profiles;
-      if (!profile?.email_notifications) return;
+      const userId = first.user_id;
 
       const name = profile.display_name || profile.full_name || 'there';
       // Send one alert per at-risk client
       await Promise.allSettled(
         userInvoices.slice(0, 5).map((inv) =>
-          sendEmail({
-            to: profile.email,
+          queueEmail({
+            userId,
+            emailType: 'client_retention',
+            priority: 2,
             subject: `Client alert: ${inv.client_name} hasn't been invoiced in 60+ days`,
             html: templates.clientRetention(name, inv.client_name, new Date(inv.created_at).toLocaleDateString()),
           })

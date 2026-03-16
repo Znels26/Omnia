@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 import Stripe from 'stripe';
 
 export const runtime = 'nodejs';
@@ -16,10 +17,9 @@ export async function GET(req: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27.acacia' });
   const s = createAdminSupabaseClient();
 
-  // Get trialing subscriptions
   const { data: trials } = await s
     .from('subscriptions')
-    .select('user_id, stripe_subscription_id, current_period_end, profiles(email, display_name, full_name, email_notifications)')
+    .select('user_id, stripe_subscription_id, current_period_end, profiles(display_name, full_name)')
     .eq('status', 'trialing');
 
   if (!trials?.length) return NextResponse.json({ emailed: 0 });
@@ -30,15 +30,11 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     trials.map(async (trial: any) => {
       const profile = trial.profiles;
-      if (!profile?.email || !profile.email_notifications || !trial.current_period_end) return;
+      if (!profile || !trial.current_period_end) return;
 
-      const trialEnd = new Date(trial.current_period_end).getTime();
-      const daysLeft = Math.ceil((trialEnd - now) / 86400000);
-
-      // Send on day 5 remaining (2 days warning) and day 2 remaining (last chance)
+      const daysLeft = Math.ceil((new Date(trial.current_period_end).getTime() - now) / 86400000);
       if (daysLeft !== 2 && daysLeft !== 5) return;
 
-      // Check we haven't sent this specific reminder
       const emailType = `trial_expiry_${daysLeft}d`;
       const { data: already } = await s
         .from('cron_email_log')
@@ -50,9 +46,11 @@ export async function GET(req: NextRequest) {
       if (already) return;
 
       const name = profile.display_name || profile.full_name || 'there';
-      await sendEmail({
-        to: profile.email,
-        subject: daysLeft === 2 ? 'Last chance: Your Omnia trial ends in 2 days' : 'Your Omnia trial ends in 5 days',
+      await queueEmail({
+        userId: trial.user_id,
+        emailType: 'trial_expiry',
+        priority: 1, // P1 — transactional
+        subject: daysLeft === 2 ? 'Your Omnia trial ends in 2 days' : 'Your Omnia trial ends in 5 days',
         html: templates.trialExpiry(name, daysLeft),
       });
 

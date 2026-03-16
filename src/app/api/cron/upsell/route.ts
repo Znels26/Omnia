@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -15,7 +16,7 @@ export async function GET(req: NextRequest) {
   // Free users who have used at least 5 AI requests (engaged users worth upselling)
   const { data: rows } = await s
     .from('usage_counters')
-    .select('user_id, ai_requests_used, profiles(email, display_name, full_name, plan_tier, email_notifications)')
+    .select('user_id, ai_requests_used, profiles(display_name, full_name, plan_tier)')
     .gte('ai_requests_used', 5);
 
   if (!rows?.length) return NextResponse.json({ sent: 0 });
@@ -24,13 +25,15 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     rows.map(async (row: any) => {
       const profile = row.profiles;
-      if (!profile?.email_notifications || profile.plan_tier !== 'free') return;
+      if (profile.plan_tier !== 'free') return;
 
       const name = profile.display_name || profile.full_name || 'there';
       const stat = `you've used ${row.ai_requests_used} AI requests this month`;
-      await sendEmail({
-        to: profile.email,
-        subject: "You're getting the most out of Omnia ⚡",
+      await queueEmail({
+        userId: row.user_id,
+        emailType: 'upsell',
+        priority: 4,
+        subject: "You're getting the most out of Omnia",
         html: templates.upsell(name, 'free', stat),
       });
       sent++;

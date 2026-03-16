@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
   const s = createAdminSupabaseClient();
   const today = new Date().toISOString().split('T')[0];
 
-  const { data: profiles } = await s.from('profiles').select('id, email, display_name, full_name').eq('email_notifications', true);
+  const { data: profiles } = await s.from('profiles').select('id, display_name, full_name');
   if (!profiles?.length) return NextResponse.json({ sent: 0 });
 
   let sent = 0;
@@ -30,8 +31,10 @@ export async function GET(req: NextRequest) {
 
       if (!tasks?.length) return;
 
-      await sendEmail({
-        to: profile.email,
+      await queueEmail({
+        userId: profile.id,
+        emailType: 'overdue_tasks',
+        priority: 2,
         subject: `You have ${tasks.length} overdue task${tasks.length > 1 ? 's' : ''} — Omnia`,
         html: templates.overdueTasks(profile.display_name || 'there', tasks),
       });

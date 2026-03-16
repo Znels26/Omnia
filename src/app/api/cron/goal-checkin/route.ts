@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -32,7 +33,7 @@ export async function GET(req: NextRequest) {
   }
 
   const s = createAdminSupabaseClient();
-  const { data: profiles } = await s.from('profiles').select('id, email, display_name, full_name').eq('email_notifications', true);
+  const { data: profiles } = await s.from('profiles').select('id, display_name, full_name');
   if (!profiles?.length) return NextResponse.json({ sent: 0 });
 
   let sent = 0;
@@ -48,9 +49,11 @@ export async function GET(req: NextRequest) {
 
       const name = profile.display_name || profile.full_name || 'there';
       const analysis = await analyzeGoals(name, goals);
-      await sendEmail({
-        to: profile.email,
-        subject: 'Your Weekly Goal Check-in 🎯',
+      await queueEmail({
+        userId: profile.id,
+        emailType: 'goal_checkin',
+        priority: 3,
+        subject: 'Your Weekly Goal Check-in',
         html: templates.goalCheckin(name, analysis),
       });
       sent++;

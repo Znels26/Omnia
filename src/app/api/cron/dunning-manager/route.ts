@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 import Stripe from 'stripe';
 
 export const runtime = 'nodejs';
@@ -16,10 +17,9 @@ export async function GET(req: NextRequest) {
   const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: '2025-01-27.acacia' });
   const s = createAdminSupabaseClient();
 
-  // Get all past_due or unpaid subscriptions
   const { data: subs } = await s
     .from('subscriptions')
-    .select('user_id, stripe_subscription_id, stripe_customer_id, profiles(email, display_name, full_name, email_notifications)')
+    .select('user_id, stripe_subscription_id, profiles(display_name, full_name)')
     .in('status', ['past_due', 'unpaid']);
 
   if (!subs?.length) return NextResponse.json({ emailed: 0 });
@@ -28,7 +28,7 @@ export async function GET(req: NextRequest) {
   await Promise.allSettled(
     subs.map(async (sub: any) => {
       const profile = sub.profiles;
-      if (!profile?.email || !profile.email_notifications) return;
+      if (!profile) return;
 
       try {
         const invoices = await stripe.invoices.list({
@@ -40,15 +40,16 @@ export async function GET(req: NextRequest) {
         if (!inv) return;
 
         const daysPastDue = Math.floor((Date.now() - inv.created * 1000) / 86400000);
-        // Send on day 1, 3, and 7
         if (![1, 3, 7].includes(daysPastDue)) return;
 
         const name = profile.display_name || profile.full_name || 'there';
         const amount = `$${(inv.amount_due / 100).toFixed(2)}`;
 
-        await sendEmail({
-          to: profile.email,
-          subject: daysPastDue >= 7 ? 'Final notice: Payment required to keep Omnia active' : `Payment failed — day ${daysPastDue} reminder`,
+        await queueEmail({
+          userId: sub.user_id,
+          emailType: 'dunning',
+          priority: 1, // P1 — transactional, bypasses all limits
+          subject: daysPastDue >= 7 ? 'Final notice: Payment required' : `Payment failed — day ${daysPastDue}`,
           html: templates.dunning(name, daysPastDue, amount),
         });
         emailed++;

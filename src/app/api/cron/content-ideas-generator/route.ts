@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
-import { sendEmail, templates } from '@/lib/resend';
+import { templates } from '@/lib/resend';
+import { queueEmail } from '@/lib/email-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -51,11 +52,10 @@ export async function GET(req: NextRequest) {
 
   const s = createAdminSupabaseClient();
 
-  // Only send to plus/pro users with email notifications
+  // Only send to plus/pro users
   const { data: users } = await s
     .from('profiles')
-    .select('id, email, display_name, full_name, email_notifications, plan_tier')
-    .eq('email_notifications', true)
+    .select('id, email, display_name, full_name, plan_tier')
     .in('plan_tier', ['plus', 'pro']);
 
   if (!users?.length) return NextResponse.json({ sent: 0 });
@@ -75,9 +75,11 @@ export async function GET(req: NextRequest) {
 
     if (ideas.length === 0) continue;
 
-    await sendEmail({
-      to: user.email,
-      subject: `Your 5 personalised content ideas this week 💡`,
+    await queueEmail({
+      userId: user.id,
+      emailType: 'content_ideas',
+      priority: 4,
+      subject: `Your 5 personalised content ideas this week`,
       html: templates.contentIdeas(name, ideas),
     });
     sent++;
