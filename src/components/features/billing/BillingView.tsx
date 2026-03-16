@@ -13,13 +13,13 @@ const PLANS = [
   },
   {
     tier: 'plus', name: 'Plus', icon: Zap, color: 'hsl(205,90%,60%)', highlight: true,
-    price: { monthly: 12, yearly: 99 },
+    price: { monthly: 25, yearly: 199 },
     features: ['500 AI messages/month', 'Unlimited notes & tasks', '50 uploads', '50 exports/month', 'Life Hub — all 22 tools', 'AI Money Tools — all 4 tools', '25 invoices/month', 'Proposals & Doc Builder', '100 reminders', 'All 6 AI modes'],
     missing: [],
   },
   {
     tier: 'pro', name: 'Pro', icon: Crown, color: 'hsl(262,83%,75%)',
-    price: { monthly: 29, yearly: 249 },
+    price: { monthly: 40, yearly: 329 },
     features: ['Unlimited AI messages', 'Unlimited everything', '250 uploads', '500 exports', 'Unlimited invoices', 'Life Hub + AI Money Tools', 'Priority support', 'Advanced AI memory'],
     missing: [],
   },
@@ -144,7 +144,7 @@ export function BillingView({ profile, subscription }: any) {
                     <span style={{ fontSize: '28px', fontWeight: 800 }}>Free</span>
                   ) : (
                     <>
-                      <span style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', paddingTop: '7px', alignSelf: 'flex-start' }}>£</span>
+                      <span style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', paddingTop: '7px', alignSelf: 'flex-start' }}>$</span>
                       <span style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em' }}>{price}</span>
                       <span style={{ fontSize: '12px', color: 'hsl(240 5% 50%)' }}>/{billingInterval === 'yearly' ? 'yr' : 'mo'}</span>
                     </>
@@ -152,7 +152,7 @@ export function BillingView({ profile, subscription }: any) {
                 </div>
                 {billingInterval === 'yearly' && price > 0 && (
                   <p style={{ fontSize: '11px', color: '#34d399', margin: '3px 0 0' }}>
-                    Save £{(p.price.monthly * 12) - p.price.yearly} vs monthly
+                    Save ${(p.price.monthly * 12) - p.price.yearly} vs monthly
                   </p>
                 )}
               </div>

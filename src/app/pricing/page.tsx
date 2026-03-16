@@ -30,7 +30,7 @@ const PLANS = [
     tier: 'plus',
     name: 'Plus',
     desc: 'Everything you need to grow',
-    price: { m: 12, y: 99 },
+    price: { m: 25, y: 199 },
     color: 'hsl(205,90%,60%)',
     highlight: true,
     features: [
@@ -53,7 +53,7 @@ const PLANS = [
     tier: 'pro',
     name: 'Pro',
     desc: 'Unlimited power for professionals',
-    price: { m: 29, y: 249 },
+    price: { m: 40, y: 329 },
     color: 'hsl(262,83%,75%)',
     features: [
       'Unlimited AI messages',
@@ -74,14 +74,28 @@ const PLANS = [
 const FAQ = [
   { q: 'Can I cancel anytime?', a: 'Yes — cancel anytime from your billing dashboard. No lock-in, no hassle.' },
   { q: 'What counts as an AI message?', a: 'Each time you send a message and receive a response counts as one AI message. Image generation and web searches also use one credit each.' },
-  { q: 'Does the free plan expire?', a: 'No — the free plan is free forever. You\'ll just have lower usage limits than paid plans.' },
-  { q: 'What\'s in Life Hub?', a: '22 AI-powered tools split across Finance (budget planner, debt payoff, investment ideas, tax estimator, financial health score, and more) and Fitness (workout planner, meal planner, calorie tracker, AI personal trainer, and more).' },
-  { q: 'Is there a 7-day trial?', a: 'Yes — all paid plans include a 7-day free trial. No card charged until the trial ends.' },
+  { q: 'Does the free plan expire?', a: "No — the free plan is free forever. You'll just have lower usage limits than paid plans." },
+  { q: "What's in Life Hub?", a: '22 AI-powered tools split across Finance (budget planner, debt payoff, investment ideas, tax estimator, financial health score, and more) and Fitness (workout planner, meal planner, calorie tracker, AI personal trainer, and more).' },
+  { q: 'Is there a free trial?', a: 'Yes — all paid plans include a 7-day free trial. No card charged until the trial ends.' },
 ];
 
 export default function PricingPage() {
   return (
     <div style={{ minHeight: '100dvh', background: 'hsl(240 10% 4%)', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', color: 'hsl(0 0% 90%)' }}>
+      <style>{`
+        .pricing-cards {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 64px;
+        }
+        @media (max-width: 720px) {
+          .pricing-cards {
+            grid-template-columns: 1fr;
+          }
+        }
+      `}</style>
+
       <nav style={{ borderBottom: '1px solid hsl(240 6% 14%)', padding: '0 24px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: 'hsl(240 10% 4% / 0.95)', backdropFilter: 'blur(20px)', zIndex: 50 }}>
         <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: '8px', textDecoration: 'none' }}>
           <div style={{ width: '30px', height: '30px', borderRadius: '8px', background: 'hsl(205 90% 48% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -113,8 +127,8 @@ export default function PricingPage() {
           </p>
         </div>
 
-        {/* Plan cards */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '64px' }}>
+        {/* Plan cards — stacks to 1-col on mobile via .pricing-cards class */}
+        <div className="pricing-cards">
           {PLANS.map(p => (
             <div
               key={p.tier}
@@ -135,31 +149,30 @@ export default function PricingPage() {
                 </div>
               )}
 
-              {/* Plan name + icon */}
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                {p.tier === 'free' && <Sparkles size={15} color={p.color} />}
-                {p.tier === 'plus' && <Zap size={15} color={p.color} />}
-                {p.tier === 'pro' && <Crown size={15} color={p.color} />}
+                {p.tier === 'free'  && <Sparkles size={15} color={p.color} />}
+                {p.tier === 'plus'  && <Zap size={15} color={p.color} />}
+                {p.tier === 'pro'   && <Crown size={15} color={p.color} />}
                 <span style={{ fontWeight: 700, fontSize: '16px', color: p.color }}>{p.name}</span>
               </div>
               <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', margin: '0 0 20px' }}>{p.desc}</p>
 
               {/* Price */}
               <div style={{ marginBottom: '24px' }}>
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: '4px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px' }}>
                   {p.price.m === 0 ? (
-                    <span style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.03em' }}>Free</span>
+                    <span style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.03em' }}>Free</span>
                   ) : (
                     <>
-                      <span style={{ fontSize: '14px', color: 'hsl(240 5% 50%)', marginBottom: '2px', alignSelf: 'flex-start', paddingTop: '10px' }}>£</span>
-                      <span style={{ fontSize: '38px', fontWeight: 800, letterSpacing: '-0.03em' }}>{p.price.m}</span>
-                      <span style={{ fontSize: '13px', color: 'hsl(240 5% 50%)' }}>/month</span>
+                      <span style={{ fontSize: '22px', fontWeight: 700, alignSelf: 'flex-start', paddingTop: '8px' }}>$</span>
+                      <span style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.03em' }}>{p.price.m}</span>
+                      <span style={{ fontSize: '14px', color: 'hsl(240 5% 50%)', paddingBottom: '4px', alignSelf: 'flex-end' }}>/month</span>
                     </>
                   )}
                 </div>
                 {p.price.y > 0 && (
-                  <p style={{ fontSize: '12px', color: '#34d399', margin: '4px 0 0', fontWeight: 500 }}>
-                    or £{p.price.y}/year — save £{(p.price.m * 12) - p.price.y}
+                  <p style={{ fontSize: '13px', color: '#34d399', margin: '5px 0 0', fontWeight: 500 }}>
+                    or ${p.price.y}/year — save ${(p.price.m * 12) - p.price.y}
                   </p>
                 )}
               </div>
@@ -169,7 +182,7 @@ export default function PricingPage() {
                 href="/signup"
                 style={{
                   display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
-                  padding: '12px', borderRadius: '10px', marginBottom: '24px',
+                  padding: '13px', borderRadius: '10px', marginBottom: '24px',
                   background: p.highlight ? 'hsl(205, 90%, 48%)' : p.tier === 'pro' ? 'hsl(262 83% 58% / 0.15)' : 'transparent',
                   border: p.highlight ? 'none' : `1px solid ${p.tier === 'pro' ? 'hsl(262 83% 58% / 0.3)' : 'hsl(240 6% 20%)'}`,
                   color: p.highlight ? 'white' : p.tier === 'pro' ? 'hsl(262, 83%, 75%)' : 'hsl(0 0% 80%)',
@@ -179,20 +192,18 @@ export default function PricingPage() {
                 {p.tier === 'free' ? 'Get Started Free' : 'Start 7-Day Trial'} <ArrowRight size={14} />
               </Link>
 
-              {/* Divider */}
               <div style={{ height: '1px', background: 'hsl(240 6% 14%)', marginBottom: '20px' }} />
 
-              {/* Features */}
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '9px', flex: 1 }}>
                 {p.features.map(f => (
-                  <li key={f} style={{ display: 'flex', gap: '9px', fontSize: '13px', alignItems: 'flex-start' }}>
-                    <Check size={14} color="#34d399" style={{ flexShrink: 0, marginTop: '1px' }} />
-                    <span style={{ color: 'hsl(240 5% 70%)' }}>{f}</span>
+                  <li key={f} style={{ display: 'flex', gap: '9px', fontSize: '13.5px', alignItems: 'flex-start' }}>
+                    <Check size={14} color="#34d399" style={{ flexShrink: 0, marginTop: '2px' }} />
+                    <span style={{ color: 'hsl(240 5% 72%)' }}>{f}</span>
                   </li>
                 ))}
                 {p.missing.map(f => (
-                  <li key={f} style={{ display: 'flex', gap: '9px', fontSize: '13px', alignItems: 'flex-start', opacity: 0.4 }}>
-                    <X size={14} color="hsl(240 5% 50%)" style={{ flexShrink: 0, marginTop: '1px' }} />
+                  <li key={f} style={{ display: 'flex', gap: '9px', fontSize: '13.5px', alignItems: 'flex-start', opacity: 0.35 }}>
+                    <X size={14} color="hsl(240 5% 50%)" style={{ flexShrink: 0, marginTop: '2px' }} />
                     <span style={{ color: 'hsl(240 5% 50%)' }}>{f}</span>
                   </li>
                 ))}
@@ -201,21 +212,10 @@ export default function PricingPage() {
           ))}
         </div>
 
-        {/* Compare row — mobile stacks to 1 col */}
-        <style>{`
-          .pricing-cards { grid-template-columns: repeat(3,1fr) !important; }
-          @media (max-width: 700px) {
-            .pricing-cards { grid-template-columns: 1fr !important; }
-          }
-          @media (max-width: 900px) {
-            .pricing-cards { grid-template-columns: 1fr !important; }
-          }
-        `}</style>
-
         {/* FAQ */}
         <div style={{ maxWidth: '680px', margin: '0 auto' }}>
           <h2 style={{ fontSize: '22px', fontWeight: 700, textAlign: 'center', marginBottom: '28px', letterSpacing: '-0.02em' }}>Common questions</h2>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {FAQ.map((item, i) => (
               <div key={i} style={{ padding: '18px 20px', borderRadius: '12px', background: 'hsl(240 6% 8%)', border: '1px solid hsl(240 6% 13%)' }}>
                 <p style={{ fontWeight: 600, fontSize: '14px', margin: '0 0 6px' }}>{item.q}</p>

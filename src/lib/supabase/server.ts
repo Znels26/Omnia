@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { cache } from 'react';
 
 const OWNER_EMAIL = 'zacharynelson96@gmail.com';
+const VIP_EMAILS = ['stephaniephillipsmc@gmail.com'];
 
 export async function createServerSupabaseClient() {
   const cookieStore = await cookies();
@@ -47,8 +48,8 @@ export const getProfile = cache(async () => {
     const supabase = await createServerSupabaseClient();
     const { data } = await supabase.from('profiles').select('*').eq('id', user.id).single();
     if (!data) return null;
-    // Owner account always gets pro tier
-    if (data.email === OWNER_EMAIL) return { ...data, plan_tier: 'pro' };
+    // Owner + VIP accounts always get pro tier
+    if (data.email === OWNER_EMAIL || VIP_EMAILS.includes(data.email)) return { ...data, plan_tier: 'pro' };
     return data;
   } catch { return null; }
 });
