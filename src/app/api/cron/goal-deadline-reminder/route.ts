@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
 import { templates } from '@/lib/resend';
 import { queueEmail } from '@/lib/email-scheduler';
+import { queuePush } from '@/lib/push-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -50,6 +51,16 @@ export async function GET(req: NextRequest) {
 
       const name = profile.display_name || profile.full_name || 'there';
       const motivation = await generateMotivation(goal.title, goal.progress);
+
+      // Push notification (priority 2 — normal)
+      await queuePush({
+        userId:   goal.user_id,
+        type:     'goal_deadline',
+        priority: 2,
+        title:    `7 days left: ${goal.title}`,
+        body:     `You're at ${goal.progress}% — keep going to finish on time.`,
+        url:      '/planner',
+      });
 
       await queueEmail({
         userId: goal.user_id,

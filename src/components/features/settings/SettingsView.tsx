@@ -5,11 +5,39 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
 
+function ToggleRow({ label, desc, on, onChange, small }: { label: string; desc: string; on: boolean; onChange: (v: boolean) => void; small?: boolean }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+      <div>
+        <p style={{ fontSize: small ? '13px' : '14px', fontWeight: 500, margin: 0 }}>{label}</p>
+        <p style={{ fontSize: '12px', color: 'hsl(240 5% 55%)', margin: 0 }}>{desc}</p>
+      </div>
+      <button
+        onClick={() => onChange(!on)}
+        style={{ width: '42px', height: '24px', borderRadius: '999px', background: on ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 20%)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}
+      >
+        <span style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: on ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
+      </button>
+    </div>
+  );
+}
+
 const MODES = [{ v: 'general', l: '✨ General' }, { v: 'productivity', l: '⚡ Productivity' }, { v: 'writing', l: '✍️ Writing' }, { v: 'study', l: '📚 Study' }, { v: 'planning', l: '🎯 Planning' }, { v: 'documents', l: '📄 Documents' }];
 
 export function SettingsView({ profile }: any) {
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ display_name: profile?.display_name || '', full_name: profile?.full_name || '', assistant_mode: profile?.assistant_mode || 'general', email_notifications: profile?.email_notifications ?? true });
+  const [form, setForm] = useState({
+    display_name:           profile?.display_name || '',
+    full_name:              profile?.full_name || '',
+    assistant_mode:         profile?.assistant_mode || 'general',
+    email_notifications:    profile?.email_notifications ?? true,
+    push_notifications:     profile?.push_notifications ?? true,
+    push_reminders:         profile?.push_reminders ?? true,
+    push_morning_briefing:  profile?.push_morning_briefing ?? true,
+    push_streak_alerts:     profile?.push_streak_alerts ?? true,
+    push_goal_reminders:    profile?.push_goal_reminders ?? true,
+    push_invoice_alerts:    profile?.push_invoice_alerts ?? true,
+  });
   const [memories, setMemories] = useState<any[]>([]);
   const [newMemory, setNewMemory] = useState('');
   const [addingMemory, setAddingMemory] = useState(false);
@@ -118,13 +146,36 @@ export function SettingsView({ profile }: any) {
         </div>
 
         <div className="card" style={{ padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}><Bell size={15} color="hsl(205, 90%, 60%)" /><h2 style={{ fontWeight: 600, fontSize: '15px' }}>Notifications</h2></div>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div><p style={{ fontSize: '14px', fontWeight: 500 }}>Email Notifications</p><p style={{ fontSize: '12px', color: 'hsl(240 5% 55%)' }}>Receive reminders and updates by email</p></div>
-            <button onClick={() => setForm(p => ({ ...p, email_notifications: !p.email_notifications }))} style={{ width: '42px', height: '24px', borderRadius: '999px', background: form.email_notifications ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 20%)', border: 'none', cursor: 'pointer', position: 'relative', transition: 'background 0.2s', flexShrink: 0 }}>
-              <span style={{ position: 'absolute', top: '3px', width: '18px', height: '18px', borderRadius: '50%', background: 'white', transition: 'left 0.2s', left: form.email_notifications ? '21px' : '3px', boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
-            </button>
-          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}><Bell size={15} color="hsl(205, 90%, 60%)" /><h2 style={{ fontWeight: 600, fontSize: '15px' }}>Notifications</h2></div>
+
+          {/* Email master toggle */}
+          <ToggleRow
+            label="Email Notifications"
+            desc="Reminders and briefings by email"
+            on={form.email_notifications}
+            onChange={v => setForm(p => ({ ...p, email_notifications: v }))}
+          />
+
+          <div style={{ height: '1px', background: 'hsl(240 6% 14%)', margin: '14px 0' }} />
+
+          {/* Push master toggle */}
+          <ToggleRow
+            label="Push Notifications"
+            desc="Instant alerts on this device"
+            on={form.push_notifications}
+            onChange={v => setForm(p => ({ ...p, push_notifications: v }))}
+          />
+
+          {/* Push sub-toggles — only show when push is on */}
+          {form.push_notifications && (
+            <div style={{ marginTop: '12px', display: 'flex', flexDirection: 'column', gap: '10px', paddingLeft: '8px', borderLeft: '2px solid hsl(240 6% 16%)' }}>
+              <ToggleRow label="Reminders"        desc="Push at exact reminder time"         on={form.push_reminders}        onChange={v => setForm(p => ({ ...p, push_reminders: v }))}        small />
+              <ToggleRow label="Morning Briefing" desc="Daily summary at 7am"                on={form.push_morning_briefing} onChange={v => setForm(p => ({ ...p, push_morning_briefing: v }))} small />
+              <ToggleRow label="Streak Alerts"    desc="Nudge when streak is at risk"        on={form.push_streak_alerts}    onChange={v => setForm(p => ({ ...p, push_streak_alerts: v }))}    small />
+              <ToggleRow label="Goal Reminders"   desc="7-day deadline warnings"             on={form.push_goal_reminders}   onChange={v => setForm(p => ({ ...p, push_goal_reminders: v }))}   small />
+              <ToggleRow label="Invoice Alerts"   desc="Notify when an invoice is paid"      on={form.push_invoice_alerts}   onChange={v => setForm(p => ({ ...p, push_invoice_alerts: v }))}   small />
+            </div>
+          )}
         </div>
 
         <button onClick={save} disabled={saving} className="btn btn-primary" style={{ height: '44px', fontSize: '15px', fontWeight: 600 }}>{saving ? 'Saving…' : 'Save Changes'}</button>

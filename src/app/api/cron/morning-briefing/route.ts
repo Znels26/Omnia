@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
 import { templates } from '@/lib/resend';
 import { queueEmail } from '@/lib/email-scheduler';
+import { queuePush } from '@/lib/push-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 60;
@@ -31,6 +32,24 @@ export async function GET(req: NextRequest) {
       ]);
 
       if (!tasks?.length && !reminders?.length && !goals?.length) return;
+
+      // Push notification (priority 3 — informational, respects daily limit)
+      const taskCount      = tasks?.length    ?? 0;
+      const reminderCount  = reminders?.length ?? 0;
+      const pushBodyParts: string[] = [];
+      if (taskCount)     pushBodyParts.push(`${taskCount} task${taskCount     !== 1 ? 's' : ''}`);
+      if (reminderCount) pushBodyParts.push(`${reminderCount} reminder${reminderCount !== 1 ? 's' : ''}`);
+
+      await queuePush({
+        userId:   profile.id,
+        type:     'morning_briefing',
+        priority: 3,
+        title:    `Good morning, ${name}! ☀️`,
+        body:     pushBodyParts.length
+          ? `You have ${pushBodyParts.join(' and ')} today.`
+          : `Your Omnia briefing is ready for ${today}.`,
+        url:      '/dashboard',
+      });
 
       await queueEmail({
         userId: profile.id,

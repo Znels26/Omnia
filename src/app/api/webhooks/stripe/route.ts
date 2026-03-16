@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
+import { sendPushNow } from '@/lib/push-scheduler';
 export const runtime = 'nodejs';
 export async function POST(req: NextRequest) {
   const stripeKey = process.env.STRIPE_SECRET_KEY;
@@ -29,6 +30,22 @@ export async function POST(req: NextRequest) {
       await s.from('profiles').update({ plan_tier: tier }).eq('id', userId);
     }
   }
+  // Invoice paid — send immediate push notification
+  if (event.type === 'invoice.payment_succeeded') {
+    const invoice = event.data.object as any;
+    const userId  = invoice.metadata?.omnia_user_id ?? invoice.subscription_details?.metadata?.omnia_user_id;
+    if (userId) {
+      const amountPaid = ((invoice.amount_paid ?? 0) / 100).toFixed(2);
+      const currency   = (invoice.currency ?? 'usd').toUpperCase();
+      await sendPushNow(
+        userId,
+        'Payment received!',
+        `$${amountPaid} ${currency} payment confirmed. Thanks for subscribing to Omnia.`,
+        '/billing'
+      ).catch(() => {});
+    }
+  }
+
   if (event.type === 'customer.subscription.deleted') {
     const sub = event.data.object;
     const userId = sub.metadata?.omnia_user_id;

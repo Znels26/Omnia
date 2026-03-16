@@ -11,6 +11,7 @@ DollarSign, CalendarClock, Share2, Heart, Code2
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { PWAInstallBanner } from './PWAInstallBanner';
+import { NotificationPrompt } from '@/components/notifications/NotificationPrompt';
 
 const NAV = [
 { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -224,6 +225,9 @@ return (
 
   {/* ── PWA INSTALL BANNER ── */}
   <PWAInstallBanner />
+
+  {/* ── PUSH NOTIFICATION PROMPT ── */}
+  <NotificationPrompt />
 
   {/* ── MOBILE BOTTOM NAV ── */}
   <nav className="mobile-nav">

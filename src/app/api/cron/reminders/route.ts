@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAdminSupabaseClient } from '@/lib/supabase/server';
 import { templates } from '@/lib/resend';
 import { queueEmail } from '@/lib/email-scheduler';
+import { sendPushNow } from '@/lib/push-scheduler';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -31,6 +32,15 @@ export async function GET(req: NextRequest) {
     reminders.map(async (r: any) => {
       const profile = r.profiles;
       const name = profile?.display_name || profile?.full_name || 'there';
+
+      // Push first (priority 1 — urgent, bypasses queue and sends immediately)
+      await sendPushNow(
+        r.user_id,
+        `Reminder: ${r.title}`,
+        r.description || 'Tap to open Omnia',
+        '/reminders'
+      );
+
       await queueEmail({
         userId: r.user_id,
         emailType: 'reminder',
