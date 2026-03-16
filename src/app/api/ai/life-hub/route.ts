@@ -46,7 +46,7 @@ Produce:
   'savings-goals': (f) => `Create a personalised savings goal plan.
 Goal: ${f.goal || 'build an emergency fund'}
 Target amount: ${f.targetAmount || 'not specified'}
-Current savings: ${f.currentSavings || '£0'}
+Current savings: ${f.currentSavings || '$0'}
 Monthly available to save: ${f.monthlySavings || 'not specified'}
 
 Produce:
@@ -124,7 +124,7 @@ Produce:
 Skills: ${f.skills || 'not specified'}
 Capital available: ${f.capital || 'minimal'}
 Time per week: ${f.timePerWeek || '5-10 hours'}
-Income goal: ${f.incomeGoal || '£1,000/month passive'}
+Income goal: ${f.incomeGoal || '$1,000/month passive'}
 
 Produce:
 1. Top 3 passive income streams matched to their skills and capital
