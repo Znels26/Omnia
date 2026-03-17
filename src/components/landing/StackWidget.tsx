@@ -157,27 +157,41 @@ export function StackWidget() {
 
   return (
     <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+      <style>{`
+        .sw-input-row { display: flex; gap: 10px; align-items: flex-start; }
+        .sw-controls  { display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        @media (max-width: 520px) {
+          .sw-input-row { flex-direction: column; }
+          .sw-controls  { flex-direction: row; align-items: center; justify-content: space-between; }
+        }
+        .sw-summary { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+        @media (max-width: 480px) { .sw-summary { grid-template-columns: 1fr 1fr; } }
+        .sw-save-col { background: var(--save-bg); border: 1px solid var(--save-bd); border-radius: 10px; padding: 12px; text-align: center; }
+        @media (max-width: 480px) { .sw-save-col { grid-column: span 2; } }
+        .sw-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; background: hsl(240 6% 10%); border: 1px solid hsl(240 6% 16%); border-radius: 7px; font-size: 11px; flex-wrap: nowrap; }
+        .sw-cta-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+        .sw-footer-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+        @media (max-width: 400px) { .sw-footer-row .sw-footer-note { display: none; } }
+      `}</style>
+
       {!done ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Country + input row */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', flexWrap: 'wrap' }}>
-            <div style={{ flex: 1, minWidth: '260px' }}>
-              <textarea
-                value={input}
-                onChange={e => setInput(e.target.value)}
-                placeholder={'Notion, ChatGPT, Todoist, FreshBooks, Cursor...'}
-                rows={3}
-                style={{ resize: 'none', fontFamily: 'inherit', lineHeight: 1.6, width: '100%', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '10px', padding: '12px 14px', color: 'hsl(0 0% 85%)', fontSize: '14px' }}
-                onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) analyse(); }}
-              />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Globe size={13} color="hsl(240 5% 50%)" />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          <div className="sw-input-row">
+            <textarea
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              placeholder="Notion, ChatGPT, Todoist, FreshBooks, Cursor..."
+              rows={3}
+              style={{ resize: 'none', fontFamily: 'inherit', lineHeight: 1.6, width: '100%', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '10px', padding: '11px 13px', color: 'hsl(0 0% 85%)', fontSize: '14px', minWidth: 0 }}
+              onKeyDown={e => { if (e.key === 'Enter' && e.metaKey) analyse(); }}
+            />
+            <div className="sw-controls">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <Globe size={12} color="hsl(240 5% 48%)" />
                 <select
                   value={countryCode}
                   onChange={e => setCountryCode(e.target.value)}
-                  style={{ background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(0 0% 80%)', padding: '7px 10px', fontSize: '12px', cursor: 'pointer' }}
+                  style={{ background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '7px', color: 'hsl(0 0% 78%)', padding: '6px 8px', fontSize: '12px', cursor: 'pointer' }}
                 >
                   {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
                 </select>
@@ -185,123 +199,109 @@ export function StackWidget() {
               <button
                 onClick={analyse}
                 disabled={!input.trim()}
-                style={{ padding: '10px 20px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '10px', border: 'none', fontSize: '14px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: input.trim() ? 1 : 0.5 }}
+                style={{ padding: '10px 18px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '9px', border: 'none', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', opacity: input.trim() ? 1 : 0.5, whiteSpace: 'nowrap' }}
               >
-                <Sparkles size={14} /> Calculate
+                <Sparkles size={13} /> Calculate
               </button>
             </div>
           </div>
 
-          {/* Example stacks */}
           <div>
-            <p style={{ fontSize: '11px', color: 'hsl(240 5% 40%)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Try an example stack</p>
-            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <p style={{ fontSize: '10px', color: 'hsl(240 5% 38%)', marginBottom: '7px', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>Try an example</p>
+            <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
               {EXAMPLE_STACKS.map((stack, i) => (
-                <button
-                  key={i}
-                  onClick={() => tryExample(stack)}
-                  style={{ padding: '6px 12px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '8px', fontSize: '12px', color: 'hsl(240 5% 60%)', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
-                  {stack.slice(0, 3).join(' + ')}
+                <button key={i} onClick={() => tryExample(stack)}
+                  style={{ padding: '5px 10px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 15%)', borderRadius: '7px', fontSize: '11px', color: 'hsl(240 5% 58%)', cursor: 'pointer', whiteSpace: 'nowrap' }}>
+                  {stack.slice(0, 2).join(' + ')} +{stack.length - 2}
                 </button>
               ))}
             </div>
           </div>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {/* Results summary */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-            <div style={{ padding: '16px', background: 'hsl(0 60% 50% / 0.08)', border: '1px solid hsl(0 60% 50% / 0.2)', borderRadius: '12px', textAlign: 'center' }}>
-              <p style={{ fontSize: '11px', color: 'hsl(0 60% 60%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>You pay now</p>
-              <p style={{ fontSize: '26px', fontWeight: 800, color: 'hsl(0 60% 65%)' }}>{fmt(country.symbol, totalLocal)}<span style={{ fontSize: '12px', fontWeight: 400, color: 'hsl(0 60% 50%)' }}>/mo</span></p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {/* 3-col summary (2-col on mobile, save spans full width) */}
+          <div className="sw-summary">
+            <div style={{ padding: '12px', background: 'hsl(0 60% 50% / 0.08)', border: '1px solid hsl(0 60% 50% / 0.2)', borderRadius: '10px', textAlign: 'center' }}>
+              <p style={{ fontSize: '10px', color: 'hsl(0 60% 58%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>You pay now</p>
+              <p style={{ fontSize: 'clamp(20px,5vw,26px)', fontWeight: 800, color: 'hsl(0 60% 65%)', letterSpacing: '-0.02em' }}>{fmt(country.symbol, totalLocal)}<span style={{ fontSize: '11px', fontWeight: 400, color: 'hsl(0 60% 48%)' }}>/mo</span></p>
             </div>
-            <div style={{ padding: '16px', background: 'hsl(142 70% 40% / 0.08)', border: '1px solid hsl(142 70% 40% / 0.2)', borderRadius: '12px', textAlign: 'center' }}>
-              <p style={{ fontSize: '11px', color: 'hsl(142, 70%, 55%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>Omnia {plan.name}</p>
-              <p style={{ fontSize: '26px', fontWeight: 800, color: 'hsl(142, 70%, 60%)' }}>{fmt(country.symbol, omniaLocal)}<span style={{ fontSize: '12px', fontWeight: 400, color: 'hsl(142 70% 40%)' }}>/mo</span></p>
+            <div style={{ padding: '12px', background: 'hsl(142 70% 40% / 0.08)', border: '1px solid hsl(142 70% 40% / 0.2)', borderRadius: '10px', textAlign: 'center' }}>
+              <p style={{ fontSize: '10px', color: 'hsl(142,70%,52%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Omnia {plan.name}</p>
+              <p style={{ fontSize: 'clamp(20px,5vw,26px)', fontWeight: 800, color: 'hsl(142,70%,60%)', letterSpacing: '-0.02em' }}>{fmt(country.symbol, omniaLocal)}<span style={{ fontSize: '11px', fontWeight: 400, color: 'hsl(142 70% 38%)' }}>/mo</span></p>
             </div>
-            <div style={{ padding: '16px', background: savingsLocal >= 0 ? 'hsl(38 95% 60% / 0.08)' : 'hsl(205 90% 48% / 0.08)', border: `1px solid ${savingsLocal >= 0 ? 'hsl(38 95% 60% / 0.25)' : 'hsl(205 90% 48% / 0.25)'}`, borderRadius: '12px', textAlign: 'center' }}>
-              <p style={{ fontSize: '11px', color: savingsLocal >= 0 ? 'hsl(38, 95%, 65%)' : 'hsl(205, 90%, 65%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '6px' }}>
-                {savingsLocal >= 0 ? 'You save' : 'Just add'}
+            <div className="sw-save-col" style={{ ['--save-bg' as any]: savingsLocal >= 0 ? 'hsl(38 95% 60% / 0.08)' : 'hsl(205 90% 48% / 0.08)', ['--save-bd' as any]: savingsLocal >= 0 ? 'hsl(38 95% 60% / 0.25)' : 'hsl(205 90% 48% / 0.25)' }}>
+              <p style={{ fontSize: '10px', color: savingsLocal >= 0 ? 'hsl(38,95%,62%)' : 'hsl(205,90%,62%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>
+                {savingsLocal >= 0 ? '🎉 You save' : 'Add just'}
               </p>
-              <p style={{ fontSize: '26px', fontWeight: 800, color: savingsLocal >= 0 ? 'hsl(38, 95%, 65%)' : 'hsl(205, 90%, 65%)' }}>
-                {fmt(country.symbol, Math.abs(savingsLocal))}<span style={{ fontSize: '12px', fontWeight: 400 }}>/mo</span>
+              <p style={{ fontSize: 'clamp(20px,5vw,26px)', fontWeight: 800, color: savingsLocal >= 0 ? 'hsl(38,95%,65%)' : 'hsl(205,90%,65%)', letterSpacing: '-0.02em' }}>
+                {fmt(country.symbol, Math.abs(savingsLocal))}<span style={{ fontSize: '11px', fontWeight: 400 }}>/mo</span>
               </p>
             </div>
           </div>
 
-          {/* Saving or value message */}
-          <div style={{ padding: '14px 16px', background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {/* Value message */}
+          <div style={{ padding: '12px 14px', background: 'hsl(240 8% 8%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '10px', display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
             {savingsLocal >= 0
-              ? <TrendingDown size={18} color="hsl(142, 70%, 55%)" style={{ flexShrink: 0 }} />
-              : <TrendingUp size={18} color="hsl(205, 90%, 60%)" style={{ flexShrink: 0 }} />
+              ? <TrendingDown size={16} color="hsl(142,70%,55%)" style={{ flexShrink: 0, marginTop: '2px' }} />
+              : <TrendingUp size={16} color="hsl(205,90%,60%)" style={{ flexShrink: 0, marginTop: '2px' }} />
             }
-            <p style={{ fontSize: '13px', color: 'hsl(0 0% 75%)', lineHeight: 1.5 }}>
+            <p style={{ fontSize: '12px', color: 'hsl(0 0% 72%)', lineHeight: 1.55 }}>
               {savingsLocal >= 0
-                ? <><strong style={{ color: 'hsl(142, 70%, 60%)' }}>Save {fmt(country.symbol, savingsLocal)}/mo ({fmt(country.symbol, savingsLocal * 12)}/year)</strong> and get AI Assistant, Autopilot, Reminders, and more — all bundled in.</>
-                : <>For just <strong style={{ color: 'hsl(205, 90%, 65%)' }}>{fmt(country.symbol, Math.abs(savingsLocal))} more/mo</strong> you get {matched.length} tools replaced <em>plus</em> AI Autopilot, Notes, Planner, Reminders, Doc Builder{needsPro ? ', Code Studio' : ', Life Hub'} and more.</>
+                ? <><strong style={{ color: 'hsl(142,70%,60%)' }}>Save {fmt(country.symbol, savingsLocal)}/mo ({fmt(country.symbol, savingsLocal * 12)}/yr)</strong> and get AI Assistant, Autopilot, Reminders, Doc Builder and more bundled in.</>
+                : <>For just <strong style={{ color: 'hsl(205,90%,65%)' }}>{fmt(country.symbol, Math.abs(savingsLocal))} more/mo</strong> you get {matched.length} tools replaced <em>plus</em> Autopilot, Notes, Planner, Reminders{needsPro ? ', Code Studio' : ', Life Hub'} and more.</>
               }
             </p>
           </div>
 
-          {/* Matched tools chips */}
+          {/* Matched chips */}
           {matched.length > 0 && (
             <div>
-              <p style={{ fontSize: '11px', color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, marginBottom: '8px' }}>
-                {matched.length} tool{matched.length !== 1 ? 's' : ''} replaced
+              <p style={{ fontSize: '10px', color: 'hsl(240 5% 42%)', textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600, marginBottom: '7px' }}>
+                {matched.length} replaced · {unmatched.length > 0 ? `${unmatched.length} not covered yet` : 'all covered!'}
               </p>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
                 {matched.map((r, i) => (
-                  <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 10px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '8px', fontSize: '12px' }}>
+                  <div key={i} className="sw-chip">
                     <span>{r.data!.icon}</span>
-                    <span style={{ color: 'hsl(0 0% 70%)' }}>{r.raw}</span>
-                    <ArrowRight size={10} color="hsl(240 5% 40%)" />
-                    <span style={{ color: 'hsl(205, 90%, 65%)', fontWeight: 600 }}>{r.data!.feature}</span>
-                    {r.data!.usd > 0 && <span style={{ color: 'hsl(0 60% 55%)', fontSize: '10px' }}>−{fmt(country.symbol, Math.round(r.data!.usd * country.rate))}/mo</span>}
-                    <Check size={10} color="#34d399" />
+                    <span style={{ color: 'hsl(0 0% 68%)' }}>{r.raw}</span>
+                    <ArrowRight size={9} color="hsl(240 5% 38%)" />
+                    <span style={{ color: 'hsl(205,90%,65%)', fontWeight: 600 }}>{r.data!.feature}</span>
+                    {r.data!.usd > 0 && <span style={{ color: 'hsl(0 60% 55%)' }}>−{fmt(country.symbol, Math.round(r.data!.usd * country.rate))}</span>}
+                    <Check size={9} color="#34d399" />
                   </div>
                 ))}
                 {unmatched.map((r, i) => (
-                  <div key={i} style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'hsl(240 6% 8%)', border: '1px solid hsl(240 6% 13%)', borderRadius: '8px', fontSize: '12px', opacity: 0.6 }}>
-                    <span style={{ color: 'hsl(240 5% 50%)' }}>{r.raw}</span>
-                    <span style={{ fontSize: '10px', color: 'hsl(240 5% 40%)' }}>not covered yet</span>
+                  <div key={i} className="sw-chip" style={{ opacity: 0.5 }}>
+                    <span style={{ color: 'hsl(240 5% 48%)' }}>{r.raw}</span>
+                    <span style={{ color: 'hsl(240 5% 38%)', fontSize: '10px' }}>not yet</span>
                   </div>
                 ))}
               </div>
             </div>
           )}
 
-          {/* CTAs */}
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', alignItems: 'center' }}>
-            <a
-              href={`/signup?plan=${plan.name.toLowerCase()}`}
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 24px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '10px', fontSize: '14px', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 20px hsl(205 90% 48% / 0.3)' }}
-            >
-              Get Omnia {plan.name} <ArrowRight size={15} />
+          {/* CTA row */}
+          <div className="sw-cta-row">
+            <a href={`/signup?plan=${plan.name.toLowerCase()}`}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '11px 22px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '9px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', boxShadow: '0 3px 16px hsl(205 90% 48% / 0.3)', whiteSpace: 'nowrap' }}>
+              Get Omnia {plan.name} <ArrowRight size={13} />
             </a>
-            <a href="/signup" style={{ fontSize: '13px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>
-              Or start free →
-            </a>
-            <button
-              onClick={() => { setDone(false); setInput(''); }}
-              style={{ marginLeft: 'auto', fontSize: '12px', color: 'hsl(240 5% 45%)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline' }}
-            >
-              Try another stack
+            <a href="/signup" style={{ fontSize: '12px', color: 'hsl(240 5% 52%)', textDecoration: 'none', whiteSpace: 'nowrap' }}>Start free →</a>
+            <button onClick={() => { setDone(false); setInput(''); }}
+              style={{ marginLeft: 'auto', fontSize: '11px', color: 'hsl(240 5% 42%)', background: 'none', border: 'none', cursor: 'pointer', textDecoration: 'underline', whiteSpace: 'nowrap' }}>
+              Try again
             </button>
           </div>
 
-          {/* Country selector */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <Globe size={12} color="hsl(240 5% 40%)" />
-            <span style={{ fontSize: '11px', color: 'hsl(240 5% 40%)' }}>Showing prices in</span>
-            <select
-              value={countryCode}
-              onChange={e => setCountryCode(e.target.value)}
-              style={{ background: 'transparent', border: 'none', color: 'hsl(240 5% 55%)', fontSize: '11px', cursor: 'pointer', padding: 0 }}
-            >
+          {/* Currency footer */}
+          <div className="sw-footer-row">
+            <Globe size={11} color="hsl(240 5% 38%)" />
+            <select value={countryCode} onChange={e => setCountryCode(e.target.value)}
+              style={{ background: 'transparent', border: 'none', color: 'hsl(240 5% 50%)', fontSize: '11px', cursor: 'pointer', padding: 0 }}>
               {COUNTRIES.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
             </select>
-            <span style={{ fontSize: '11px', color: 'hsl(240 5% 35%)' }}>· Prices are approximate</span>
+            <span className="sw-footer-note" style={{ fontSize: '11px', color: 'hsl(240 5% 33%)' }}>· Prices are approximate</span>
           </div>
         </div>
       )}
