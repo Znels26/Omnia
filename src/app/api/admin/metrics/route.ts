@@ -6,12 +6,29 @@ const PLUS_PRICE = 25;
 const PRO_PRICE = 40;
 
 function tzToRegion(tz: string): string {
-  if (!tz) return 'Unknown';
-  if (tz.startsWith('America/') || tz.startsWith('US/') || tz.startsWith('Canada/')) return 'Americas';
-  if (tz.startsWith('Europe/')) return 'Europe';
-  if (tz.startsWith('Asia/')) return 'Asia';
-  if (tz.startsWith('Australia/') || tz.startsWith('Pacific/')) return 'Pacific';
-  if (tz.startsWith('Africa/')) return 'Africa';
+  if (!tz) return 'Other';
+  // Americas
+  if (tz.startsWith('America/') || tz.startsWith('US/') || tz.startsWith('Canada/') ||
+      tz.startsWith('Brazil/') || tz.startsWith('Chile/') || tz.startsWith('Mexico/') ||
+      tz === 'EST' || tz === 'CST6CDT' || tz === 'EST5EDT' || tz === 'MST' || tz === 'MST7MDT' ||
+      tz === 'PST8PDT' || tz === 'HST' || tz === 'Cuba' || tz === 'Jamaica' ||
+      tz.startsWith('Atlantic/')) return 'Americas';
+  // Europe
+  if (tz.startsWith('Europe/') || tz.startsWith('GB') || tz === 'WET' || tz === 'CET' ||
+      tz === 'MET' || tz === 'EET' || tz === 'Turkey' || tz === 'W-SU' || tz === 'Iceland' ||
+      tz === 'Eire' || tz === 'Portugal') return 'Europe';
+  // Asia
+  if (tz.startsWith('Asia/') || tz.startsWith('Israel') || tz === 'Iran' ||
+      tz === 'Japan' || tz === 'ROK' || tz === 'Hongkong' || tz === 'Singapore' ||
+      tz === 'PRC' || tz === 'ROC' || tz.startsWith('Indian/')) return 'Asia';
+  // Pacific / Oceania
+  if (tz.startsWith('Australia/') || tz.startsWith('Pacific/') ||
+      tz === 'NZ' || tz === 'NZ-CHAT') return 'Pacific';
+  // Africa
+  if (tz.startsWith('Africa/') || tz === 'Egypt' || tz === 'Libya') return 'Africa';
+  // UTC / Etc — treat as their own bucket rather than polluting "Other"
+  if (tz === 'UTC' || tz === 'GMT' || tz.startsWith('Etc/') ||
+      tz === 'Universal' || tz === 'Zulu') return 'UTC';
   return 'Other';
 }
 

@@ -45,7 +45,7 @@ function MiniBarChart({ data }: { data: { day: string; count: number }[] }) {
 }
 
 const PLAN_COLORS: Record<string, string> = { free: '#888', plus: 'hsl(205,90%,60%)', pro: 'hsl(262,83%,75%)' };
-const REGION_COLORS: Record<string, string> = { Americas: 'hsl(205,90%,60%)', Europe: 'hsl(262,83%,75%)', Asia: 'hsl(38,90%,65%)', Pacific: 'hsl(160,60%,55%)', Africa: 'hsl(0,72%,65%)', Other: '#888' };
+const REGION_COLORS: Record<string, string> = { Americas: 'hsl(205,90%,60%)', Europe: 'hsl(262,83%,75%)', Asia: 'hsl(38,90%,65%)', Pacific: 'hsl(160,60%,55%)', Africa: 'hsl(0,72%,65%)', UTC: 'hsl(180,60%,55%)', Other: '#888' };
 
 export function AdminView() {
   const [data, setData] = useState<any>(null);
