@@ -294,6 +294,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [aiPrompt, setAiPrompt] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
+  const [aiApplied, setAiApplied] = useState(false);
   const [previewSrc, setPreviewSrc] = useState('');
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [newFileName, setNewFileName] = useState('');
@@ -417,6 +418,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
     if (!aiPrompt.trim()) return;
     setAiLoading(true);
     setAiResponse('');
+    setAiApplied(false);
     try {
       const res = await fetch('/api/ai/code-studio', {
         method: 'POST',
@@ -440,11 +442,13 @@ export function CodeStudioView({ profile }: { profile: any }) {
         }
       }
 
-      const fileRegex = /===\s*([^\n=]+)\s*===\n([\s\S]*?)===END===/g;
-      let match;
-      let updated = false;
       const newFiles = [...files];
-      while ((match = fileRegex.exec(fullText)) !== null) {
+      let updated = false;
+
+      // Strategy 1: strict format  === filename ===\ncontent\n===END===
+      const strictRegex = /===\s*([^\n=][^\n]*?)\s*===\s*\n([\s\S]*?)===\s*END\s*===/gi;
+      let match;
+      while ((match = strictRegex.exec(fullText)) !== null) {
         const [, fname, content] = match;
         const trimmedName = fname.trim();
         const trimmedContent = content.trim();
@@ -453,7 +457,39 @@ export function CodeStudioView({ profile }: { profile: any }) {
         else newFiles.push({ id: `ai-${Date.now()}-${trimmedName}`, name: trimmedName, content: trimmedContent });
         updated = true;
       }
-      if (updated) { setFiles(newFiles); toast.success('Files updated by AI'); if (isMobile) setMobilePanel('editor'); }
+
+      // Strategy 2: === filename === headers without END markers — split on next header
+      if (!updated) {
+        const headerRegex = /===\s*([^\n=][^\n]*?)\s*===\s*\n/gi;
+        const headers: { name: string; start: number }[] = [];
+        let h;
+        while ((h = headerRegex.exec(fullText)) !== null) {
+          headers.push({ name: h[1].trim(), start: h.index + h[0].length });
+        }
+        for (let i = 0; i < headers.length; i++) {
+          const end = i + 1 < headers.length ? headers[i + 1].start - headers[i + 1].name.length - 10 : fullText.length;
+          const content = fullText.slice(headers[i].start, end).replace(/===\s*END\s*===/gi, '').trim();
+          if (!content) continue;
+          const name = headers[i].name;
+          const existing = newFiles.findIndex(f => f.name === name);
+          if (existing >= 0) newFiles[existing] = { ...newFiles[existing], content };
+          else newFiles.push({ id: `ai-${Date.now()}-${name}`, name, content });
+          updated = true;
+        }
+      }
+
+      // Strategy 3: single code block — apply to active file
+      if (!updated) {
+        const codeBlock = fullText.match(/```(?:\w+)?\n([\s\S]+?)```/);
+        if (codeBlock) {
+          const content = codeBlock[1].trim();
+          const idx = newFiles.findIndex(f => f.id === activeFileId);
+          if (idx >= 0) { newFiles[idx] = { ...newFiles[idx], content }; updated = true; }
+        }
+      }
+
+      if (updated) { setFiles(newFiles); setAiApplied(true); toast.success('Code applied to editor'); if (isMobile) setMobilePanel('editor'); }
+      else toast('AI responded — no code blocks found to apply', { icon: 'ℹ️' });
     } catch (err: any) {
       toast.error(err.message || 'AI generation failed');
     } finally {
@@ -755,8 +791,11 @@ export function CodeStudioView({ profile }: { profile: any }) {
             </button>
           </div>
           {aiResponse && (
-            <div style={{ marginTop: '8px', padding: '8px 12px', background: 'hsl(240 6% 8%)', borderRadius: '8px', fontSize: '12px', color: 'hsl(240 5% 55%)', maxHeight: '100px', overflowY: 'auto', lineHeight: 1.6, whiteSpace: 'pre-wrap', fontFamily: 'ui-monospace, monospace' }}>
-              {aiResponse}
+            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: aiApplied ? 'hsl(142 70% 40% / 0.08)' : 'hsl(240 6% 8%)', border: `1px solid ${aiApplied ? 'hsl(142 70% 40% / 0.2)' : 'hsl(240 6% 14%)'}`, borderRadius: '8px' }}>
+              {aiApplied
+                ? <><Check size={13} color="hsl(142,70%,55%)" /><span style={{ fontSize: '12px', color: 'hsl(142,70%,60%)', fontWeight: 500 }}>Applied to editor</span></>
+                : <><Loader2 size={13} color="hsl(262,83%,75%)" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} /><span style={{ fontSize: '12px', color: 'hsl(240 5% 55%)', fontFamily: 'ui-monospace, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{aiResponse.slice(-120)}</span></>
+              }
             </div>
           )}
         </div>
