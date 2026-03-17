@@ -127,10 +127,15 @@ const STACK_MAP: Record<string, { feature: string; description: string; icon: st
   'gitpod': { feature: 'Code Studio', description: 'Cloud IDE for code projects', icon: '💻' },
   'github codespaces': { feature: 'Code Studio', description: 'Cloud-based development IDE', icon: '💻' },
   'githubcodespaces': { feature: 'Code Studio', description: 'Cloud-based development IDE', icon: '💻' },
-  'cursor': { feature: 'Code Studio', description: 'AI-first code editor with codegen', icon: '💻' },
-  'v0': { feature: 'Code Studio', description: 'AI code generation and preview', icon: '💻' },
-  'bolt': { feature: 'Code Studio', description: 'AI-powered code generation and IDE', icon: '💻' },
-  'lovable': { feature: 'Code Studio', description: 'AI app builder with code editor', icon: '💻' },
+  'cursor': { feature: 'Code Studio', description: 'AI-first code editor with world-class codegen ($20/mo saved)', icon: '💻' },
+  'v0': { feature: 'Code Studio', description: 'AI code generation and live preview ($20/mo saved)', icon: '💻' },
+  'bolt': { feature: 'Code Studio', description: 'AI-powered code generation and IDE ($20/mo saved)', icon: '💻' },
+  'bolt.new': { feature: 'Code Studio', description: 'AI-powered code generation and IDE ($20/mo saved)', icon: '💻' },
+  'lovable': { feature: 'Code Studio', description: 'AI app builder with code editor ($20/mo saved)', icon: '💻' },
+  'webflow': { feature: 'Code Studio', description: 'Visual web design and CMS builder ($23/mo saved)', icon: '💻' },
+  'framer': { feature: 'Code Studio', description: 'Interactive web design and publish tool ($20/mo saved)', icon: '💻' },
+  'wix': { feature: 'Code Studio', description: 'Website builder with AI assistance', icon: '💻' },
+  'squarespace': { feature: 'Code Studio', description: 'Website builder with design templates', icon: '💻' },
   // Proposals
   'proposify': { feature: 'Proposals', description: 'AI-written client proposals', icon: '📋' },
   'pandadoc': { feature: 'Proposals', description: 'Smart proposal generation', icon: '📋' },
@@ -164,6 +169,16 @@ export function MyStackView() {
   const matched = results.filter(r => r.match);
   const unmatched = results.filter(r => !r.match);
   const savings = matched.length;
+
+  // Code Studio-specific tools that have pricing callouts
+  const CODE_STUDIO_SAVINGS: Record<string, number> = {
+    cursor: 20, 'v0': 20, bolt: 20, 'bolt.new': 20, lovable: 20,
+    webflow: 23, framer: 20,
+  };
+  const codeStudioSavingsTotal = tools.reduce((sum, t) => {
+    const n = normalise(t);
+    return sum + (CODE_STUDIO_SAVINGS[n] ?? 0);
+  }, 0);
 
   const analyse = () => {
     const list = input.split(/[\n,]+/).map(s => s.trim()).filter(Boolean);
@@ -234,6 +249,17 @@ export function MyStackView() {
             <p style={{ fontSize: '16px', fontWeight: 600, marginTop: '4px' }}>tool{savings !== 1 ? 's' : ''} replaced by Omnia</p>
             {unmatched.length > 0 && <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)', marginTop: '4px' }}>{unmatched.length} not covered (yet!)</p>}
           </div>
+
+          {/* Code Studio savings callout */}
+          {codeStudioSavingsTotal > 0 && (
+            <div style={{ marginTop: '16px', padding: '14px 18px', background: 'hsl(262 83% 58% / 0.08)', border: '1px solid hsl(262 83% 58% / 0.2)', borderRadius: '10px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <span style={{ fontSize: '22px' }}>⚡</span>
+              <div>
+                <p style={{ fontSize: '14px', fontWeight: 700, color: 'hsl(262, 83%, 75%)' }}>Code Studio saves you ${codeStudioSavingsTotal}/mo</p>
+                <p style={{ fontSize: '12px', color: 'hsl(240 5% 55%)', marginTop: '2px' }}>Replaces Cursor ($20), Bolt.new ($20) &amp; Webflow ($23) — all in one place</p>
+              </div>
+            </div>
+          )}
 
           {/* Matched tools */}
           {matched.length > 0 && (
