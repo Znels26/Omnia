@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation';
 import { getUser, getProfile, createAdminSupabaseClient } from '@/lib/supabase/server';
 import { AppShell } from '@/components/layout/AppShell';
+import { PageViewTracker } from '@/components/analytics/PageViewTracker';
 
 const OWNER_EMAIL = 'zacharynelson96@gmail.com';
 
@@ -32,5 +33,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (profile.email === OWNER_EMAIL) profile = { ...profile, plan_tier: 'pro' };
 
-  return <AppShell profile={profile}>{children}</AppShell>;
+  return (
+    <>
+      <PageViewTracker userId={user.id} />
+      <AppShell profile={profile}>{children}</AppShell>
+    </>
+  );
 }

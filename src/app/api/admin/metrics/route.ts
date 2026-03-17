@@ -51,6 +51,10 @@ export async function GET() {
     weeklySignupsRes,
     monthlySignupsRes,
     growthRes,
+    viewsTodayRes,
+    viewsWeekRes,
+    viewsRawRes,
+    sessionsRawRes,
   ] = await Promise.all([
     // All profiles with plan tier
     s.from('profiles').select('id, email, display_name, plan_tier, created_at, timezone'),
@@ -72,6 +76,14 @@ export async function GET() {
     s.from('profiles').select('id', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()),
     // Last 30 days signups by day
     s.from('profiles').select('created_at').gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()).order('created_at'),
+    // Page views — today
+    s.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    // Page views — this week
+    s.from('page_views').select('*', { count: 'exact', head: true }).gte('created_at', new Date(Date.now() - 7 * 86400000).toISOString()),
+    // Page views — last 30 days rows for chart + top pages
+    s.from('page_views').select('page, created_at').gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()).order('created_at'),
+    // Unique sessions today
+    s.from('page_views').select('session_id').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
   ]);
 
   const profiles = profilesRes.data || [];
@@ -142,6 +154,31 @@ export async function GET() {
     plan_tier: profileMap[u.user_id]?.plan_tier,
   }));
 
+  // Page view analytics
+  const viewsRaw = viewsRawRes.data || [];
+  const viewGrowthData = viewsRaw.reduce((acc: any, { created_at }: any) => {
+    const day = created_at.slice(0, 10);
+    acc[day] = (acc[day] || 0) + 1;
+    return acc;
+  }, {});
+  const viewGrowth = Array.from({ length: 14 }, (_, i) => {
+    const d = new Date(Date.now() - (13 - i) * 86400000);
+    const key = d.toISOString().slice(0, 10);
+    return { day: key.slice(5), count: viewGrowthData[key] || 0 };
+  });
+
+  const topPages = Object.entries(
+    viewsRaw.reduce((acc: any, { page }: any) => {
+      acc[page] = (acc[page] || 0) + 1;
+      return acc;
+    }, {})
+  )
+    .map(([page, count]) => ({ page, count: count as number }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+
+  const uniqueSessionsToday = new Set((sessionsRawRes.data || []).map((r: any) => r.session_id)).size;
+
   // Growth data — signups per day last 30 days
   const growthData = (growthRes.data || []).reduce((acc: any, { created_at }: any) => {
     const day = created_at.slice(0, 10);
@@ -172,6 +209,13 @@ export async function GET() {
     recentUsers,
     topUsers,
     growth,
+    views: {
+      today:              viewsTodayRes.count ?? 0,
+      thisWeek:           viewsWeekRes.count  ?? 0,
+      uniqueSessionsToday,
+      growth:             viewGrowth,
+      topPages,
+    },
     generatedAt: new Date().toISOString(),
   });
 }

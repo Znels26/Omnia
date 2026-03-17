@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import '@/styles/globals.css';
 import { Toaster } from 'react-hot-toast';
+import { PageViewTracker } from '@/components/analytics/PageViewTracker';
 
 export const viewport: Viewport = {
   themeColor: '#1a8cd8',
@@ -28,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
+        <PageViewTracker />
         {children}
         <Toaster
           position="top-right"

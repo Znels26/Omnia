@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { Users, DollarSign, Zap, Globe, TrendingUp, RefreshCw, Crown, Activity, MessageSquare, FileText } from 'lucide-react';
+import { Users, DollarSign, Zap, Globe, TrendingUp, RefreshCw, Crown, Activity, MessageSquare, FileText, Eye } from 'lucide-react';
 
 function StatCard({ label, value, sub, icon: Icon, color }: any) {
   return (
@@ -79,7 +79,7 @@ export function AdminView() {
 
   if (!data) return null;
 
-  const { totals, revenue, featureUsage, regions, topTimezones, recentUsers, topUsers, growth } = data;
+  const { totals, revenue, featureUsage, regions, topTimezones, recentUsers, topUsers, growth, views } = data;
   const maxFeature = featureUsage[0]?.count || 1;
   const maxRegion = regions[0]?.count || 1;
   const conversionRate = totals.users > 0 ? (((totals.plus + totals.pro) / totals.users) * 100).toFixed(1) : '0';
@@ -163,6 +163,46 @@ export function AdminView() {
           </div>
         </div>
       </div>
+
+      {/* Website Analytics */}
+      {views && (
+        <>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px', marginBottom: '20px' }} className="admin-3col">
+            <StatCard label="Views Today"        value={views.today.toLocaleString()}              sub={`${views.uniqueSessionsToday} unique session${views.uniqueSessionsToday !== 1 ? 's' : ''}`} icon={Eye}       color="hsl(205,90%,60%)" />
+            <StatCard label="Views This Week"    value={views.thisWeek.toLocaleString()}           sub="last 7 days"                                                                                 icon={TrendingUp} color="hsl(160,60%,55%)" />
+            <StatCard label="All-Time Top Page"  value={views.topPages[0]?.page ?? '—'}            sub={views.topPages[0] ? `${views.topPages[0].count.toLocaleString()} views` : 'No data yet'}   icon={FileText}   color="hsl(262,83%,75%)" />
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }} className="admin-2col">
+            {/* Views chart */}
+            <div className="card" style={{ padding: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '14px' }}>
+                <Eye size={14} color="hsl(205,90%,60%)" />
+                <span style={{ fontWeight: 600, fontSize: '14px' }}>Page Views — Last 14 Days</span>
+              </div>
+              <MiniBarChart data={views.growth} />
+              <p style={{ fontSize: '11px', color: 'hsl(240 5% 45%)', marginTop: '10px' }}>
+                {views.today} today · {views.thisWeek} this week
+              </p>
+            </div>
+
+            {/* Top pages */}
+            <div className="card" style={{ padding: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '14px' }}>
+                <FileText size={14} color="hsl(262,83%,75%)" />
+                <span style={{ fontWeight: 600, fontSize: '14px' }}>Top Pages</span>
+              </div>
+              {views.topPages.length === 0 ? (
+                <p style={{ fontSize: '13px', color: 'hsl(240 5% 45%)', textAlign: 'center', padding: '12px 0' }}>No data yet</p>
+              ) : (
+                views.topPages.map((p: any) => (
+                  <Bar key={p.page} label={p.page === '/' ? 'Home' : p.page.replace(/^\//, '')} count={p.count} max={views.topPages[0].count} color="hsl(205,90%,60%)" />
+                ))
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Tables row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }} className="admin-2col">
