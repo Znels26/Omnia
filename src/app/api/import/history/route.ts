@@ -132,7 +132,11 @@ async function analyseWithAI(content: string): Promise<AnalysisResult | null> {
   const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('AI returned no valid JSON');
 
-  return JSON.parse(match[0]) as AnalysisResult;
+  try {
+    return JSON.parse(match[0]) as AnalysisResult;
+  } catch {
+    throw new Error('The file content could not be processed. Please re-export your history and try again, or use the Plain Text option to paste excerpts directly.');
+  }
 }
 
 async function processZipFile(buffer: ArrayBuffer): Promise<{ text: string; platform: string }> {
