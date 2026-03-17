@@ -302,6 +302,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [projectName, setProjectName] = useState('my-project');
 
   const previewDebounce = useRef<NodeJS.Timeout>();
+  const langBtnRef = useRef<HTMLDivElement>(null);
+  const [langBtnRect, setLangBtnRect] = useState<{ left: number; top: number }>({ left: 0, top: 50 });
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
 
   // Detect mobile
@@ -655,9 +657,15 @@ export function CodeStudioView({ profile }: { profile: any }) {
         )}
 
         {/* Language picker */}
-        <div style={{ position: 'relative', flexShrink: 0 }}>
+        <div ref={langBtnRef} style={{ position: 'relative', flexShrink: 0 }}>
           <button
-            onClick={() => setShowLangPicker(v => !v)}
+            onClick={() => {
+              if (langBtnRef.current) {
+                const r = langBtnRef.current.getBoundingClientRect();
+                setLangBtnRect({ left: r.left, top: r.bottom + 6 });
+              }
+              setShowLangPicker(v => !v);
+            }}
             style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(0 0% 85%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
           >
             <span>{currentLang.emoji}</span>
@@ -665,7 +673,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
             <ChevronDown size={11} />
           </button>
           {showLangPicker && (
-            <div style={{ position: 'absolute', top: '38px', left: 0, zIndex: 100, background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '10px', padding: '6px', minWidth: '180px', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
+            <div style={{ position: 'fixed', top: langBtnRect.top, left: langBtnRect.left, zIndex: 9999, background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '10px', padding: '6px', minWidth: '180px', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
               {LANG_OPTIONS.map(opt => (
                 <button
                   key={opt.id}
