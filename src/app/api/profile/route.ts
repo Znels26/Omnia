@@ -1,17 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
+
+const CORE_FIELDS  = ['display_name', 'full_name', 'assistant_mode', 'email_notifications', 'timezone'];
+const PUSH_FIELDS  = ['push_notifications', 'push_reminders', 'push_morning_briefing', 'push_streak_alerts', 'push_goal_reminders', 'push_invoice_alerts'];
+
 export async function PATCH(req: NextRequest) {
-  const user = await getUser(); if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  const body = await req.json();
-  const allowed = [
-    'display_name', 'full_name', 'assistant_mode', 'email_notifications', 'timezone',
-    'push_notifications', 'push_reminders', 'push_morning_briefing',
-    'push_streak_alerts', 'push_goal_reminders', 'push_invoice_alerts',
-  ];
-  const updates: any = {};
-  for (const k of allowed) if (k in body) updates[k] = body[k];
+  const user = await getUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const body = await req.json().catch(() => ({}));
   const s = createAdminSupabaseClient();
-  const { data, error } = await s.from('profiles').update(updates).eq('id', user.id).select().single();
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
-  return NextResponse.json({ profile: data });
+
+  // ── Core fields (always-present columns) ──────────────────────────────────
+  const coreUpdates: any = {};
+  for (const k of CORE_FIELDS) if (k in body) coreUpdates[k] = body[k];
+
+  if (Object.keys(coreUpdates).length > 0) {
+    const { error } = await s.from('profiles').update(coreUpdates).eq('id', user.id);
+    if (error) {
+      console.error('[profile PATCH] core update error:', error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+  }
+
+  // ── Push notification preference columns (added in migration 004) ─────────
+  // Saved in a separate statement so that if the migration hasn't been applied
+  // yet the core profile save above still succeeds.
+  const pushUpdates: any = {};
+  for (const k of PUSH_FIELDS) if (k in body) pushUpdates[k] = body[k];
+
+  if (Object.keys(pushUpdates).length > 0) {
+    const { error } = await s.from('profiles').update(pushUpdates).eq('id', user.id);
+    if (error) {
+      // Migration likely not applied yet — log but don't fail the whole request.
+      console.error('[profile PATCH] push prefs error (run migration 004):', error.message);
+    }
+  }
+
+  // Return updated profile
+  const { data: profile } = await s.from('profiles').select('*').eq('id', user.id).single();
+  return NextResponse.json({ profile });
 }
