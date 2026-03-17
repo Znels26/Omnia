@@ -2,7 +2,7 @@ import Link from 'next/link';
 import {
   Sparkles, ArrowRight, Zap, Check, Brain, TrendingUp, MessageSquare,
   CalendarDays, FileText, Wand2, FileOutput, Receipt, Bell, DollarSign,
-  Heart, FileSignature, Code2, Layers,
+  Heart, FileSignature, Layers,
 } from 'lucide-react';
 import { StackWidget } from '@/components/landing/StackWidget';
 
@@ -19,7 +19,6 @@ const FEATURES = [
   { icon: Receipt,       label: 'Invoices',        desc: 'Professional PDF invoices — create, send and chase payment',                   color: '#10b981', bg: 'rgba(16,185,129,0.1)'  },
   { icon: FileSignature, label: 'Proposals',       desc: 'AI-written client proposals that win more business',                           color: '#e879f9', bg: 'rgba(232,121,249,0.1)' },
   { icon: Bell,          label: 'Reminders',       desc: 'Smart reminders with recurrence — never miss a deadline',                     color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
-  { icon: Code2,         label: 'Code Studio',     desc: 'Full IDE: Monaco, live preview, AI codegen, Vercel deploy',                   color: '#a78bfa', bg: 'rgba(167,139,250,0.12)', pro: true },
   { icon: Sparkles,      label: 'AI Memory',       desc: 'Omnia learns about you so every response feels personal',                     color: '#818cf8', bg: 'rgba(129,140,248,0.1)' },
   { icon: TrendingUp,    label: 'AI Everywhere',   desc: 'Summaries, suggestions and AI inside every feature',                          color: '#34d399', bg: 'rgba(52,211,153,0.1)'  },
 ];
@@ -37,7 +36,7 @@ const PRICING_PLANS = [
   },
   {
     name: 'Pro', price: 'A$40', period: '/mo', sub: 'A$329/yr — save A$151', color: 'hsl(262,83%,75%)',
-    features: ['Full Autopilot — fully autonomous', 'Code Studio (AI IDE + Vercel)', 'Unlimited AI messages', 'Unlimited Memory Import', 'Everything in Plus'],
+    features: ['Full Autopilot — fully autonomous', 'Unlimited AI messages', 'Unlimited Memory Import', 'Everything in Plus'],
     cta: 'Get Pro', href: '/signup?plan=pro', primary: false,
   },
 ];

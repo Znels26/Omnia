@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
-import { MessageSquare, Plus, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon, Search, ArrowRight, BookOpen, ListPlus, Code2 } from 'lucide-react';
+import { MessageSquare, Plus, Trash2, Send, Sparkles, Copy, Check, ChevronDown, ArrowLeft, ImageIcon, Search, ArrowRight, BookOpen, ListPlus } from 'lucide-react';
 import Link from 'next/link';
 import { timeAgo } from '@/lib/utils';
 import toast from 'react-hot-toast';
@@ -16,10 +16,6 @@ function isCodeRequest(text: string): boolean {
 
 function detectToolSuggestion(content: string): ToolSuggestion | null {
   const t = content.toLowerCase();
-  // Code Studio — check first so coding requests surface correctly
-  if (/\b(build|create|make|code|develop|write).{0,30}(website|web\s*app|landing\s+page|react|html|css|python\s+script|node\.?js|app|portfolio|calculator|game|dashboard|component)\b/i.test(content)
-    || /\b(html|css|javascript|react|python|node\.?js).{0,20}(code|example|snippet|app|project|script)\b/i.test(content))
-    return { label: 'Code Studio', href: '/code-studio', emoji: '💻', reason: 'Build and preview this live in Code Studio with AI codegen' };
   // Finance
   if (/\b(budget|budgeting|overspend|monthly spend|spending plan|financial plan)\b/.test(t))
     return { label: 'Budget Planner', href: '/life-hub', emoji: '📊', reason: 'Create a personalised budget in Life Hub' };
@@ -548,7 +544,7 @@ export function AssistantView({ profile, initialChats }: any) {
                 ))}
               </div>
               <p style={{ fontSize: '12px', color: 'hsl(240 5% 40%)', textAlign: 'center', maxWidth: '380px' }}>
-                Try: <strong style={{ color: 'hsl(240 5% 55%)' }}>"draw…"</strong> for images · <strong style={{ color: 'hsl(240 5% 55%)' }}>"search for…"</strong> for web · <strong style={{ color: 'hsl(240 5% 55%)' }}>"build me a site"</strong> → Code Studio
+                Try: <strong style={{ color: 'hsl(240 5% 55%)' }}>"draw…"</strong> for images · <strong style={{ color: 'hsl(240 5% 55%)' }}>"search for…"</strong> for web search
               </p>
             </div>
           ) : (
@@ -652,16 +648,6 @@ export function AssistantView({ profile, initialChats }: any) {
                 <span style={{ fontSize: '11px' }}>📋</span>
                 <span style={{ fontSize: '11px', color: 'hsl(38, 90%, 65%)', whiteSpace: 'nowrap' }}>Summary</span>
               </div>
-            )}
-            {inputType === 'code' && (
-              <Link
-                href={`/code-studio?prompt=${encodeURIComponent(input.trim())}`}
-                style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '4px 8px', borderRadius: '8px', background: 'hsl(262 83% 58% / 0.15)', border: '1px solid hsl(262 83% 58% / 0.3)', flexShrink: 0, textDecoration: 'none' }}
-                title="Open in Code Studio"
-              >
-                <Code2 size={12} color="hsl(262, 83%, 75%)" />
-                <span style={{ fontSize: '11px', color: 'hsl(262, 83%, 75%)', whiteSpace: 'nowrap' }}>Code Studio ↗</span>
-              </Link>
             )}
             <button
               onClick={send}

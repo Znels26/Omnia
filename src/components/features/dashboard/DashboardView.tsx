@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   MessageSquare, CalendarDays, FileText, Wand2, FileOutput,
   Bell, ArrowRight, Sparkles, Clock, Zap, BarChart3, Brain,
-  FileSignature, DollarSign, Heart, CheckCircle2, Code2, FolderOpen, Bot,
+  FileSignature, DollarSign, Heart, CheckCircle2, FolderOpen, Bot,
 } from 'lucide-react';
 import { timeAgo, formatDate, PLAN_LIMITS } from '@/lib/utils';
 
@@ -12,7 +12,6 @@ const QUICK_ACTIONS = [
   { href: '/planner',        label: 'Task',     icon: CalendarDays,  color: '#fbbf24', bg: 'rgba(251,191,36,0.12)'  },
   { href: '/notes',          label: 'Note',     icon: FileText,      color: '#a78bfa', bg: 'rgba(167,139,250,0.12)' },
   { href: '/content-studio', label: 'Content',  icon: Wand2,         color: '#f472b6', bg: 'rgba(244,114,182,0.12)' },
-  { href: '/code-studio',    label: 'Code',     icon: Code2,         color: '#c084fc', bg: 'rgba(192,132,252,0.12)' },
   { href: '/invoices',       label: 'Invoice',  icon: FileOutput,    color: '#34d399', bg: 'rgba(52,211,153,0.12)'  },
   { href: '/reminders',      label: 'Reminder', icon: Bell,          color: '#fb923c', bg: 'rgba(251,146,60,0.12)'  },
   { href: '/files',          label: 'Files',    icon: FolderOpen,    color: '#60a5fa', bg: 'rgba(96,165,250,0.12)'  },
@@ -23,7 +22,6 @@ const AI_TOOLS = [
   { href: '/ai-tools',        label: 'AI Money Tools',    desc: 'Lead magnets, SEO, emails', icon: DollarSign,    color: 'hsl(142,70%,55%)',  bg: 'hsl(142 70% 40% / 0.1)', border: 'hsl(142 70% 40% / 0.2)' },
   { href: '/proposal',        label: 'Proposals',         desc: 'Win clients with AI',       icon: FileSignature, color: 'hsl(205,90%,60%)',  bg: 'hsl(205 90% 48% / 0.1)', border: 'hsl(205 90% 48% / 0.2)' },
   { href: '/settings#memory', label: 'AI Memory',         desc: 'Teach Omnia about you',     icon: Brain,         color: 'hsl(160,60%,55%)',  bg: 'hsl(160 60% 40% / 0.1)', border: 'hsl(160 60% 40% / 0.2)' },
-  { href: '/code-studio',    label: 'Code Studio',       desc: 'IDE + live preview + AI',   icon: Code2,         color: 'hsl(262,83%,75%)',  bg: 'hsl(262 83% 58% / 0.1)', border: 'hsl(262 83% 58% / 0.2)', pro: true },
 ];
 
 const PRIORITY_COLORS: Record<string, string> = { low: '#6b7280', medium: '#fbbf24', high: '#fb923c', urgent: '#ef4444' };

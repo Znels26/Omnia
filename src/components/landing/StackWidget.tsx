@@ -75,17 +75,17 @@ const TOOLS: Record<string, { feature: string; icon: string; usd: number; plan: 
   'googledocs':     { feature: 'Doc Builder',                   icon: '📄', usd: 0,   plan: 'free' },
   'word':           { feature: 'Doc Builder',                   icon: '📄', usd: 10,  plan: 'free' },
   'coda':           { feature: 'Notes + Doc Builder',           icon: '📄', usd: 10,  plan: 'free' },
-  'cursor':         { feature: 'Code Studio',                   icon: '💻', usd: 20,  plan: 'pro' },
-  'v0':             { feature: 'Code Studio',                   icon: '💻', usd: 20,  plan: 'pro' },
-  'bolt':           { feature: 'Code Studio',                   icon: '💻', usd: 20,  plan: 'pro' },
-  'bolt.new':       { feature: 'Code Studio',                   icon: '💻', usd: 20,  plan: 'pro' },
-  'lovable':        { feature: 'Code Studio',                   icon: '💻', usd: 20,  plan: 'pro' },
-  'webflow':        { feature: 'Code Studio',                   icon: '💻', usd: 23,  plan: 'pro' },
-  'framer':         { feature: 'Code Studio',                   icon: '💻', usd: 20,  plan: 'pro' },
-  'replit':         { feature: 'Code Studio',                   icon: '💻', usd: 25,  plan: 'pro' },
-  'codesandbox':    { feature: 'Code Studio',                   icon: '💻', usd: 12,  plan: 'pro' },
-  'wix':            { feature: 'Code Studio',                   icon: '💻', usd: 16,  plan: 'pro' },
-  'squarespace':    { feature: 'Code Studio',                   icon: '💻', usd: 16,  plan: 'pro' },
+  'cursor':         { feature: 'Code Studio (Soon)',             icon: '💻', usd: 20,  plan: 'pro' },
+  'v0':             { feature: 'Code Studio (Soon)',             icon: '💻', usd: 20,  plan: 'pro' },
+  'bolt':           { feature: 'Code Studio (Soon)',             icon: '💻', usd: 20,  plan: 'pro' },
+  'bolt.new':       { feature: 'Code Studio (Soon)',             icon: '💻', usd: 20,  plan: 'pro' },
+  'lovable':        { feature: 'Code Studio (Soon)',             icon: '💻', usd: 20,  plan: 'pro' },
+  'webflow':        { feature: 'Code Studio (Soon)',             icon: '💻', usd: 23,  plan: 'pro' },
+  'framer':         { feature: 'Code Studio (Soon)',             icon: '💻', usd: 20,  plan: 'pro' },
+  'replit':         { feature: 'Code Studio (Soon)',             icon: '💻', usd: 25,  plan: 'pro' },
+  'codesandbox':    { feature: 'Code Studio (Soon)',             icon: '💻', usd: 12,  plan: 'pro' },
+  'wix':            { feature: 'Code Studio (Soon)',             icon: '💻', usd: 16,  plan: 'pro' },
+  'squarespace':    { feature: 'Code Studio (Soon)',             icon: '💻', usd: 16,  plan: 'pro' },
 };
 
 const COUNTRIES = [
@@ -253,7 +253,7 @@ export function StackWidget() {
             <p style={{ fontSize: '12px', color: 'hsl(0 0% 72%)', lineHeight: 1.55 }}>
               {savingsLocal >= 0
                 ? <><strong style={{ color: 'hsl(142,70%,60%)' }}>Save {fmt(country.symbol, savingsLocal)}/mo ({fmt(country.symbol, savingsLocal * 12)}/yr)</strong> and get AI Assistant, Autopilot, Reminders, Doc Builder and more bundled in.</>
-                : <>For just <strong style={{ color: 'hsl(205,90%,65%)' }}>{fmt(country.symbol, Math.abs(savingsLocal))} more/mo</strong> you get {matched.length} tools replaced <em>plus</em> Autopilot, Notes, Planner, Reminders{needsPro ? ', Code Studio' : ', Life Hub'} and more.</>
+                : <>For just <strong style={{ color: 'hsl(205,90%,65%)' }}>{fmt(country.symbol, Math.abs(savingsLocal))} more/mo</strong> you get {matched.length} tools replaced <em>plus</em> Autopilot, Notes, Planner, Reminders, Life Hub and more.</>
               }
             </p>
           </div>

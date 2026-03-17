@@ -27,13 +27,13 @@ const NAV = [
 { href: '/invoices', label: 'Invoices', icon: Receipt },
 { href: '/reminders', label: 'Reminders', icon: Bell },
 { href: '/proposal', label: 'Proposals', icon: FileSignature },
-{ href: '/code-studio', label: 'Code Studio', icon: Zap },
 { href: '/my-stack', label: 'My Stack', icon: Layers },
 { href: '/settings', label: 'Settings', icon: Settings },
 { href: '/billing', label: 'Billing', icon: CreditCard },
 ];
 
 const COMING_SOON = [
+{ label: 'Code Studio', icon: Code2 },
 { label: 'Content Scheduler', icon: CalendarClock },
 { label: 'Social Auto-Poster', icon: Share2 },
 ];
