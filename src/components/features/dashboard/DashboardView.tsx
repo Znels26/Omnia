@@ -3,7 +3,7 @@ import Link from 'next/link';
 import {
   MessageSquare, CalendarDays, FileText, Wand2, FileOutput,
   Bell, ArrowRight, Sparkles, Clock, Zap, BarChart3, Brain,
-  FileSignature, DollarSign, Heart, CheckCircle2, Code2, FolderOpen,
+  FileSignature, DollarSign, Heart, CheckCircle2, Code2, FolderOpen, Bot,
 } from 'lucide-react';
 import { timeAgo, formatDate, PLAN_LIMITS } from '@/lib/utils';
 
@@ -28,7 +28,9 @@ const AI_TOOLS = [
 
 const PRIORITY_COLORS: Record<string, string> = { low: '#6b7280', medium: '#fbbf24', high: '#fb923c', urgent: '#ef4444' };
 
-export function DashboardView({ profile, tasks, reminders, notes, chats, exports, usage }: any) {
+const capitalize = (s: string) => s ? s.charAt(0).toUpperCase() + s.slice(1) : '';
+
+export function DashboardView({ profile, tasks, reminders, notes, chats, exports, usage, autopilotProfile }: any) {
   const plan = profile?.plan_tier || 'free';
   const limits = PLAN_LIMITS[plan as keyof typeof PLAN_LIMITS] || PLAN_LIMITS.free;
   const hour = new Date().getHours();
@@ -61,6 +63,33 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
             : 'All caught up — great work!'}
         </p>
       </div>
+
+      {/* ── Autopilot Insight Card ── */}
+      {autopilotProfile && (
+        <div style={{
+          marginBottom: '20px',
+          padding: '14px 16px',
+          borderRadius: '12px',
+          background: 'hsl(205 90% 48% / 0.08)',
+          border: '1px solid hsl(205 90% 48% / 0.2)',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '14px',
+        }}>
+          <div style={{ width: '38px', height: '38px', borderRadius: '10px', background: 'hsl(205 90% 48% / 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <Zap size={18} color="hsl(205,90%,60%)" />
+          </div>
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <p style={{ fontSize: '13px', fontWeight: 600, margin: '0 0 2px', color: 'hsl(0 0% 90%)' }}>Autopilot is working for you</p>
+            <p style={{ fontSize: '12px', color: 'hsl(240 5% 50%)', margin: 0 }}>
+              {autopilotProfile?.persona ? `Running as The ${capitalize(autopilotProfile.persona)}` : 'Set up Autopilot to let Omnia work while you sleep'}
+            </p>
+          </div>
+          <Link href="/autopilot" style={{ fontSize: '12px', color: 'hsl(205,90%,60%)', fontWeight: 600, textDecoration: 'none', flexShrink: 0 }}>
+            {autopilotProfile?.autopilot_enabled ? 'View →' : 'Set up →'}
+          </Link>
+        </div>
+      )}
 
       {/* ── Quick Actions ── */}
       <SectionLabel>Quick Actions</SectionLabel>
@@ -106,7 +135,7 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
           {/* Tasks */}
           <DashCard title="Tasks" icon={<CalendarDays size={14} color="#fbbf24"/>} link="/planner" linkText="View all">
             {pendingTasks.length === 0 ? (
-              <EmptyState icon={<CheckCircle2 size={20} color="hsl(142,70%,55%)"/>} msg="No pending tasks" sub="You're all caught up!" link="/planner" linkText="Add task" />
+              <EmptyState icon={<CheckCircle2 size={20} color="hsl(142,70%,55%)"/>} msg="What's the first thing we're tackling today?" sub="Add your first task to get started" link="/planner" linkText="Add task" />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {pendingTasks.slice(0, 5).map((t: any) => (
@@ -126,7 +155,7 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
           {/* Recent Chats */}
           <DashCard title="Recent Chats" icon={<MessageSquare size={14} color="#38aaf5"/>} link="/assistant" linkText="New chat">
             {chats.length === 0 ? (
-              <EmptyState icon={<Sparkles size={20} color="hsl(205,90%,60%)"/>} msg="No chats yet" sub="Start a conversation" link="/assistant" linkText="Chat now" />
+              <EmptyState icon={<Sparkles size={20} color="hsl(205,90%,60%)"/>} msg="Ask me anything — I already know a bit about you" sub="Start your first conversation" link="/assistant" linkText="Chat now" />
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                 {chats.slice(0, 4).map((c: any) => (
@@ -153,7 +182,7 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
           {/* Notes */}
           <DashCard title="Notes" icon={<FileText size={14} color="#a78bfa"/>} link="/notes" linkText="View all">
             {notes.length === 0 ? (
-              <EmptyState icon={<FileText size={20} color="hsl(262,83%,75%)"/>} msg="No notes yet" sub="Capture your thoughts" link="/notes" linkText="New note" />
+              <EmptyState icon={<FileText size={20} color="hsl(262,83%,75%)"/>} msg="Ready to capture your first idea?" sub="Your notes live here" link="/notes" linkText="New note" />
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
                 {notes.slice(0, 4).map((n: any) => (

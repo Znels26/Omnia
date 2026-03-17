@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { CreditCard, Check, Zap, Crown, ExternalLink, Sparkles, Heart, X } from 'lucide-react';
+import Link from 'next/link';
 import { formatDate } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
@@ -8,19 +9,19 @@ const PLANS = [
   {
     tier: 'free', name: 'Free', icon: Sparkles, color: 'hsl(240 5% 55%)',
     price: { monthly: 0, yearly: 0 },
-    features: ['30 AI messages/month', '20 notes', '10 file uploads', '5 exports', 'Basic planner (50 tasks)', '10 reminders'],
-    missing: ['Life Hub (22 tools)', 'AI Money Tools', 'Invoices & proposals'],
+    features: ['30 AI messages/month', '20 notes', '10 file uploads', '5 exports', 'Basic planner (50 tasks)', '10 reminders', 'Autopilot onboarding & persona setup', 'Memory Import (up to 100 conversations)'],
+    missing: ['Life Hub (22 tools)', 'AI Money Tools', 'Invoices & proposals', 'Autonomous Autopilot actions'],
   },
   {
     tier: 'plus', name: 'Plus', icon: Zap, color: 'hsl(205,90%,60%)', highlight: true,
-    price: { monthly: 25, yearly: 199 },
-    features: ['500 AI messages/month', 'Unlimited notes & tasks', '50 uploads', '50 exports/month', 'Life Hub — all 22 tools', 'AI Money Tools — all 4 tools', '25 invoices/month', 'Proposals & Doc Builder', '100 reminders', 'All 6 AI modes'],
+    price: { monthly: 24, yearly: 192 },
+    features: ['500 AI messages/month', 'Unlimited notes & tasks', '50 uploads', '50 exports/month', 'Life Hub — all 22 tools', 'AI Money Tools — all 4 tools', '25 invoices/month', 'Proposals & Doc Builder', '100 reminders', 'All 6 AI modes', 'Autopilot Level 1 (Draft Only)', 'Morning briefing + opportunity finder', 'Memory Import (500 conversations)', 'All 7 Autopilot personas'],
     missing: [],
   },
   {
     tier: 'pro', name: 'Pro', icon: Crown, color: 'hsl(262,83%,75%)',
-    price: { monthly: 40, yearly: 329 },
-    features: ['Unlimited AI messages', 'Unlimited everything', '250 uploads', '500 exports', 'Unlimited invoices', 'Life Hub + AI Money Tools', 'Priority support', 'Advanced AI memory'],
+    price: { monthly: 49, yearly: 390 },
+    features: ['Unlimited AI messages', 'Unlimited everything', '250 uploads', '500 exports', 'Unlimited invoices', 'Life Hub + AI Money Tools', 'Priority support', 'Advanced AI memory', 'Full Autopilot (all 3 permission levels)', 'Fully autonomous operation', 'All persona-specific daily actions', 'Unlimited Memory Import', 'Priority Autopilot processing', 'Life coach mode + mental load reducer'],
     missing: [],
   },
 ];
@@ -108,6 +109,19 @@ export function BillingView({ profile, subscription }: any) {
         <span style={{ fontSize: '13px', color: billingInterval === 'yearly' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)' }}>
           Yearly <span style={{ color: '#34d399', fontWeight: 600 }}>Save ~30%</span>
         </span>
+      </div>
+
+      {/* Autopilot highlight */}
+      <div style={{ padding: '18px 20px', background: 'hsl(205 90% 48% / 0.06)', border: '1px solid hsl(205 90% 48% / 0.2)', borderRadius: '14px', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+          <Zap size={17} color="hsl(205,90%,60%)" />
+          <span style={{ fontWeight: 700, fontSize: '14px' }}>Omnia Autopilot</span>
+          <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.15)', color: 'hsl(205,90%,60%)', fontWeight: 700 }}>NEW</span>
+        </div>
+        <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 55%)', margin: '0 0 12px', lineHeight: 1.6 }}>
+          Your AI Chief of Staff — works overnight so you wake up to a done list. Upgrade to Plus or Pro to unlock autonomous actions, morning briefings, and personalised opportunity finding.
+        </p>
+        <a href="/autopilot" style={{ fontSize: '12.5px', color: 'hsl(205,90%,60%)', fontWeight: 600, textDecoration: 'none' }}>Set up Autopilot →</a>
       </div>
 
       {/* Plan cards */}

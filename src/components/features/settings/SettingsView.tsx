@@ -1,9 +1,11 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { User, Bell, LogOut, Brain, Plus, Trash2 } from 'lucide-react';
+import { User, Bell, LogOut, Brain, Plus, Trash2, Zap, Upload } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import toast from 'react-hot-toast';
+import { MemoryImport } from '@/components/features/autopilot/MemoryImport';
 
 function ToggleRow({ label, desc, on, onChange, small }: { label: string; desc: string; on: boolean; onChange: (v: boolean) => void; small?: boolean }) {
   return (
@@ -41,6 +43,7 @@ export function SettingsView({ profile }: any) {
   const [memories, setMemories] = useState<any[]>([]);
   const [newMemory, setNewMemory] = useState('');
   const [addingMemory, setAddingMemory] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -179,6 +182,50 @@ export function SettingsView({ profile }: any) {
         </div>
 
         <button onClick={save} disabled={saving} className="btn btn-primary" style={{ height: '44px', fontSize: '15px', fontWeight: 600 }}>{saving ? 'Saving…' : 'Save Changes'}</button>
+
+        {/* Autopilot */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+            <Zap size={15} color="hsl(205,90%,60%)" />
+            <h2 style={{ fontWeight: 600, fontSize: '15px', margin: 0 }}>Autopilot</h2>
+            <span style={{ fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.15)', color: 'hsl(205,90%,60%)' }}>NEW</span>
+          </div>
+          <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 50%)', marginBottom: '14px', lineHeight: 1.6 }}>
+            Your AI Chief of Staff — works overnight so you wake up to a done list. Configure your persona, permission level, and what Omnia does for you automatically.
+          </p>
+          <Link href="/autopilot" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'hsl(205 90% 48% / 0.1)', border: '1px solid hsl(205 90% 48% / 0.25)', borderRadius: '9px', color: 'hsl(205,90%,60%)', textDecoration: 'none', fontSize: '13px', fontWeight: 600 }}>
+            <Zap size={13} /> Manage Autopilot →
+          </Link>
+        </div>
+
+        {/* Import & Migration */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+            <Upload size={15} color="hsl(262,83%,75%)" />
+            <h2 style={{ fontWeight: 600, fontSize: '15px', margin: 0 }}>Import & Migration</h2>
+          </div>
+          {!showImport ? (
+            <>
+              <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 50%)', marginBottom: '14px', lineHeight: 1.6 }}>
+                Upload your ChatGPT, Claude, or Gemini conversation history. Omnia will automatically extract your goals, tasks, habits, and personal facts — so it knows you from the first message.
+              </p>
+              <button
+                onClick={() => setShowImport(true)}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 16px', background: 'hsl(262 83% 58% / 0.1)', border: '1px solid hsl(262 83% 58% / 0.25)', borderRadius: '9px', color: 'hsl(262,83%,75%)', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                <Upload size={13} /> Import Conversation History
+              </button>
+            </>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 50%)', margin: 0 }}>Upload your ChatGPT, Claude or Gemini history</p>
+                <button onClick={() => setShowImport(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', fontSize: '12px', padding: '2px 6px' }}>✕ Close</button>
+              </div>
+              <MemoryImport onComplete={() => setShowImport(false)} compact />
+            </div>
+          )}
+        </div>
 
         <div className="card" style={{ padding: '16px' }}>
           <button onClick={signOut} className="btn btn-ghost" style={{ width: '100%', justifyContent: 'flex-start', gap: '10px', color: 'hsl(240 5% 60%)', height: '40px' }}><LogOut size={15} /> Sign Out</button>

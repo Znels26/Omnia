@@ -7,7 +7,7 @@ import {
 LayoutDashboard, MessageSquare, CalendarDays, FileText,
 FolderOpen, Wand2, FileOutput, Receipt, Bell, Settings,
 CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck,
-DollarSign, CalendarClock, Share2, Heart, Code2
+DollarSign, CalendarClock, Share2, Heart, Code2, Zap
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { PWAInstallBanner } from './PWAInstallBanner';
@@ -15,6 +15,7 @@ import { NotificationPrompt } from '@/components/notifications/NotificationPromp
 
 const NAV = [
 { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+{ href: '/autopilot', label: 'Autopilot', icon: Zap },
 { href: '/assistant', label: 'AI Assistant', icon: MessageSquare },
 { href: '/planner', label: 'Planner', icon: CalendarDays },
 { href: '/notes', label: 'Notes', icon: FileText },
@@ -41,7 +42,7 @@ const MOBILE_NAV = [
 { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
 { href: '/assistant', label: 'AI', icon: MessageSquare },
 { href: '/planner', label: 'Planner', icon: CalendarDays },
-{ href: '/life-hub', label: 'Life Hub', icon: Heart },
+{ href: '/autopilot', label: 'Autopilot', icon: Zap },
 { href: '/content-studio', label: 'Create', icon: Wand2 },
 ];
 
@@ -88,12 +89,16 @@ width: '3px', height: '20px', background: 'hsl(205,90%,48%)', borderRadius: '0 3
 )}
 <Icon size={16} />
 {label}
+{href === '/autopilot' && (
+<span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'hsl(142, 70%, 55%)', marginLeft: 'auto', flexShrink: 0, animation: 'pulse 2s infinite' }} />
+)}
 </Link>
 );
 };
 
 const SidebarInner = () => (
 <>
+<style>{`@keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }`}</style>
 {/* Logo */}
 <div style={{ padding: '16px', borderBottom: '1px solid hsl(240 6% 14%)', display: 'flex', alignItems: 'center', gap: '10px' }}>
 <div style={{ width: '32px', height: '32px', borderRadius: '10px', background: 'hsl(205 90% 48% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>

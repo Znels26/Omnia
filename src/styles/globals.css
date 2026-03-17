@@ -532,3 +532,60 @@ table { max-width: 100%; overflow-x: auto; display: block; }
 img { max-width: 100%; height: auto; }
 pre { overflow-x: auto; max-width: 100%; }
 code { word-break: break-word; }
+
+/* ── Autopilot / Import styles ─────────────────────── */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.85); }
+}
+@keyframes fade-slide-up {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes progress-shine {
+  0%   { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+.autopilot-dot {
+  width: 7px; height: 7px; border-radius: 50%;
+  background: hsl(142, 70%, 55%);
+  animation: pulse-dot 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.import-reveal { animation: fade-slide-up 0.5s ease forwards; }
+.progress-bar-shine {
+  background: linear-gradient(90deg, hsl(205 90% 48%) 0%, hsl(205 90% 65%) 50%, hsl(205 90% 48%) 100%);
+  background-size: 200% 100%;
+  animation: progress-shine 1.5s linear infinite;
+}
+.tab-nav { display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer;
+  font-size: 13px; font-weight: 500; white-space: nowrap;
+  background: transparent; color: hsl(240 5% 55%); transition: all 0.15s;
+}
+.tab-btn:hover { background: hsl(240 6% 10%); color: hsl(0 0% 80%); }
+.tab-btn.active { background: hsl(205 90% 48% / 0.15); color: hsl(205,90%,60%); font-weight: 600; }
+.persona-card {
+  padding: 20px; border-radius: 14px; border: 2px solid hsl(240 6% 14%);
+  background: hsl(240 8% 7%); cursor: pointer; transition: all 0.2s;
+}
+.persona-card:hover { border-color: hsl(205 90% 48% / 0.4); transform: translateY(-2px); }
+.persona-card.selected { border-color: hsl(205 90% 48%); background: hsl(205 90% 48% / 0.06); }
+.permission-card {
+  padding: 20px; border-radius: 14px; border: 2px solid hsl(240 6% 14%);
+  background: hsl(240 8% 7%); cursor: pointer; transition: all 0.2s; margin-bottom: 12px;
+}
+.permission-card:hover { border-color: hsl(205 90% 48% / 0.3); }
+.permission-card.selected { border-color: hsl(205 90% 48%); background: hsl(205 90% 48% / 0.05); }
+.action-card {
+  padding: 16px; border-radius: 12px; border: 1px solid hsl(240 6% 14%);
+  background: hsl(240 8% 7%); transition: all 0.2s; margin-bottom: 10px;
+}
+.action-card.approved { border-color: hsl(142 70% 40% / 0.4); background: hsl(142 70% 40% / 0.05); }
+.action-card.rejected { opacity: 0.5; }
+.opp-card {
+  padding: 16px; border-radius: 12px; border: 1px solid hsl(240 6% 14%);
+  background: hsl(240 8% 7%); margin-bottom: 10px;
+}
