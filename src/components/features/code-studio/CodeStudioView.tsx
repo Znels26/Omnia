@@ -229,41 +229,98 @@ function getMonacoLang(filename: string): string {
   return map[ext] || 'plaintext';
 }
 
+// Strip/transform ES module imports so React code works with UMD globals
+function transformReactCode(src: string): string {
+  return src
+    // import React, { useState, useEffect } from 'react'
+    .replace(/^import\s+React\s*,\s*\{\s*([^}]+)\s*\}\s+from\s+['"]react['"]\s*;?/gm,
+      (_, n) => `const { ${n.trim()} } = React;`)
+    // import { useState, useEffect } from 'react'
+    .replace(/^import\s+\{\s*([^}]+)\s*\}\s+from\s+['"]react['"]\s*;?/gm,
+      (_, n) => `const { ${n.trim()} } = React;`)
+    // import React from 'react'
+    .replace(/^import\s+React\s+from\s+['"]react['"]\s*;?/gm, '')
+    // import type { ... } from 'react'
+    .replace(/^import\s+type\s+\{[^}]*\}\s+from\s+['"]react['"]\s*;?/gm, '')
+    // Remove any other react imports
+    .replace(/^import\s+.*\s+from\s+['"]react['"]\s*;?/gm, '')
+    // export default → just the value
+    .replace(/^export\s+default\s+/gm, '')
+    // remove named exports (keep the declaration)
+    .replace(/^export\s+(?!default\s)/gm, '');
+}
+
+// Injected into every iframe — bridges console.log/warn/error to parent via postMessage
+const CONSOLE_BRIDGE = `<script>
+(function(){
+  function send(level, args) {
+    try { parent.postMessage({ type: 'cs-log', level: level, args: args.map(function(x) { return typeof x === 'object' ? JSON.stringify(x, null, 2) : String(x); }) }, '*'); } catch(e) {}
+  }
+  ['log', 'info', 'warn', 'error'].forEach(function(level) {
+    var orig = console[level];
+    console[level] = function() {
+      var a = Array.prototype.slice.call(arguments);
+      send(level, a);
+      if (orig) orig.apply(console, a);
+    };
+  });
+  window.onerror = function(msg, _src, line) {
+    send('error', [msg + (line ? ' (line ' + line + ')' : '')]);
+    return false;
+  };
+  window.addEventListener('unhandledrejection', function(e) {
+    send('error', ['Unhandled: ' + ((e.reason && e.reason.message) || String(e.reason))]);
+  });
+})();
+</` + `script>`;
+
 function buildPreviewSrcdoc(files: ProjectFile[], lang: Lang): string {
   if (lang === 'html') {
-    const html = files.find(f => f.name.endsWith('.html'))?.content || '<html><body></body></html>';
+    const html = files.find(f => f.name.endsWith('.html'))?.content || '<!DOCTYPE html><html><head></head><body><p style="padding:20px;font-family:system-ui;color:#94a3b8">No HTML file found.</p></body></html>';
     const css = files.filter(f => f.name.endsWith('.css')).map(f => f.content).join('\n');
-    const js = files.filter(f => f.name.endsWith('.js')).map(f => f.content).join('\n');
-    const withCss = css ? html.replace('</head>', `<style>\n${css}\n</style>\n</head>`) : html;
-    return js ? withCss.replace('</body>', `<script>\n${js}\n</script>\n</body>`) : withCss;
+    const js  = files.filter(f => f.name.endsWith('.js') && !f.name.endsWith('.jsx')).map(f => f.content).join('\n');
+    let doc = html;
+    // Inject console bridge early in <head>
+    if (/<head>/i.test(doc)) doc = doc.replace(/<head>/i, `<head>\n${CONSOLE_BRIDGE}`);
+    else doc = CONSOLE_BRIDGE + doc;
+    if (css) doc = doc.replace('</head>', `<style>\n${css}\n</style>\n</head>`);
+    if (js)  doc = doc.replace('</body>', `<script>\n${js.replace(/<\/script>/gi, '<\\/script>')}\n<\/script>\n</body>`);
+    return doc;
   }
   if (lang === 'react') {
-    const jsx = files.find(f => f.name.endsWith('.jsx') || f.name.endsWith('.tsx'))?.content || '';
+    const rawFile = files.find(f => /\.(jsx?|tsx?)$/.test(f.name));
+    const jsx = transformReactCode(rawFile?.content || '');
+    const css = files.filter(f => f.name.endsWith('.css')).map(f => f.content).join('\n');
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <style>*, *::before, *::after { box-sizing: border-box; } body { margin: 0; }</style>
+  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin><\/script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin><\/script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+  <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}${css}</style>
+  ${CONSOLE_BRIDGE}
 </head>
 <body>
   <div id="root"></div>
   <script type="text/babel" data-presets="react">
 ${jsx}
-try {
-  const rootEl = document.getElementById('root');
-  if (typeof App !== 'undefined') {
-    ReactDOM.createRoot(rootEl).render(React.createElement(App));
-  } else {
-    rootEl.innerHTML = '<p style="padding:20px;color:#f87171">No App component found.</p>';
+;(function(){
+  try {
+    var rootEl = document.getElementById('root');
+    var AppComp = typeof App !== 'undefined' ? App : null;
+    if (!AppComp) {
+      rootEl.innerHTML = '<div style="padding:24px;font-family:system-ui;color:#f87171;font-size:14px">⚠ No <strong>App</strong> component found.<br><br>Make sure your main component is named <code>App</code>.</div>';
+    } else {
+      ReactDOM.createRoot(rootEl).render(React.createElement(AppComp));
+    }
+  } catch(e) {
+    document.getElementById('root').innerHTML = '<pre style="padding:20px;color:#f87171;font-size:13px;font-family:monospace;white-space:pre-wrap;margin:0">⚠ ' + e.message + '</pre>';
+    console.error(e.message);
   }
-} catch(e) {
-  document.getElementById('root').innerHTML = '<pre style="padding:20px;color:#f87171;font-size:12px">' + e.message + '</pre>';
-}
-  </script>
+})();
+  <\/script>
 </body>
 </html>`;
   }
@@ -295,7 +352,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [aiApplied, setAiApplied] = useState(false);
-  const [previewSrc, setPreviewSrc] = useState('');
+  const [previewSrc, setPreviewSrc] = useState(() => buildPreviewSrcdoc(DEFAULT_FILES.html, 'html'));
+  const [iframeLogs, setIframeLogs] = useState<Array<{ level: string; text: string }>>([]);
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [showNewFile, setShowNewFile] = useState(false);
@@ -340,6 +398,17 @@ export function CodeStudioView({ profile }: { profile: any }) {
     setOutputTab(lang === 'python' || lang === 'nodejs' ? 'console' : 'preview');
   }, [lang]);
 
+  // Capture console.log / errors from the preview iframe
+  useEffect(() => {
+    const handler = (e: MessageEvent) => {
+      if (e.data?.type !== 'cs-log') return;
+      const { level, args } = e.data as { level: string; args: string[] };
+      setIframeLogs(prev => [...prev, { level, text: args.join(' ') }]);
+    };
+    window.addEventListener('message', handler);
+    return () => window.removeEventListener('message', handler);
+  }, []);
+
   function switchLang(newLang: Lang) {
     setLang(newLang);
     const preset = DEFAULT_FILES[newLang];
@@ -347,6 +416,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
     setActiveFileId(preset[0].id);
     setConsoleOutput('');
     setDeployUrl('');
+    setIframeLogs([]);
     setShowLangPicker(false);
   }
 
@@ -488,7 +558,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
         }
       }
 
-      if (updated) { setFiles(newFiles); setAiApplied(true); toast.success('Code applied to editor'); if (isMobile) setMobilePanel('editor'); }
+      if (updated) { setFiles(newFiles); setAiApplied(true); setIframeLogs([]); toast.success('Code applied to editor'); if (isMobile) setMobilePanel('editor'); }
       else toast('AI responded — no code blocks found to apply', { icon: 'ℹ️' });
     } catch (err: any) {
       toast.error(err.message || 'AI generation failed');
@@ -650,8 +720,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
             <RefreshCw size={13} />
           </button>
         )}
-        {outputTab === 'console' && consoleOutput && (
-          <button onClick={() => setConsoleOutput('')} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '5px' }} title="Clear">
+        {outputTab === 'console' && (consoleOutput || iframeLogs.length > 0) && (
+          <button onClick={() => { setConsoleOutput(''); setIframeLogs([]); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '5px' }} title="Clear">
             <Trash2 size={13} />
           </button>
         )}
@@ -663,8 +733,20 @@ export function CodeStudioView({ profile }: { profile: any }) {
             : <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', color: 'hsl(240 5% 40%)', fontSize: '13px', textAlign: 'center' }}><div><Eye size={28} style={{ margin: '0 auto 10px', display: 'block', opacity: 0.25 }} /><p>Preview loading…</p></div></div>
         )}
         {outputTab === 'console' && (
-          <div style={{ padding: '12px', height: '100%', overflowY: 'auto', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '13px', lineHeight: 1.7, color: 'hsl(142,70%,60%)', whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-            {consoleOutput || <span style={{ color: 'hsl(240 5% 38%)' }}>{canRun ? '▶ Press Run to execute your code' : 'Console output will appear here'}</span>}
+          <div style={{ padding: '12px', height: '100%', overflowY: 'auto', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '13px', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
+            {/* iframe console logs (HTML / React) */}
+            {iframeLogs.map((log, i) => (
+              <div key={i} style={{ color: log.level === 'error' ? 'hsl(0,70%,65%)' : log.level === 'warn' ? 'hsl(38,85%,65%)' : 'hsl(142,70%,60%)', borderLeft: log.level === 'error' ? '2px solid hsl(0,70%,50%)' : log.level === 'warn' ? '2px solid hsl(38,85%,55%)' : 'none', paddingLeft: (log.level === 'error' || log.level === 'warn') ? '8px' : '0', marginBottom: '2px' }}>
+                {log.level === 'error' ? '✖ ' : log.level === 'warn' ? '⚠ ' : ''}{log.text}
+              </div>
+            ))}
+            {/* run output (Python / Node.js) */}
+            {consoleOutput && <div style={{ color: 'hsl(142,70%,60%)' }}>{consoleOutput}</div>}
+            {!consoleOutput && iframeLogs.length === 0 && (
+              <span style={{ color: 'hsl(240 5% 38%)' }}>
+                {canRun ? '▶ Press Run to execute your code' : 'console.log() output from your code will appear here'}
+              </span>
+            )}
           </div>
         )}
       </div>
