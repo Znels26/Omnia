@@ -121,7 +121,7 @@ export function BillingView({ profile, subscription }: any) {
         <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 55%)', margin: '0 0 12px', lineHeight: 1.6 }}>
           Your AI Chief of Staff — works overnight so you wake up to a done list. Upgrade to Plus or Pro to unlock autonomous actions, morning briefings, and personalised opportunity finding.
         </p>
-        <a href="/autopilot" style={{ fontSize: '12.5px', color: 'hsl(205,90%,60%)', fontWeight: 600, textDecoration: 'none' }}>Set up Autopilot →</a>
+        <Link href="/autopilot" style={{ fontSize: '12.5px', color: 'hsl(205,90%,60%)', fontWeight: 600, textDecoration: 'none' }}>Set up Autopilot →</Link>
       </div>
 
       {/* Plan cards */}
