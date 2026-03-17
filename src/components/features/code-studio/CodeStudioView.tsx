@@ -7,6 +7,7 @@ import {
   Play, Sparkles, Plus, Trash2, Copy, X, Loader2,
   Globe, Terminal, FileCode, Crown, ArrowRight, Eye,
   ChevronDown, Upload, Check, Code2, RefreshCw, PanelLeft,
+  Save, LayoutTemplate,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -110,52 +111,108 @@ btn.addEventListener('click', () => {
   react: [
     {
       id: 'react-1', name: 'App.jsx',
-      content: `function App() {
-  const [count, setCount] = React.useState(0);
-  const [todos, setTodos] = React.useState(['Buy groceries', 'Build something cool']);
-  const [input, setInput] = React.useState('');
+      content: `import { useState } from 'react';
+import Card from './components/Card';
+import './App.css';
 
-  const addTodo = () => {
-    if (input.trim()) {
-      setTodos([...todos, input.trim()]);
-      setInput('');
-    }
+export default function App() {
+  const [todos, setTodos] = useState([
+    { id: 1, text: 'Build something amazing', done: false },
+    { id: 2, text: 'Ship it to production', done: false },
+  ]);
+  const [input, setInput] = useState('');
+
+  const add = () => {
+    if (!input.trim()) return;
+    setTodos(t => [...t, { id: Date.now(), text: input.trim(), done: false }]);
+    setInput('');
   };
+  const toggle = id => setTodos(t => t.map(i => i.id === id ? { ...i, done: !i.done } : i));
+  const remove = id => setTodos(t => t.filter(i => i.id !== id));
 
   return (
-    <div style={{ minHeight: '100vh', background: '#0f172a', color: '#e2e8f0', fontFamily: 'system-ui, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
-      <div style={{ width: '100%', maxWidth: '480px' }}>
-        <h1 style={{ fontSize: '2rem', fontWeight: 800, marginBottom: '8px', background: 'linear-gradient(135deg, #38bdf8, #818cf8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          React App ⚛️
-        </h1>
-        <p style={{ color: '#94a3b8', marginBottom: '32px' }}>Edit App.jsx to get started</p>
-
-        <div style={{ background: '#1e293b', borderRadius: '12px', padding: '20px', marginBottom: '20px', textAlign: 'center' }}>
-          <p style={{ color: '#94a3b8', marginBottom: '12px' }}>Counter: <strong style={{ color: '#38bdf8', fontSize: '1.5rem' }}>{count}</strong></p>
-          <div style={{ display: 'flex', gap: '8px', justifyContent: 'center' }}>
-            <button onClick={() => setCount(c => c - 1)} style={{ padding: '8px 20px', background: '#334155', border: 'none', borderRadius: '8px', color: '#e2e8f0', cursor: 'pointer', fontSize: '18px' }}>−</button>
-            <button onClick={() => setCount(c => c + 1)} style={{ padding: '8px 20px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontSize: '18px' }}>+</button>
+    <div className="app">
+      <header className="header">
+        <h1>Code Studio <span>⚛️</span></h1>
+        <p>Multi-file React · npm packages · live preview</p>
+      </header>
+      <main className="main">
+        <Card title="Tasks" count={todos.filter(t => !t.done).length + ' remaining'}>
+          <div className="input-row">
+            <input
+              value={input}
+              onChange={e => setInput(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && add()}
+              placeholder="Add a task…"
+              className="input"
+            />
+            <button onClick={add} className="btn-primary">Add</button>
           </div>
-        </div>
-
-        <div style={{ background: '#1e293b', borderRadius: '12px', padding: '20px' }}>
-          <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '12px', color: '#94a3b8' }}>TO-DO LIST</h2>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-            <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && addTodo()} placeholder="Add a task..." style={{ flex: 1, padding: '8px 12px', background: '#0f172a', border: '1px solid #334155', borderRadius: '8px', color: '#e2e8f0', fontSize: '14px', outline: 'none' }} />
-            <button onClick={addTodo} style={{ padding: '8px 16px', background: '#3b82f6', border: 'none', borderRadius: '8px', color: 'white', cursor: 'pointer', fontWeight: 600 }}>Add</button>
-          </div>
-          {todos.map((todo, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 0', borderBottom: '1px solid #1e293b' }}>
-              <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#4ade80', flexShrink: 0 }} />
-              <span style={{ fontSize: '14px', color: '#cbd5e1', flex: 1 }}>{todo}</span>
-              <button onClick={() => setTodos(todos.filter((_, j) => j !== i))} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer', fontSize: '16px' }}>×</button>
-            </div>
-          ))}
-        </div>
-      </div>
+          <ul className="todo-list">
+            {todos.map(t => (
+              <li key={t.id} className={'todo-item' + (t.done ? ' done' : '')}>
+                <button onClick={() => toggle(t.id)} className="toggle">{t.done ? '✓' : '○'}</button>
+                <span className="todo-text">{t.text}</span>
+                <button onClick={() => remove(t.id)} className="remove">✕</button>
+              </li>
+            ))}
+          </ul>
+        </Card>
+      </main>
     </div>
   );
 }`,
+    },
+    {
+      id: 'react-2', name: 'components/Card.jsx',
+      content: `export default function Card({ title, count, children }) {
+  return (
+    <div className="card">
+      <div className="card-header">
+        <h2 className="card-title">{title}</h2>
+        {count && <span className="card-badge">{count}</span>}
+      </div>
+      <div className="card-body">{children}</div>
+    </div>
+  );
+}`,
+    },
+    {
+      id: 'react-3', name: 'App.css',
+      content: `@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: 'Inter', system-ui, sans-serif; background: #07080f; color: #e2e8f0; }
+
+.app { min-height: 100vh; display: flex; flex-direction: column; }
+.header { padding: 48px 24px 24px; text-align: center; }
+.header h1 { font-size: 2rem; font-weight: 800; margin: 0 0 8px; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.header h1 span { -webkit-text-fill-color: initial; }
+.header p { color: #64748b; margin: 0; font-size: 14px; }
+
+.main { max-width: 560px; width: 100%; margin: 0 auto; padding: 0 16px 48px; }
+
+.card { background: #0f1117; border: 1px solid #1e2130; border-radius: 16px; overflow: hidden; }
+.card-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px; border-bottom: 1px solid #1e2130; }
+.card-title { font-size: 15px; font-weight: 600; margin: 0; }
+.card-badge { font-size: 12px; background: #1e2130; color: #64748b; padding: 2px 8px; border-radius: 999px; }
+.card-body { padding: 16px 20px; }
+
+.input-row { display: flex; gap: 8px; margin-bottom: 12px; }
+.input { flex: 1; background: #0a0c14; border: 1px solid #1e2130; border-radius: 10px; color: #e2e8f0; font-size: 14px; padding: 10px 14px; outline: none; font-family: inherit; }
+.input:focus { border-color: #3b82f6; }
+.btn-primary { padding: 10px 18px; background: #3b82f6; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; font-family: inherit; }
+.btn-primary:hover { background: #2563eb; }
+
+.todo-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; }
+.todo-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; background: #0a0c14; transition: opacity 0.2s; }
+.todo-item.done { opacity: 0.45; }
+.toggle { background: none; border: 1.5px solid #334155; border-radius: 50%; width: 22px; height: 22px; color: #4ade80; font-size: 11px; cursor: pointer; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.todo-item.done .toggle { background: #4ade8020; border-color: #4ade80; }
+.todo-text { flex: 1; font-size: 14px; }
+.todo-item.done .todo-text { text-decoration: line-through; color: #475569; }
+.remove { background: none; border: none; color: #475569; cursor: pointer; font-size: 12px; padding: 4px; }
+.remove:hover { color: #f87171; }`,
     },
   ],
   python: [
@@ -229,24 +286,15 @@ function getMonacoLang(filename: string): string {
   return map[ext] || 'plaintext';
 }
 
-// Strip/transform ES module imports so React code works with UMD globals
+// (transformReactCode kept for legacy single-file fallback)
 function transformReactCode(src: string): string {
   return src
-    // import React, { useState, useEffect } from 'react'
-    .replace(/^import\s+React\s*,\s*\{\s*([^}]+)\s*\}\s+from\s+['"]react['"]\s*;?/gm,
-      (_, n) => `const { ${n.trim()} } = React;`)
-    // import { useState, useEffect } from 'react'
-    .replace(/^import\s+\{\s*([^}]+)\s*\}\s+from\s+['"]react['"]\s*;?/gm,
-      (_, n) => `const { ${n.trim()} } = React;`)
-    // import React from 'react'
+    .replace(/^import\s+React\s*,\s*\{\s*([^}]+)\s*\}\s+from\s+['"]react['"]\s*;?/gm, (_, n) => `const { ${n.trim()} } = React;`)
+    .replace(/^import\s+\{\s*([^}]+)\s*\}\s+from\s+['"]react['"]\s*;?/gm, (_, n) => `const { ${n.trim()} } = React;`)
     .replace(/^import\s+React\s+from\s+['"]react['"]\s*;?/gm, '')
-    // import type { ... } from 'react'
     .replace(/^import\s+type\s+\{[^}]*\}\s+from\s+['"]react['"]\s*;?/gm, '')
-    // Remove any other react imports
     .replace(/^import\s+.*\s+from\s+['"]react['"]\s*;?/gm, '')
-    // export default → just the value
     .replace(/^export\s+default\s+/gm, '')
-    // remove named exports (keep the declaration)
     .replace(/^export\s+(?!default\s)/gm, '');
 }
 
@@ -274,13 +322,100 @@ const CONSOLE_BRIDGE = `<script>
 })();
 </` + `script>`;
 
+// In-iframe bundler: Babel JSX transform + esm.sh npm resolution + blob URL module graph
+const REACT_BUNDLER = `(async function() {
+  var root = document.getElementById('root');
+  var files = window.__CS_FILES__;
+  var css = window.__CS_CSS__;
+  if (css) { var st = document.createElement('style'); st.textContent = css; document.head.appendChild(st); }
+  function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+  function resolveFile(from, spec) {
+    var dir = from.lastIndexOf('/') >= 0 ? from.slice(0, from.lastIndexOf('/')) : '';
+    var joined = dir ? dir + '/' + spec : spec;
+    var parts = joined.split('/'), out = [];
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i] === '..') out.pop(); else if (parts[i] !== '.') out.push(parts[i]);
+    }
+    var base = out.join('/'), keys = Object.keys(files);
+    return keys.find(function(n){return n===base;})
+      || keys.find(function(n){return n===base+'.jsx';})
+      || keys.find(function(n){return n===base+'.tsx';})
+      || keys.find(function(n){return n===base+'.js';})
+      || keys.find(function(n){return n===base+'.ts';})
+      || keys.find(function(n){return n===base+'/index.jsx';})
+      || keys.find(function(n){return n===base+'/index.js';})
+      || null;
+  }
+  function getLocalDeps(code) {
+    var re = /from\\s+['"](\\.{1,2}\\/[^'"]+)['"]/g, deps = [], m;
+    while ((m = re.exec(code)) !== null) deps.push(m[1]);
+    return deps;
+  }
+  function topoSort(names) {
+    var visited = {}, order = [];
+    function visit(n) {
+      if (visited[n]) return; visited[n] = true;
+      getLocalDeps(files[n] || '').forEach(function(s){ var d = resolveFile(n, s); if (d) visit(d); });
+      order.push(n);
+    }
+    names.forEach(visit); return order;
+  }
+  var jsNames = Object.keys(files).filter(function(n){ return /\\.(jsx?|tsx?)$/.test(n); });
+  var transformed = {};
+  for (var i = 0; i < jsNames.length; i++) {
+    var name = jsNames[i];
+    try {
+      transformed[name] = Babel.transform(files[name], { presets: ['react'], filename: name, retainLines: true }).code;
+    } catch(e) {
+      root.innerHTML = '<pre style="padding:20px;color:#f87171;font-size:13px;white-space:pre-wrap;margin:0">⚠ Syntax error in <strong>' + esc(name) + '</strong>:\\n' + esc(e.message) + '</pre>';
+      console.error('Build error in ' + name + ':', e.message); return;
+    }
+  }
+  var blobUrls = {}, order = topoSort(jsNames);
+  for (var i = 0; i < order.length; i++) {
+    var name = order[i], code = transformed[name];
+    if (!code) continue;
+    code = code.replace(/^import\\s+['"][^'"]+\\.css['"]\\s*;?/gm, '');
+    code = code.replace(/from\\s+['"](\\.{1,2}\\/[^'"]+)['"]/g, function(match, spec) {
+      if (/\\.css$/.test(spec)) return '';
+      var dep = resolveFile(name, spec);
+      return dep && blobUrls[dep] ? 'from "' + blobUrls[dep] + '"' : match;
+    });
+    code = code.replace(/import\\(\\s*['"](\\.{1,2}\\/[^'"]+)['"]\\s*\\)/g, function(match, spec) {
+      var dep = resolveFile(name, spec); return dep && blobUrls[dep] ? 'import("' + blobUrls[dep] + '")' : match;
+    });
+    code = code.replace(/from\\s+['"]([^.'][^'"]*)['"]/g, function(_, pkg) {
+      return pkg.startsWith('http') ? 'from "' + pkg + '"' : 'from "https://esm.sh/' + pkg + '"';
+    });
+    blobUrls[name] = URL.createObjectURL(new Blob([code], { type: 'text/javascript' }));
+  }
+  var priority = ['main.jsx','main.tsx','index.jsx','index.tsx','App.jsx','App.tsx'];
+  var entry = null;
+  for (var j = 0; j < priority.length; j++) { if (blobUrls[priority[j]]) { entry = priority[j]; break; } }
+  if (!entry) { var k = Object.keys(blobUrls); entry = k[k.length - 1]; }
+  if (!entry) { root.innerHTML = '<p style="padding:20px;font-family:system-ui;color:#f87171">No JavaScript files found</p>'; return; }
+  try {
+    var mod = await import(blobUrls[entry]);
+    var AppComp = mod.default || mod.App;
+    if (!AppComp) {
+      root.innerHTML = '<div style="padding:24px;font-family:system-ui;color:#f87171;font-size:14px">⚠ No default export in <strong>' + esc(entry) + '</strong><br><br>Add: <code>export default function App() {}</code></div>';
+      return;
+    }
+    var reactMod = await import('https://esm.sh/react@18');
+    var rdMod = await import('https://esm.sh/react-dom@18/client');
+    rdMod.createRoot(root).render((reactMod.default||reactMod).createElement(AppComp));
+  } catch(e) {
+    console.error(e);
+    root.innerHTML = '<pre style="padding:20px;color:#f87171;font-size:13px;white-space:pre-wrap;margin:0">⚠ ' + esc(e.message) + '</pre>';
+  }
+})();`;
+
 function buildPreviewSrcdoc(files: ProjectFile[], lang: Lang): string {
   if (lang === 'html') {
     const html = files.find(f => f.name.endsWith('.html'))?.content || '<!DOCTYPE html><html><head></head><body><p style="padding:20px;font-family:system-ui;color:#94a3b8">No HTML file found.</p></body></html>';
     const css = files.filter(f => f.name.endsWith('.css')).map(f => f.content).join('\n');
     const js  = files.filter(f => f.name.endsWith('.js') && !f.name.endsWith('.jsx')).map(f => f.content).join('\n');
     let doc = html;
-    // Inject console bridge early in <head>
     if (/<head>/i.test(doc)) doc = doc.replace(/<head>/i, `<head>\n${CONSOLE_BRIDGE}`);
     else doc = CONSOLE_BRIDGE + doc;
     if (css) doc = doc.replace('</head>', `<style>\n${css}\n</style>\n</head>`);
@@ -288,38 +423,28 @@ function buildPreviewSrcdoc(files: ProjectFile[], lang: Lang): string {
     return doc;
   }
   if (lang === 'react') {
-    const rawFile = files.find(f => /\.(jsx?|tsx?)$/.test(f.name));
-    const jsx = transformReactCode(rawFile?.content || '');
-    const css = files.filter(f => f.name.endsWith('.css')).map(f => f.content).join('\n');
+    const jsFiles: Record<string, string> = {};
+    const cssChunks: string[] = [];
+    for (const f of files) {
+      if (/\.(jsx?|tsx?)$/.test(f.name)) jsFiles[f.name] = f.content;
+      else if (f.name.endsWith('.css')) cssChunks.push(f.content);
+    }
+    const safeFiles = JSON.stringify(jsFiles).replace(/<\//g, '<\\/');
+    const safeCss   = JSON.stringify(cssChunks.join('\n')).replace(/<\//g, '<\\/');
     return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin><\/script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin><\/script>
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
-  <style>*,*::before,*::after{box-sizing:border-box}body{margin:0}${css}</style>
   ${CONSOLE_BRIDGE}
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"><\/script>
+  <style>*,*::before,*::after{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,sans-serif}</style>
 </head>
 <body>
   <div id="root"></div>
-  <script type="text/babel" data-presets="react">
-${jsx}
-;(function(){
-  try {
-    var rootEl = document.getElementById('root');
-    var AppComp = typeof App !== 'undefined' ? App : null;
-    if (!AppComp) {
-      rootEl.innerHTML = '<div style="padding:24px;font-family:system-ui;color:#f87171;font-size:14px">⚠ No <strong>App</strong> component found.<br><br>Make sure your main component is named <code>App</code>.</div>';
-    } else {
-      ReactDOM.createRoot(rootEl).render(React.createElement(AppComp));
-    }
-  } catch(e) {
-    document.getElementById('root').innerHTML = '<pre style="padding:20px;color:#f87171;font-size:13px;font-family:monospace;white-space:pre-wrap;margin:0">⚠ ' + e.message + '</pre>';
-    console.error(e.message);
-  }
-})();
+  <script>window.__CS_FILES__=${safeFiles};window.__CS_CSS__=${safeCss};<\/script>
+  <script type="module">
+${REACT_BUNDLER}
   <\/script>
 </body>
 </html>`;
@@ -334,12 +459,24 @@ const LANG_OPTIONS: { id: Lang; label: string; emoji: string; desc: string }[] =
   { id: 'nodejs', label: 'Node.js',         emoji: '🟩', desc: 'Server scripts'  },
 ];
 
+interface Template { label: string; emoji: string; desc: string; lang: Lang; files: ProjectFile[]; }
+const TEMPLATES: Template[] = [
+  { label: 'React App',      emoji: '⚛️', desc: 'Multi-file React with components',          lang: 'react',  files: DEFAULT_FILES.react },
+  { label: 'Landing Page',   emoji: '🚀', desc: 'Animated marketing page',                   lang: 'html',   files: DEFAULT_FILES.html  },
+  { label: 'Python Script',  emoji: '🐍', desc: 'Python 3 executed in a secure sandbox',     lang: 'python', files: DEFAULT_FILES.python },
+  { label: 'Node.js API',    emoji: '🟩', desc: 'Node.js executed in a secure sandbox',      lang: 'nodejs', files: DEFAULT_FILES.nodejs },
+];
+
+function loadSavedProjects(): Array<{ id: string; name: string; lang: Lang; files: ProjectFile[]; savedAt: string }> {
+  try { return JSON.parse(localStorage.getItem('cs-projects') || '[]'); } catch { return []; }
+}
+
 export function CodeStudioView({ profile }: { profile: any }) {
   const isPro = profile?.plan_tier === 'pro';
 
-  const [lang, setLang] = useState<Lang>('html');
-  const [files, setFiles] = useState<ProjectFile[]>(DEFAULT_FILES.html);
-  const [activeFileId, setActiveFileId] = useState('html-1');
+  const [lang, setLang] = useState<Lang>('react');
+  const [files, setFiles] = useState<ProjectFile[]>(DEFAULT_FILES.react);
+  const [activeFileId, setActiveFileId] = useState('react-1');
   const [outputTab, setOutputTab] = useState<OutputTab>('preview');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('editor');
   const [isMobile, setIsMobile] = useState(false);
@@ -352,13 +489,15 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [aiLoading, setAiLoading] = useState(false);
   const [aiResponse, setAiResponse] = useState('');
   const [aiApplied, setAiApplied] = useState(false);
-  const [previewSrc, setPreviewSrc] = useState(() => buildPreviewSrcdoc(DEFAULT_FILES.html, 'html'));
+  const [previewSrc, setPreviewSrc] = useState(() => buildPreviewSrcdoc(DEFAULT_FILES.react, 'react'));
   const [iframeLogs, setIframeLogs] = useState<Array<{ level: string; text: string }>>([]);
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [newFileName, setNewFileName] = useState('');
   const [showNewFile, setShowNewFile] = useState(false);
   const [copied, setCopied] = useState(false);
   const [projectName, setProjectName] = useState('my-project');
+  const [projectId, setProjectId] = useState(() => Date.now().toString());
+  const [showTemplates, setShowTemplates] = useState(false);
 
   const previewDebounce = useRef<NodeJS.Timeout>();
   const langBtnRef = useRef<HTMLDivElement>(null);
@@ -571,6 +710,28 @@ export function CodeStudioView({ profile }: { profile: any }) {
     navigator.clipboard.writeText(activeFile?.content || '');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  function saveProject() {
+    const project = { id: projectId, name: projectName, lang, files, savedAt: new Date().toISOString() };
+    const saved = loadSavedProjects();
+    const idx = saved.findIndex(p => p.id === projectId);
+    if (idx >= 0) saved[idx] = project; else saved.unshift(project);
+    localStorage.setItem('cs-projects', JSON.stringify(saved.slice(0, 30)));
+    toast.success('Project saved');
+  }
+
+  function loadTemplate(t: Template) {
+    setLang(t.lang);
+    setFiles(t.files);
+    setActiveFileId(t.files[0].id);
+    setConsoleOutput('');
+    setDeployUrl('');
+    setIframeLogs([]);
+    setProjectId(Date.now().toString());
+    setProjectName('my-project');
+    setShowTemplates(false);
+    setShowLangPicker(false);
   }
 
   const canRun = lang === 'python' || lang === 'nodejs';
@@ -812,8 +973,19 @@ export function CodeStudioView({ profile }: { profile: any }) {
 
         <div style={{ flex: 1 }} />
 
+        {/* New project */}
+        <button onClick={() => setShowTemplates(v => !v)} title="New project" style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(240 5% 65%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', flexShrink: 0 }}>
+          <LayoutTemplate size={13} />
+          {!isMobile && <span>New</span>}
+        </button>
+
+        {/* Save */}
+        <button onClick={saveProject} title="Save project" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
+          <Save size={14} />
+        </button>
+
         {/* Copy */}
-        <button onClick={copyCode} title="Copy" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: copied ? 'hsl(142,70%,55%)' : 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
+        <button onClick={copyCode} title="Copy active file" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: copied ? 'hsl(142,70%,55%)' : 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
           {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
 
@@ -931,6 +1103,29 @@ export function CodeStudioView({ profile }: { profile: any }) {
         {isMobile && mobilePanel === 'editor' && editorPanel}
         {isMobile && mobilePanel === 'output' && outputPanel}
       </div>
+
+      {/* ── Template picker modal ── */}
+      {showTemplates && (
+        <div onClick={() => setShowTemplates(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+          <div onClick={e => e.stopPropagation()} style={{ background: 'hsl(240 6% 8%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '480px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <h2 style={{ margin: 0, fontSize: '17px', fontWeight: 700 }}>New Project</h2>
+              <button onClick={() => setShowTemplates(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex' }}><X size={18} /></button>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              {TEMPLATES.map(t => (
+                <button key={t.label} onClick={() => loadTemplate(t)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', padding: '16px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
+                  onMouseEnter={e => (e.currentTarget.style.borderColor = 'hsl(205 90% 48% / 0.5)')}
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(240 6% 18%)')}>
+                  <span style={{ fontSize: '24px' }}>{t.emoji}</span>
+                  <span style={{ fontSize: '14px', fontWeight: 600, color: 'hsl(0 0% 90%)' }}>{t.label}</span>
+                  <span style={{ fontSize: '12px', color: 'hsl(240 5% 50%)', lineHeight: 1.4 }}>{t.desc}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }

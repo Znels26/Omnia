@@ -198,12 +198,51 @@ Mobile-first with breakpoints:
 All layouts must work perfectly at 375px (iPhone SE) and 1440px (desktop)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+REACT MULTI-FILE RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For React projects, the preview runs a real in-browser bundler that:
+- Supports ES module imports/exports (use these — NOT React.useState globals)
+- Resolves npm packages via esm.sh (e.g. import { motion } from 'framer-motion')
+- Resolves local relative imports between your files (e.g. import Button from './components/Button')
+- Injects CSS files automatically (import './App.css' just works)
+
+ALWAYS write proper ES module React code:
+✓ import { useState, useEffect } from 'react';
+✓ import { motion } from 'framer-motion';
+✓ export default function App() { ... }
+✓ import Button from './components/Button';
+
+NEVER use:
+✗ React.useState (use destructured hooks)
+✗ ReactDOM.render (handled automatically)
+✗ window.__xyz globals
+
+For a full app, create MULTIPLE files: App.jsx, components/, pages/, hooks/, App.css etc.
+The entry point must export a default App component.
+CSS can be imported directly: import './styles.css' — it will be injected.
+
+Popular npm packages available via esm.sh (no install needed):
+- framer-motion — animations
+- react-router-dom — routing (use HashRouter for preview)
+- lucide-react — icons
+- date-fns — date utilities
+- axios — HTTP requests
+- zustand — state management
+- recharts — charts
+- react-hot-toast — toasts
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 OUTPUT FORMAT
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 For each file you create or modify, use this exact format:
 === filename.ext ===
 [complete file content — NEVER truncate, NEVER use comments like "// rest of code here"]
 ===END===
+
+Output ALL files needed for the project. For React apps, always output at minimum:
+- App.jsx (entry point with export default)
+- App.css (styles)
+- Any component files referenced
 
 Then add a 1-2 sentence explanation of what you built.
 
@@ -236,7 +275,7 @@ export async function POST(req: NextRequest) {
 
   const userMessage = files?.length
     ? `Current project files:\n\n${fileContext}\n\n---\n\nRequest: ${prompt}`
-    : `Create a new ${langNames[language] || 'web'} project: ${prompt}`;
+    : `Create a complete, production-quality ${langNames[language] || 'web'} project: ${prompt}\n\nFor React: generate ALL necessary files (App.jsx, components/, CSS, etc.) as a proper multi-file project using ES module imports. Make it impressive and fully functional.`;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
