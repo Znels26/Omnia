@@ -157,21 +157,65 @@ function extractSearchQuery(text: string): string {
 
 function renderMarkdown(text: string) {
   if (!text) return '';
-  return text
-    .replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+|data:image\/[^)]+)\)/g,
-      '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:8px 0;display:block" loading="lazy" />')
-    .replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>')
-    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-    .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.9em">$1</code>')
-    .replace(/^### (.*)/gm, '<h3 style="font-size:15px;font-weight:700;margin:12px 0 6px">$1</h3>')
-    .replace(/^## (.*)/gm, '<h2 style="font-size:17px;font-weight:700;margin:14px 0 6px">$1</h2>')
-    .replace(/^# (.*)/gm, '<h1 style="font-size:19px;font-weight:700;margin:16px 0 8px">$1</h1>')
-    .replace(/^- (.*)/gm, '<li style="margin:3px 0;padding-left:4px">$1</li>')
-    .replace(/^(\d+)\. (.*)/gm, '<li style="margin:3px 0;padding-left:4px">$2</li>')
-    .replace(/(<li.*<\/li>)/gs, '<ul style="padding-left:20px;margin:8px 0">$1</ul>')
-    .replace(/\n\n/g, '<br/><br/>')
-    .replace(/\n/g, '<br/>');
+
+  // Process line by line so list grouping is correct
+  const lines = text.split('\n');
+  const output: string[] = [];
+  let inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+
+    // Inline: images
+    line = line.replace(/!\[([^\]]*)\]\((https?:\/\/[^)]+|data:image\/[^)]+)\)/g,
+      '<img src="$2" alt="$1" style="max-width:100%;border-radius:12px;margin:8px 0;display:block" loading="lazy" />');
+    // Inline: bold-italic, bold, italic
+    line = line.replace(/\*\*\*(.*?)\*\*\*/g, '<strong><em>$1</em></strong>');
+    line = line.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    line = line.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Inline: code
+    line = line.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 6px;border-radius:4px;font-family:monospace;font-size:0.9em">$1</code>');
+
+    // Block: headers
+    if (/^### /.test(line)) {
+      if (inList) { output.push('</ul>'); inList = false; }
+      output.push(`<h3 style="font-size:15px;font-weight:700;margin:12px 0 4px">${line.slice(4)}</h3>`);
+      continue;
+    }
+    if (/^## /.test(line)) {
+      if (inList) { output.push('</ul>'); inList = false; }
+      output.push(`<h2 style="font-size:17px;font-weight:700;margin:14px 0 6px">${line.slice(3)}</h2>`);
+      continue;
+    }
+    if (/^# /.test(line)) {
+      if (inList) { output.push('</ul>'); inList = false; }
+      output.push(`<h1 style="font-size:19px;font-weight:700;margin:16px 0 8px">${line.slice(2)}</h1>`);
+      continue;
+    }
+
+    // Block: list items (- or 1. 2. etc.)
+    const bulletMatch = line.match(/^[-*] (.*)/);
+    const orderedMatch = line.match(/^\d+\. (.*)/);
+    if (bulletMatch || orderedMatch) {
+      if (!inList) { output.push('<ul style="padding-left:20px;margin:8px 0">'); inList = true; }
+      output.push(`<li style="margin:3px 0;padding-left:4px">${(bulletMatch || orderedMatch)![1]}</li>`);
+      continue;
+    }
+
+    // Blank line: close list and add spacing
+    if (line.trim() === '') {
+      if (inList) { output.push('</ul>'); inList = false; }
+      output.push('<br/>');
+      continue;
+    }
+
+    // Normal text
+    if (inList) { output.push('</ul>'); inList = false; }
+    output.push(`<span>${line}</span><br/>`);
+  }
+
+  if (inList) output.push('</ul>');
+  return output.join('');
 }
 
 // Moved outside to prevent re-creation on every render
