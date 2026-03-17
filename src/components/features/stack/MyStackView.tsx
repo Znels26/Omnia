@@ -199,11 +199,13 @@ const COUNTRIES = [
   { code: 'PK', name: '🇵🇰 Pakistan',       symbol: '₨',   rate: 55,    note: '~50% regional pricing' },
 ];
 
-// Omnia plan pricing (USD)
+// Omnia plan pricing — canonical in AUD, converted to other currencies via rate
 const OMNIA = {
-  plus: { name: 'Plus', usd: 24, color: 'hsl(205,90%,60%)' },
-  pro:  { name: 'Pro',  usd: 49, color: 'hsl(262,83%,75%)' },
+  plus: { name: 'Plus', aud: 25, annualAud: 199, color: 'hsl(205,90%,60%)' },
+  pro:  { name: 'Pro',  aud: 40, annualAud: 329, color: 'hsl(262,83%,75%)' },
 };
+// AUD exchange rate against USD (1 USD = A$1.53) — used to convert AUD prices to local
+const AU_RATE = 1.53;
 
 function normalise(tool: string) {
   return tool.toLowerCase().replace(/\s+/g, '').replace(/[^a-z0-9.]/g, '');
@@ -244,9 +246,9 @@ export function MyStackView() {
   // Determine recommended Omnia plan based on features needed
   const needsPro = matched.some(r => r.match?.plan === 'pro');
   const recommendedPlan = needsPro ? OMNIA.pro : OMNIA.plus;
-  const omniaUSD = recommendedPlan.usd;
-  const omniaLocal = Math.round(omniaUSD * country.rate);
-  const savingsUSD = totalMonthlyUSD - omniaUSD;
+  // Convert AUD price → local currency (A$25 or A$40 base)
+  const omniaLocal = Math.round(recommendedPlan.aud * country.rate / AU_RATE);
+  const omniaAnnualLocal = Math.round(recommendedPlan.annualAud * country.rate / AU_RATE);
   const savingsLocal = totalMonthlyLocal - omniaLocal;
 
   const analyse = () => {
@@ -258,7 +260,7 @@ export function MyStackView() {
 
   const reset = () => { setAnalysed(false); setTools([]); setInput(''); };
 
-  const shareText = `I replaced ${matched.length} tool${matched.length !== 1 ? 's' : ''} with Omnia:\n${matched.map(r => `• ${r.original} → ${r.match!.feature}`).join('\n')}\n\nCurrently spending: $${totalMonthlyUSD}/mo → Omnia: $${omniaUSD}/mo\n\nGet Omnia: omnia.app`;
+  const shareText = `I replaced ${matched.length} tool${matched.length !== 1 ? 's' : ''} with Omnia:\n${matched.map(r => `• ${r.original} → ${r.match!.feature}`).join('\n')}\n\nCurrently spending: ${fmt(country.symbol, totalMonthlyLocal)}/mo → Omnia ${recommendedPlan.name}: ${fmt(country.symbol, omniaLocal)}/mo\n\nGet Omnia: omnia.app`;
 
   const share = async () => {
     if (navigator.share) {
@@ -379,8 +381,8 @@ export function MyStackView() {
                 <p style={{ fontSize: '28px', fontWeight: 800, color: 'hsl(142, 70%, 60%)', letterSpacing: '-0.02em' }}>
                   {fmt(country.symbol, omniaLocal)}<span style={{ fontSize: '13px', fontWeight: 500, color: 'hsl(142 70% 40%)' }}>/mo</span>
                 </p>
-                {countryCode !== 'US' && <p style={{ fontSize: '11px', color: 'hsl(240 5% 45%)', marginTop: '4px' }}>(${omniaUSD} USD)</p>}
-                <p style={{ fontSize: '11px', color: 'hsl(142 70% 40%)', marginTop: '8px' }}>All features included</p>
+                <p style={{ fontSize: '11px', color: 'hsl(240 5% 45%)', marginTop: '4px' }}>or {fmt(country.symbol, omniaAnnualLocal)}/yr</p>
+                <p style={{ fontSize: '11px', color: 'hsl(142 70% 40%)', marginTop: '4px' }}>All features included</p>
               </div>
             </div>
 
@@ -401,7 +403,7 @@ export function MyStackView() {
                 {savingsLocal >= 0 ? (
                   <>
                     <p style={{ fontSize: '15px', fontWeight: 700, color: 'hsl(142, 70%, 60%)' }}>
-                      You save {fmt(country.symbol, savingsLocal)}/mo · {fmt(country.symbol, savingsLocal * 12)}/year
+                      You save {fmt(country.symbol, savingsLocal)}/mo · {fmt(country.symbol, savingsLocal * 12)}/yr
                     </p>
                     <p style={{ fontSize: '12px', color: 'hsl(240 5% 50%)', marginTop: '3px' }}>
                       Plus you get AI Assistant, Autopilot, Reminders, Doc Builder and more — all bundled in.
@@ -425,7 +427,7 @@ export function MyStackView() {
               <div style={{ margin: '0 18px 18px', padding: '10px 14px', borderRadius: '8px', background: 'hsl(38 95% 60% / 0.08)', border: '1px solid hsl(38 95% 60% / 0.2)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontSize: '16px' }}>🎉</span>
                 <p style={{ fontSize: '13px', fontWeight: 600, color: 'hsl(38, 95%, 65%)' }}>
-                  That's {fmt(country.symbol, savingsLocal * 12)} back in your pocket every year
+                  That's {fmt(country.symbol, savingsLocal * 12)}/yr back in your pocket · or pay {fmt(country.symbol, omniaAnnualLocal)}/yr and save even more
                 </p>
               </div>
             )}

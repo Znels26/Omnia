@@ -101,7 +101,9 @@ const COUNTRIES = [
   { code: 'MX', name: '🇲🇽 MXN', symbol: 'MX$', rate: 12.0 },
 ];
 
-const OMNIA = { plus: { name: 'Plus', usd: 24 }, pro: { name: 'Pro', usd: 49 } };
+// Prices in AUD (canonical). Convert to local via: aud * country.rate / AU_RATE
+const OMNIA = { plus: { name: 'Plus', aud: 25, annualAud: 199 }, pro: { name: 'Pro', aud: 40, annualAud: 329 } };
+const AU_RATE = 1.53; // A$ per USD
 
 const EXAMPLE_STACKS = [
   ['ChatGPT', 'Notion', 'Todoist', 'FreshBooks'],
@@ -141,7 +143,8 @@ export function StackWidget() {
   const totalLocal = Math.round(totalUSD * country.rate);
   const needsPro = matched.some(r => r.data?.plan === 'pro');
   const plan = needsPro ? OMNIA.pro : OMNIA.plus;
-  const omniaLocal = Math.round(plan.usd * country.rate);
+  const omniaLocal = Math.round(plan.aud * country.rate / AU_RATE);
+  const omniaAnnualLocal = Math.round(plan.annualAud * country.rate / AU_RATE);
   const savingsLocal = totalLocal - omniaLocal;
 
   const analyse = () => {
@@ -229,6 +232,7 @@ export function StackWidget() {
             <div style={{ padding: '12px', background: 'hsl(142 70% 40% / 0.08)', border: '1px solid hsl(142 70% 40% / 0.2)', borderRadius: '10px', textAlign: 'center' }}>
               <p style={{ fontSize: '10px', color: 'hsl(142,70%,52%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>Omnia {plan.name}</p>
               <p style={{ fontSize: 'clamp(20px,5vw,26px)', fontWeight: 800, color: 'hsl(142,70%,60%)', letterSpacing: '-0.02em' }}>{fmt(country.symbol, omniaLocal)}<span style={{ fontSize: '11px', fontWeight: 400, color: 'hsl(142 70% 38%)' }}>/mo</span></p>
+              <p style={{ fontSize: '10px', color: 'hsl(142 70% 38%)', marginTop: '3px' }}>or {fmt(country.symbol, omniaAnnualLocal)}/yr</p>
             </div>
             <div className="sw-save-col" style={{ ['--save-bg' as any]: savingsLocal >= 0 ? 'hsl(38 95% 60% / 0.08)' : 'hsl(205 90% 48% / 0.08)', ['--save-bd' as any]: savingsLocal >= 0 ? 'hsl(38 95% 60% / 0.25)' : 'hsl(205 90% 48% / 0.25)' }}>
               <p style={{ fontSize: '10px', color: savingsLocal >= 0 ? 'hsl(38,95%,62%)' : 'hsl(205,90%,62%)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '5px' }}>

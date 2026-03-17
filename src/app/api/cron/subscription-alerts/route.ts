@@ -34,7 +34,7 @@ export async function GET(req: NextRequest) {
       const renewalDay = sub.current_period_end.split('T')[0];
       if (renewalDay !== in7Days && renewalDay !== tomorrow) return;
 
-      const planPrices: Record<string, string> = { plus: '$19/mo', pro: '$49/mo' };
+      const planPrices: Record<string, string> = { plus: 'A$25/mo', pro: 'A$40/mo' };
       const name = profile?.display_name || profile?.full_name || 'there';
       const renewalDate = new Date(sub.current_period_end).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 

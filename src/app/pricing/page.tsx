@@ -170,7 +170,7 @@ export default function PricingPage() {
                     <span style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.03em' }}>Free</span>
                   ) : (
                     <>
-                      <span style={{ fontSize: '22px', fontWeight: 700, alignSelf: 'flex-start', paddingTop: '8px' }}>$</span>
+                      <span style={{ fontSize: '22px', fontWeight: 700, alignSelf: 'flex-start', paddingTop: '8px' }}>A$</span>
                       <span style={{ fontSize: '40px', fontWeight: 800, letterSpacing: '-0.03em' }}>{p.price.m}</span>
                       <span style={{ fontSize: '14px', color: 'hsl(240 5% 50%)', paddingBottom: '4px', alignSelf: 'flex-end' }}>/month</span>
                     </>
@@ -178,7 +178,7 @@ export default function PricingPage() {
                 </div>
                 {p.price.y > 0 && (
                   <p style={{ fontSize: '13px', color: '#34d399', margin: '5px 0 0', fontWeight: 500 }}>
-                    or ${p.price.y}/year — save ${(p.price.m * 12) - p.price.y}
+                    or A${p.price.y}/year — save A${(p.price.m * 12) - p.price.y}
                   </p>
                 )}
               </div>

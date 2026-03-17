@@ -31,12 +31,12 @@ const PRICING_PLANS = [
     cta: 'Start Free', href: '/signup', primary: false,
   },
   {
-    name: 'Plus', price: '$24', period: '/mo', color: 'hsl(205,90%,60%)', highlight: true,
+    name: 'Plus', price: 'A$25', period: '/mo', sub: 'A$199/yr — save A$101', color: 'hsl(205,90%,60%)', highlight: true,
     features: ['Autopilot Level 1 (Draft + Send)', 'Morning briefing + opportunities', '500 AI messages/month', 'Life Hub — all 22 tools', 'AI Money Tools + Invoices + Proposals'],
     cta: 'Get Plus', href: '/signup?plan=plus', primary: true,
   },
   {
-    name: 'Pro', price: '$49', period: '/mo', color: 'hsl(262,83%,75%)',
+    name: 'Pro', price: 'A$40', period: '/mo', sub: 'A$329/yr — save A$151', color: 'hsl(262,83%,75%)',
     features: ['Full Autopilot — fully autonomous', 'Code Studio (AI IDE + Vercel)', 'Unlimited AI messages', 'Unlimited Memory Import', 'Everything in Plus'],
     cta: 'Get Pro', href: '/signup?plan=pro', primary: false,
   },
@@ -135,7 +135,7 @@ export default function HomePage() {
           {[
             { value: '15', label: 'features' },
             { value: '150+', label: 'tools replaced' },
-            { value: '$24', label: 'from /mo' },
+            { value: 'A$25', label: 'from /mo' },
             { value: '24/7', label: 'Autopilot' },
           ].map(s => (
             <div key={s.label} className="stat-item">
@@ -251,7 +251,7 @@ export default function HomePage() {
               <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(205,90%,60%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>Omnia</span>
             </div>
             {[
-              ['Monthly cost',      '$50–$300+', '$24–$49'],
+              ['Monthly cost',      '$50–$300+', 'A$25–A$40'],
               ['Setup required',    'Yes, each', 'No'],
               ['Context switching', 'Constant',  'Zero'],
               ['AI across all',     'Maybe',     'Always'],
@@ -324,10 +324,13 @@ export default function HomePage() {
                 </div>
               )}
               <h3 style={{ fontSize: '15px', fontWeight: 700, color: plan.color, marginBottom: '5px' }}>{plan.name}</h3>
-              <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '4px' }}>
                 <span style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em' }}>{plan.price}</span>
                 <span style={{ fontSize: '12px', color: 'hsl(240 5% 48%)' }}>{plan.period}</span>
               </div>
+              <p style={{ fontSize: '11px', color: (plan as any).sub ? '#34d399' : 'transparent', marginBottom: '14px', fontWeight: 500, minHeight: '16px' }}>
+                {(plan as any).sub ?? ''}
+              </p>
               <ul style={{ listStyle: 'none', margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '7px', flex: 1 }}>
                 {plan.features.map(f => (
                   <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontSize: '12px' }}>
