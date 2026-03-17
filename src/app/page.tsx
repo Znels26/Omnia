@@ -85,11 +85,11 @@ export default function HomePage() {
           </div>
           <span style={{ fontWeight: 700, fontSize: '18px' }}>Omnia</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <Link href="/pricing" style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>Pricing</Link>
-          <Link href="/login" style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>Sign in</Link>
-          <Link href="/signup" style={{ padding: '8px 18px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '10px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
-            Get Started Free
+        <div className="nav-links-secondary">
+          <Link href="/pricing" className="nav-link-hide" style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>Pricing</Link>
+          <Link href="/login" className="nav-link-hide" style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>Sign in</Link>
+          <Link href="/signup" className="nav-cta" style={{ padding: '8px 18px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '10px', fontSize: '14px', fontWeight: 600, textDecoration: 'none', whiteSpace: 'nowrap' }}>
+            Get Started
           </Link>
         </div>
       </nav>
@@ -127,11 +127,34 @@ export default function HomePage() {
         </p>
       </section>
 
+      {/* ── Responsive styles ── */}
+      <style>{`
+        .feature-section-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 48px; align-items: center; }
+        .feature-section-inner { padding: 48px; }
+        .comparison-grid-header { display: grid; grid-template-columns: 1fr 120px 140px; padding: 14px 20px; }
+        .comparison-grid-row    { display: grid; grid-template-columns: 1fr 120px 140px; padding: 14px 20px; align-items: center; }
+        .nav-links-secondary { display: flex; align-items: center; gap: 16px; }
+        @media (max-width: 480px) {
+          .nav-links-secondary .nav-link-hide { display: none; }
+          .nav-cta { padding: 8px 14px !important; font-size: 13px !important; }
+        }
+        @media (max-width: 700px) {
+          .feature-section-grid { grid-template-columns: 1fr; gap: 32px; }
+          .feature-section-inner { padding: 28px 20px; }
+          .feature-section-grid-reverse { direction: ltr; }
+          .feature-section-grid-reverse > *:first-child { order: 2; }
+          .feature-section-grid-reverse > *:last-child  { order: 1; }
+          .comparison-grid-header { grid-template-columns: 1fr 80px 100px; padding: 10px 14px; }
+          .comparison-grid-row    { grid-template-columns: 1fr 80px 100px; padding: 10px 14px; }
+        }
+      `}</style>
+
       {/* ── Autopilot Feature Section ── */}
       <section id="how-it-works" style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px 64px' }}>
-        <div style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '24px', padding: '48px', position: 'relative', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+        <div className="feature-section-inner" style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '24px', position: 'relative', overflow: 'hidden' }}>
           {/* Blue glow right */}
           <div style={{ position: 'absolute', top: 0, right: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, hsl(205 90% 48% / 0.08) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div className="feature-section-grid">
 
           {/* Left */}
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -214,6 +237,7 @@ export default function HomePage() {
             </div>
           </div>
         </div>
+        </div>
       </section>
 
       {/* ── Comparison: Autopilot vs ChatGPT ── */}
@@ -224,7 +248,7 @@ export default function HomePage() {
         </div>
         <div style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '16px', overflow: 'hidden' }}>
           {/* Header row */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px 160px', background: 'hsl(240 6% 10%)', borderBottom: '1px solid hsl(240 6% 14%)', padding: '14px 20px' }}>
+          <div className="comparison-grid-header" style={{ background: 'hsl(240 6% 10%)', borderBottom: '1px solid hsl(240 6% 14%)' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</span>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>ChatGPT</span>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(205, 90%, 60%)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Omnia Autopilot</span>
@@ -236,7 +260,7 @@ export default function HomePage() {
             { feat: 'You take action yourself', chatgpt: '✓ always', omnia: '✗ Omnia prepares the actions' },
             { feat: 'No proactive help', chatgpt: '✓ waits for you', omnia: '✗ works while you sleep' },
           ].map((row, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 160px', padding: '14px 20px', borderBottom: i < 4 ? '1px solid hsl(240 6% 12%)' : 'none', alignItems: 'center' }}>
+            <div key={i} className="comparison-grid-row" style={{ borderBottom: i < 4 ? '1px solid hsl(240 6% 12%)' : 'none' }}>
               <span style={{ fontSize: '13px', color: 'hsl(0 0% 78%)' }}>{row.feat}</span>
               <span style={{ fontSize: '12px', color: 'hsl(0 60% 55%)', textAlign: 'center', fontWeight: 600 }}>{row.chatgpt}</span>
               <span style={{ fontSize: '12px', color: 'hsl(142, 70%, 55%)', textAlign: 'center', fontWeight: 600 }}>{row.omnia}</span>
@@ -247,9 +271,10 @@ export default function HomePage() {
 
       {/* ── Memory Import Feature Section ── */}
       <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 24px 64px' }}>
-        <div style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '24px', padding: '48px', position: 'relative', overflow: 'hidden', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '48px', alignItems: 'center' }}>
+        <div className="feature-section-inner" style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '24px', position: 'relative', overflow: 'hidden' }}>
           {/* Purple glow left */}
           <div style={{ position: 'absolute', top: 0, left: 0, width: '400px', height: '400px', background: 'radial-gradient(circle, hsl(262 83% 58% / 0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div className="feature-section-grid feature-section-grid-reverse">
 
           {/* Left — terminal mockup */}
           <div style={{ position: 'relative', zIndex: 1 }}>
@@ -316,6 +341,7 @@ export default function HomePage() {
             </Link>
           </div>
         </div>
+        </div>
       </section>
 
       {/* ── Comparison: Omnia vs OpenClaw ── */}
@@ -325,7 +351,7 @@ export default function HomePage() {
           <p style={{ fontSize: '15px', color: 'hsl(240 5% 55%)' }}>No technical setup. No hidden API costs. Built for everyone.</p>
         </div>
         <div style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '16px', overflow: 'hidden' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 140px 160px', background: 'hsl(240 6% 10%)', borderBottom: '1px solid hsl(240 6% 14%)', padding: '14px 20px' }}>
+          <div className="comparison-grid-header" style={{ background: 'hsl(240 6% 10%)', borderBottom: '1px solid hsl(240 6% 14%)' }}>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Feature</span>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>OpenClaw</span>
             <span style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(205, 90%, 60%)', textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'center' }}>Omnia</span>
@@ -337,7 +363,7 @@ export default function HomePage() {
             { feat: 'Built for', other: 'Developers only', omnia: 'Everyone' },
             { feat: 'Interface', other: 'No UI — just chat', omnia: 'Beautiful full app' },
           ].map((row, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 140px 160px', padding: '14px 20px', borderBottom: i < 4 ? '1px solid hsl(240 6% 12%)' : 'none', alignItems: 'center' }}>
+            <div key={i} className="comparison-grid-row" style={{ borderBottom: i < 4 ? '1px solid hsl(240 6% 12%)' : 'none' }}>
               <span style={{ fontSize: '13px', color: 'hsl(0 0% 78%)' }}>{row.feat}</span>
               <span style={{ fontSize: '12px', color: 'hsl(0 60% 55%)', textAlign: 'center', fontWeight: 600 }}>{row.other}</span>
               <span style={{ fontSize: '12px', color: 'hsl(142, 70%, 55%)', textAlign: 'center', fontWeight: 600 }}>{row.omnia}</span>
