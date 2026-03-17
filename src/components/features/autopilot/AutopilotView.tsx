@@ -38,10 +38,14 @@ export function AutopilotView({ profile, autopilotProfile, actions, opportunitie
     if (toggling) return;
     setToggling(true);
     try {
-      const res = await fetch('/api/autopilot/toggle', { method: 'POST' });
+      const newEnabled = !isEnabled;
+      const res = await fetch('/api/autopilot/toggle', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ enabled: newEnabled }),
+      });
       if (res.ok) {
         const data = await res.json().catch(() => ({}));
-        const newEnabled = !isEnabled;
         setLocalAutopilotProfile((prev: any) => ({
           ...prev,
           autopilot_enabled: newEnabled,
