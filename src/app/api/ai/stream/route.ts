@@ -76,12 +76,17 @@ export async function POST(req: NextRequest) {
 
         const reader = response.body!.getReader();
         const dec = new TextDecoder();
+        let streamBuffer = '';
 
         while (true) {
           const { done, value } = await reader.read();
           if (done) break;
 
-          for (const line of dec.decode(value).split('\n')) {
+          streamBuffer += dec.decode(value, { stream: true });
+          const lines = streamBuffer.split('\n');
+          streamBuffer = lines.pop() || '';
+
+          for (const line of lines) {
             if (!line.startsWith('data: ')) continue;
             const data = line.slice(6).trim();
             if (data === '[DONE]' || !data) continue;
@@ -123,6 +128,24 @@ export async function POST(req: NextRequest) {
             } catch {
               // Skip malformed lines
             }
+          }
+        }
+
+        if (streamBuffer.trim().startsWith('data: ')) {
+          try {
+            const data = streamBuffer.trim().slice(6).trim();
+            if (data && data !== '[DONE]') {
+              const parsed = JSON.parse(data);
+              if (parsed.type === 'content_block_delta' && parsed.delta?.type === 'text_delta') {
+                const token = parsed.delta.text || '';
+                if (token) {
+                  accumulated += token;
+                  controller.enqueue(encoder.encode(`data: ${JSON.stringify({ token })}\n\n`));
+                }
+              }
+            }
+          } catch {
+            // ignore incomplete trailing buffer
           }
         }
       } catch (err: any) {

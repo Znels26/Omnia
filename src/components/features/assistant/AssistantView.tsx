@@ -105,10 +105,14 @@ export function AssistantView({ profile, initialChats }: any) {
       const reader = res.body!.getReader();
       const decoder = new TextDecoder();
       let acc = '';
+      let streamBuffer = '';
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        for (const line of decoder.decode(value).split('\n')) {
+        streamBuffer += decoder.decode(value, { stream: true });
+        const lines = streamBuffer.split('\n');
+        streamBuffer = lines.pop() || '';
+        for (const line of lines) {
           if (line.startsWith('data: ')) {
             const d = line.slice(6);
             if (d === '[DONE]') continue;
@@ -122,6 +126,21 @@ export function AssistantView({ profile, initialChats }: any) {
               if (p.error) { toast.error(p.error); setMessages(p => p.filter(m => m.id !== aiMsg.id)); }
             } catch { }
           }
+        }
+      }
+      const trailingLine = streamBuffer.trim();
+      if (trailingLine.startsWith('data: ')) {
+        const d = trailingLine.slice(6);
+        if (d && d !== '[DONE]') {
+          try {
+            const p = JSON.parse(d);
+            if (p.token) { acc += p.token; setMessages(prev => prev.map(m => m.id === aiMsg.id ? { ...m, content: acc } : m)); }
+            if (p.finalMessage) {
+              setMessages(prev => prev.map(m => m.id === aiMsg.id ? p.finalMessage : m));
+              setChats((prev: any[]) => prev.map(c => c.id === chatId ? { ...c, message_count: (c.message_count || 0) + 2, last_message_at: new Date().toISOString() } : c));
+            }
+            if (p.error) { toast.error(p.error); setMessages(p => p.filter(m => m.id !== aiMsg.id)); }
+          } catch { }
         }
       }
     } catch (e: any) { if (e?.name !== 'AbortError') toast.error('Connection error'); }
