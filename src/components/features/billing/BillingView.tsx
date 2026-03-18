@@ -14,13 +14,13 @@ const PLANS = [
   },
   {
     tier: 'plus', name: 'Plus', icon: Zap, color: 'hsl(205,90%,60%)', highlight: true,
-    price: { monthly: 24, yearly: 192 },
+    price: { monthly: 25, yearly: 199 },
     features: ['500 AI messages/month', 'Unlimited notes & tasks', '50 uploads', '50 exports/month', 'Life Hub — all 22 tools', 'AI Money Tools — all 4 tools', '25 invoices/month', 'Proposals & Doc Builder', '100 reminders', 'All 6 AI modes', 'Autopilot Level 1 (Draft Only)', 'Morning briefing + opportunity finder', 'Memory Import (500 conversations)', 'All 7 Autopilot personas'],
     missing: [],
   },
   {
     tier: 'pro', name: 'Pro', icon: Crown, color: 'hsl(262,83%,75%)',
-    price: { monthly: 49, yearly: 390 },
+    price: { monthly: 40, yearly: 329 },
     features: ['Unlimited AI messages', 'Unlimited everything', '250 uploads', '500 exports', 'Unlimited invoices', 'Life Hub + AI Money Tools', 'Priority support', 'Advanced AI memory', 'Full Autopilot (all 3 permission levels)', 'Fully autonomous operation', 'All persona-specific daily actions', 'Unlimited Memory Import', 'Priority Autopilot processing', 'Life coach mode + mental load reducer'],
     missing: [],
   },
