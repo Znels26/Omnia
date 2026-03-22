@@ -44,13 +44,12 @@ export function DocumentBuilderView({ profile }: any) {
       const d = await res.json();
       if (!res.ok) { toast.error(d.error || 'Export failed'); return; }
       const dlRes = await fetch(`/api/exports/${d.export.id}/download`);
-      if (dlRes.ok) {
-        const blob = await dlRes.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a'); a.href = url; a.download = `${title}.${format}`; a.click();
-        URL.revokeObjectURL(url);
-        toast.success('Downloaded!');
-      }
+      if (!dlRes.ok) { toast.error('Download failed'); return; }
+      const blob = await dlRes.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `${title}.${format}`; a.click();
+      URL.revokeObjectURL(url);
+      toast.success('Downloaded!');
     } finally { setExporting(false); }
   };
 
