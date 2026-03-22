@@ -253,8 +253,13 @@ export function AssistantView({ profile, initialChats }: any) {
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
 
   const loadMessages = useCallback(async (chatId: string) => {
-    const res = await fetch(`/api/ai/chat/${chatId}/messages`);
-    if (res.ok) { const d = await res.json(); setMessages(d.messages || []); }
+    setMessages([]);
+    try {
+      const res = await fetch(`/api/ai/chat/${chatId}/messages`);
+      if (!res.ok) { toast.error('Failed to load messages'); return; }
+      const d = await res.json();
+      setMessages(d.messages || []);
+    } catch { toast.error('Failed to load messages'); }
   }, []);
 
   const selectChat = useCallback(async (chatId: string) => {
@@ -297,8 +302,15 @@ export function AssistantView({ profile, initialChats }: any) {
     try {
       const res = await fetch('/api/ai/image', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId, prompt }) });
       if (!res.ok) { const d = await res.json(); toast.error(d.error || 'Image generation failed'); setMessages(p => p.filter(m => m.id !== loadingId)); return; }
-      const { message } = await res.json();
-      setMessages(p => p.map(m => m.id === loadingId ? message : m));
+      const { message, userMessage, imageUrl } = await res.json();
+      const assistantMsg = message || (imageUrl ? { id: loadingId, role: 'assistant', content: `![Generated image](${imageUrl})\n\n*${prompt}*`, created_at: new Date().toISOString() } : null);
+      if (!assistantMsg) { toast.error('Image generation failed'); setMessages(p => p.filter(m => m.id !== loadingId)); return; }
+      setMessages(p => p.map(m => {
+        if (m.id === loadingId) return assistantMsg;
+        // Replace optimistic user message with DB version so IDs are consistent on reload
+        if (m.id === userMsg.id && userMessage) return userMessage;
+        return m;
+      }));
       setChats((p: any[]) => p.map(c => c.id === chatId ? { ...c, last_message_at: new Date().toISOString() } : c));
     } catch { toast.error('Connection error'); setMessages(p => p.filter(m => m.id !== loadingId)); }
     finally { setGeneratingImage(false); }

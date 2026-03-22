@@ -16,8 +16,6 @@ export async function POST(req: NextRequest) {
 
   const supabase = createAdminSupabaseClient();
 
-  await supabase.from('chat_messages').insert({ chat_id: chatId, user_id: user.id, role: 'user', content: prompt.trim() });
-
   try {
     const hfRes = await fetch(
       'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell',
@@ -59,12 +57,18 @@ export async function POST(req: NextRequest) {
 
     const content = `![Generated image](${imageUrl})\n\n*${prompt.trim()}*`;
 
-    const [{ data: msg }] = await Promise.all([
+    // Insert user message first to preserve chronological order, then assistant message
+    const { data: userMsg } = await supabase.from('chat_messages')
+      .insert({ chat_id: chatId, user_id: user.id, role: 'user', content: prompt.trim() })
+      .select().single();
+
+    const [{ data: assistantMsg }] = await Promise.all([
       supabase.from('chat_messages').insert({ chat_id: chatId, user_id: user.id, role: 'assistant', content }).select().single(),
       supabase.from('chats').update({ last_message_at: new Date().toISOString() }).eq('id', chatId).eq('user_id', user.id),
     ]);
 
-    return NextResponse.json({ message: msg, imageUrl });
+    // Always return imageUrl so the client can display even if DB insert fails
+    return NextResponse.json({ message: assistantMsg || null, userMessage: userMsg || null, imageUrl });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || 'Image generation failed' }, { status: 500 });
   }
