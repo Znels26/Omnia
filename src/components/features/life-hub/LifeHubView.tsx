@@ -255,8 +255,14 @@ export function LifeHubView({ profile }: { profile: any }) {
   const selectTool = (tool: Tool) => {
     setActiveTool(tool);
     setFields({});
-    setOutput('');
     setError('');
+    // Restore last saved output for this tool
+    try {
+      const saved = localStorage.getItem(`lh-${tool.id}`);
+      setOutput(saved || '');
+    } catch {
+      setOutput('');
+    }
   };
 
   const back = () => {
@@ -267,6 +273,14 @@ export function LifeHubView({ profile }: { profile: any }) {
 
   const handleGenerate = async () => {
     if (!activeTool) return;
+
+    // Validate required fields
+    const missing = activeTool.fields.filter(f => f.required && !fields[f.key]?.trim());
+    if (missing.length > 0) {
+      setError(`Please fill in: ${missing.map(f => f.label).join(', ')}`);
+      return;
+    }
+
     setOutput('');
     setError('');
     setLoading(true);
@@ -287,6 +301,7 @@ export function LifeHubView({ profile }: { profile: any }) {
       const reader = res.body!.getReader();
       const dec = new TextDecoder();
       let accumulated = '';
+      const toolId = activeTool.id;
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
@@ -303,6 +318,10 @@ export function LifeHubView({ profile }: { profile: any }) {
             }
           } catch {}
         }
+      }
+      // Persist the completed output so it survives navigation
+      if (accumulated) {
+        try { localStorage.setItem(`lh-${toolId}`, accumulated); } catch {}
       }
     } catch (e: any) {
       setError(e.message || 'Failed to generate');
