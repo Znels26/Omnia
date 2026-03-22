@@ -1,6 +1,8 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Users, DollarSign, Zap, Globe, TrendingUp, RefreshCw, Crown, Activity, MessageSquare, FileText, Eye } from 'lucide-react';
+
+const POLL_INTERVAL = 30_000; // 30 seconds
 
 function StatCard({ label, value, sub, icon: Icon, color }: any) {
   return (
@@ -49,31 +51,57 @@ const REGION_COLORS: Record<string, string> = { Americas: 'hsl(205,90%,60%)', Eu
 
 export function AdminView() {
   const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true);   // initial full-screen load only
+  const [refreshing, setRefreshing] = useState(false); // manual refresh button
   const [error, setError] = useState('');
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
+  const [countdown, setCountdown] = useState(POLL_INTERVAL / 1000);
+  const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  const resetCountdown = () => {
+    setCountdown(POLL_INTERVAL / 1000);
+    if (countdownRef.current) clearInterval(countdownRef.current);
+    countdownRef.current = setInterval(() => {
+      setCountdown(c => {
+        if (c <= 1) return POLL_INTERVAL / 1000;
+        return c - 1;
+      });
+    }, 1000);
+  };
+
+  // silent=true → background auto-refresh (no spinner), silent=false → manual (button spinner)
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setRefreshing(true);
     setError('');
     try {
       const res = await fetch('/api/admin/metrics');
       if (!res.ok) { setError('Failed to load metrics'); return; }
       setData(await res.json());
       setLastRefresh(new Date());
+      resetCountdown();
     } catch { setError('Connection error'); }
-    finally { setLoading(false); }
-  }, []);
+    finally {
+      setLoading(false);
+      if (!silent) setRefreshing(false);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    load(false);
+    const poll = setInterval(() => load(true), POLL_INTERVAL);
+    return () => {
+      clearInterval(poll);
+      if (countdownRef.current) clearInterval(countdownRef.current);
+    };
+  }, [load]);
 
-  if (loading && !data) return (
+  if (loading) return (
     <div className="page" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
       <div className="spinner" />
     </div>
   );
 
-  if (error) return (
+  if (error && !data) return (
     <div className="page"><p style={{ color: 'hsl(0,72%,65%)' }}>{error}</p></div>
   );
 
@@ -93,13 +121,16 @@ export function AdminView() {
             <Crown size={18} color="hsl(262,83%,75%)" />
             <h1 style={{ fontSize: '22px', fontWeight: 700 }}>Owner Dashboard</h1>
           </div>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 45%)' }}>
-            {lastRefresh ? `Updated ${lastRefresh.toLocaleTimeString()}` : 'Live metrics'}
-          </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ display: 'inline-block', width: '7px', height: '7px', borderRadius: '50%', background: 'hsl(142,70%,50%)', boxShadow: '0 0 0 0 hsl(142,70%,50%)', animation: 'pulse-dot 2s ease-in-out infinite' }} />
+            <p style={{ fontSize: '13px', color: 'hsl(240 5% 45%)' }}>
+              {lastRefresh ? `Live · updated ${lastRefresh.toLocaleTimeString()} · next in ${countdown}s` : 'Loading…'}
+            </p>
+          </div>
         </div>
-        <button onClick={load} disabled={loading} className="btn btn-outline" style={{ gap: '7px', height: '38px', fontSize: '13px' }}>
-          <RefreshCw size={13} style={{ animation: loading ? 'spin 0.8s linear infinite' : 'none' }} />
-          {loading ? 'Refreshing…' : 'Refresh'}
+        <button onClick={() => load(false)} disabled={refreshing} className="btn btn-outline" style={{ gap: '7px', height: '38px', fontSize: '13px' }}>
+          <RefreshCw size={13} style={{ animation: refreshing ? 'spin 0.8s linear infinite' : 'none' }} />
+          {refreshing ? 'Refreshing…' : 'Refresh Now'}
         </button>
       </div>
 
@@ -263,6 +294,10 @@ export function AdminView() {
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse-dot {
+          0%,100% { box-shadow: 0 0 0 0 hsl(142 70% 50% / 0.6); }
+          50%      { box-shadow: 0 0 0 5px hsl(142 70% 50% / 0); }
+        }
         @media (max-width: 900px) {
           .admin-4col { grid-template-columns: repeat(2, 1fr) !important; }
           .admin-3col { grid-template-columns: 1fr !important; }
