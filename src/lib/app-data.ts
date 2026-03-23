@@ -1,6 +1,4 @@
-import { redirect } from 'next/navigation';
 import { getUser, getProfile, createAdminSupabaseClient } from '@/lib/supabase/server';
-import { AppShell } from '@/components/layout/AppShell';
 
 async function ensureProfile(userId: string, email: string, metadata: any) {
   const admin = createAdminSupabaseClient();
