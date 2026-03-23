@@ -7,20 +7,20 @@ import {
 import { StackWidget } from '@/components/landing/StackWidget';
 
 const FEATURES = [
-  { icon: Zap,           label: 'Autopilot',       desc: 'AI Chief of Staff — chases invoices, finds gigs, drafts emails while you sleep', color: '#38aaf5', bg: 'rgba(56,170,245,0.1)'   },
-  { icon: Brain,         label: 'Memory Import',   desc: 'Upload ChatGPT/Claude history — Omnia instantly knows everything about you',      color: '#c084fc', bg: 'rgba(192,132,252,0.1)' },
-  { icon: MessageSquare, label: 'AI Assistant',    desc: '6 specialist modes: writing, planning, study, documents, web search',             color: '#38aaf5', bg: 'rgba(56,170,245,0.1)'   },
-  { icon: Heart,         label: 'Life Hub',        desc: '22 tools for finance & fitness — budget, invest, train, eat',                    color: '#f472b6', bg: 'rgba(244,114,182,0.1)'  },
-  { icon: DollarSign,    label: 'AI Money Tools',  desc: 'Lead magnets, SEO blogs, email sequences & passive income plans',               color: '#34d399', bg: 'rgba(52,211,153,0.1)'  },
-  { icon: CalendarDays,  label: 'Planner',         desc: 'Tasks, goals & habits with AI prioritisation',                                  color: '#fbbf24', bg: 'rgba(251,191,36,0.1)'  },
-  { icon: FileText,      label: 'Notes',           desc: 'AI-powered summaries, smart search, folder organisation',                       color: '#a78bfa', bg: 'rgba(167,139,250,0.1)' },
-  { icon: Wand2,         label: 'Content Studio',  desc: 'Social posts, captions, blogs, scripts — done in seconds',                     color: '#fb923c', bg: 'rgba(251,146,60,0.1)'  },
-  { icon: FileOutput,    label: 'Doc Builder',     desc: 'Export to PDF, Word, Excel and PowerPoint in one click',                       color: '#60a5fa', bg: 'rgba(96,165,250,0.1)'  },
-  { icon: Receipt,       label: 'Invoices',        desc: 'Professional PDF invoices — create, send and chase payment',                   color: '#10b981', bg: 'rgba(16,185,129,0.1)'  },
-  { icon: FileSignature, label: 'Proposals',       desc: 'AI-written client proposals that win more business',                           color: '#e879f9', bg: 'rgba(232,121,249,0.1)' },
-  { icon: Bell,          label: 'Reminders',       desc: 'Smart reminders with recurrence — never miss a deadline',                     color: '#f87171', bg: 'rgba(248,113,113,0.1)' },
-  { icon: Sparkles,      label: 'AI Memory',       desc: 'Omnia learns about you so every response feels personal',                     color: '#818cf8', bg: 'rgba(129,140,248,0.1)' },
-  { icon: TrendingUp,    label: 'AI Everywhere',   desc: 'Summaries, suggestions and AI inside every feature',                          color: '#34d399', bg: 'rgba(52,211,153,0.1)'  },
+  { icon: Zap,           label: 'Autopilot',       desc: 'Chases invoices, finds gigs, drafts emails. Acts without being asked.',              color: '#38aaf5', bg: 'rgba(56,170,245,0.08)'   },
+  { icon: Brain,         label: 'Memory Import',   desc: 'Upload your ChatGPT history. Omnia picks up exactly where you left off.',            color: '#c084fc', bg: 'rgba(192,132,252,0.08)' },
+  { icon: MessageSquare, label: 'AI Assistant',    desc: '6 specialist modes. Writing, research, documents — all context-aware.',              color: '#38aaf5', bg: 'rgba(56,170,245,0.08)'   },
+  { icon: Heart,         label: 'Life Hub',        desc: '22 tools for money and fitness. Budget, invest, train, eat — tracked in one place.', color: '#f472b6', bg: 'rgba(244,114,182,0.08)'  },
+  { icon: DollarSign,    label: 'AI Money Tools',  desc: 'Lead magnets, SEO content, passive income plans — generated, not just suggested.',   color: '#34d399', bg: 'rgba(52,211,153,0.08)'   },
+  { icon: CalendarDays,  label: 'Planner',         desc: 'Tasks, goals, habits. AI that prioritises based on your actual life.',               color: '#fbbf24', bg: 'rgba(251,191,36,0.08)'   },
+  { icon: FileText,      label: 'Notes',           desc: 'Write it once. AI summarises, searches and organises it forever.',                   color: '#a78bfa', bg: 'rgba(167,139,250,0.08)'  },
+  { icon: Wand2,         label: 'Content Studio',  desc: 'Social posts, blogs, scripts. Done in seconds, not hours.',                         color: '#fb923c', bg: 'rgba(251,146,60,0.08)'   },
+  { icon: FileOutput,    label: 'Doc Builder',     desc: 'PDF, Word, Excel, PowerPoint. Export anything, instantly.',                         color: '#60a5fa', bg: 'rgba(96,165,250,0.08)'   },
+  { icon: Receipt,       label: 'Invoices',        desc: 'Professional invoices that go out fast and get paid faster.',                        color: '#10b981', bg: 'rgba(16,185,129,0.08)'   },
+  { icon: FileSignature, label: 'Proposals',       desc: 'AI-written proposals that actually sound like you wrote them.',                      color: '#e879f9', bg: 'rgba(232,121,249,0.08)'  },
+  { icon: Bell,          label: 'Reminders',       desc: 'Set it and forget it. Omnia reminds you before things go wrong.',                    color: '#f87171', bg: 'rgba(248,113,113,0.08)'  },
+  { icon: Sparkles,      label: 'AI Memory',       desc: 'The more you use it, the more it knows. Every response gets more personal.',         color: '#818cf8', bg: 'rgba(129,140,248,0.08)'  },
+  { icon: TrendingUp,    label: 'AI Everywhere',   desc: 'Not bolted on — AI is built into every feature from the ground up.',                 color: '#34d399', bg: 'rgba(52,211,153,0.08)'   },
 ];
 
 const PRICING_PLANS = [
@@ -43,210 +43,220 @@ const PRICING_PLANS = [
 
 export default function HomePage() {
   return (
-    <div style={{ minHeight: '100dvh', background: 'hsl(240 10% 4%)', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', color: 'hsl(0 0% 90%)' }}>
+    <div style={{ minHeight: '100dvh', background: '#080808', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif', color: '#f0f0f0' }}>
 
-      {/* ── Global styles ── */}
       <style>{`
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        /* Nav */
         .nav-links { display: flex; align-items: center; gap: 16px; }
         @media (max-width: 480px) {
           .nav-link-hide { display: none !important; }
           .nav-cta { padding: 7px 13px !important; font-size: 13px !important; }
         }
-        /* Stats row */
-        .stats-row { display: flex; gap: 0; border: 1px solid hsl(240 6% 14%); border-radius: 14px; overflow: hidden; }
-        .stat-item { flex: 1; padding: 14px 16px; text-align: center; border-right: 1px solid hsl(240 6% 14%); }
+        .section-label {
+          font-size: 11px; font-weight: 700; text-transform: uppercase;
+          letter-spacing: 0.1em; color: hsl(240 5% 38%);
+        }
+        .stats-row { display: flex; gap: 0; border: 1px solid hsl(240 6% 13%); border-radius: 14px; overflow: hidden; }
+        .stat-item { flex: 1; padding: 16px; text-align: center; border-right: 1px solid hsl(240 6% 13%); }
         .stat-item:last-child { border-right: none; }
         @media (max-width: 500px) {
           .stats-row { display: grid; grid-template-columns: 1fr 1fr; }
           .stat-item:nth-child(2) { border-right: none; }
-          .stat-item:nth-child(3) { border-top: 1px solid hsl(240 6% 14%); border-right: 1px solid hsl(240 6% 14%); }
-          .stat-item:nth-child(4) { border-top: 1px solid hsl(240 6% 14%); }
+          .stat-item:nth-child(3) { border-top: 1px solid hsl(240 6% 13%); border-right: 1px solid hsl(240 6% 13%); }
+          .stat-item:nth-child(4) { border-top: 1px solid hsl(240 6% 13%); }
         }
-        /* Comparison */
         .compare-outer { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         @media (max-width: 640px) { .compare-outer { grid-template-columns: 1fr; } }
-        .compare-inner { background: hsl(240 8% 7%); border: 1px solid hsl(240 6% 14%); border-radius: 14px; overflow: hidden; }
-        .compare-head { display: grid; grid-template-columns: 1fr 80px 90px; padding: 11px 14px; background: hsl(240 6% 10%); border-bottom: 1px solid hsl(240 6% 14%); }
+        .compare-inner { background: hsl(240 8% 6%); border: 1px solid hsl(240 6% 13%); border-radius: 14px; overflow: hidden; }
+        .compare-head { display: grid; grid-template-columns: 1fr 80px 90px; padding: 11px 14px; background: hsl(240 6% 9%); border-bottom: 1px solid hsl(240 6% 13%); }
         .compare-row  { display: grid; grid-template-columns: 1fr 80px 90px; padding: 10px 14px; align-items: center; }
         @media (max-width: 380px) {
-          .compare-head { grid-template-columns: 1fr 60px 72px; padding: 10px 10px; }
-          .compare-row  { grid-template-columns: 1fr 60px 72px; padding: 10px 10px; }
+          .compare-head { grid-template-columns: 1fr 60px 72px; padding: 10px; }
+          .compare-row  { grid-template-columns: 1fr 60px 72px; padding: 10px; }
         }
-        /* Autopilot mockup */
-        .ap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
-        @media (max-width: 640px) { .ap-grid { grid-template-columns: 1fr; gap: 20px; } .ap-right-first { order: -1; } }
-        /* Features grid */
+        .ap-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start; }
+        @media (max-width: 660px) { .ap-grid { grid-template-columns: 1fr; gap: 24px; } .ap-mockup-first { order: -1; } }
         .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 10px; }
         @media (max-width: 480px) { .features-grid { grid-template-columns: 1fr 1fr; } }
-        /* Pricing */
         .pricing-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
         @media (max-width: 700px) { .pricing-grid { grid-template-columns: 1fr; max-width: 380px; margin: 0 auto; } }
+        @keyframes pulse { 0%,100% { opacity: 1 } 50% { opacity: 0.4 } }
       `}</style>
 
       {/* ── Nav ── */}
-      <nav style={{ borderBottom: '1px solid hsl(240 6% 14%)', padding: '0 20px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: 'hsl(240 10% 4% / 0.96)', backdropFilter: 'blur(20px)', zIndex: 50 }}>
+      <nav style={{ borderBottom: '1px solid hsl(240 6% 10%)', padding: '0 24px', height: '60px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', position: 'sticky', top: 0, background: 'rgba(8,8,8,0.97)', backdropFilter: 'blur(20px)', zIndex: 50 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '30px', height: '30px', borderRadius: '9px', background: 'hsl(205 90% 48% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={15} color="hsl(205, 90%, 48%)" />
+          <div style={{ width: '28px', height: '28px', borderRadius: '8px', background: 'hsl(205 90% 48%)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Sparkles size={13} color="white" />
           </div>
-          <span style={{ fontWeight: 700, fontSize: '17px' }}>Omnia</span>
+          <span style={{ fontWeight: 800, fontSize: '16px', letterSpacing: '-0.02em' }}>Omnia</span>
         </div>
         <div className="nav-links">
-          <Link href="/pricing" className="nav-link-hide" style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>Pricing</Link>
-          <Link href="/login" className="nav-link-hide" style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', textDecoration: 'none' }}>Sign in</Link>
-          <Link href="/signup" className="nav-cta" style={{ padding: '8px 16px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '9px', fontSize: '14px', fontWeight: 600, textDecoration: 'none' }}>
+          <Link href="/pricing" className="nav-link-hide" style={{ fontSize: '13px', color: 'hsl(240 5% 48%)', textDecoration: 'none' }}>Pricing</Link>
+          <Link href="/login" className="nav-link-hide" style={{ fontSize: '13px', color: 'hsl(240 5% 48%)', textDecoration: 'none' }}>Sign in</Link>
+          <Link href="/signup" className="nav-cta" style={{ padding: '8px 16px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '8px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
             Get Started
           </Link>
         </div>
       </nav>
 
       {/* ── Hero ── */}
-      <section style={{ maxWidth: '760px', margin: '0 auto', padding: '56px 20px 48px', textAlign: 'center' }}>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '6px 14px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.1)', border: '1px solid hsl(205 90% 48% / 0.25)', marginBottom: '20px' }}>
-          <Zap size={12} color="hsl(205, 90%, 60%)" />
-          <span style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(205, 90%, 60%)' }}>Autopilot is live — AI that acts, not just answers</span>
-        </div>
+      <section style={{ maxWidth: '960px', margin: '0 auto', padding: 'clamp(64px, 10vw, 120px) 24px 80px' }}>
+        <p className="section-label" style={{ marginBottom: '32px' }}>Productivity software, rebuilt from scratch</p>
 
-        <h1 style={{ fontSize: 'clamp(34px, 8vw, 64px)', fontWeight: 400, lineHeight: 1.08, marginBottom: '18px', letterSpacing: '-0.03em' }}>
-          Your life runs on 12 apps.<br />
-          <span style={{ fontWeight: 800, background: 'linear-gradient(135deg, hsl(205,90%,60%), hsl(262,83%,75%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            Kill 11 of them.
-          </span>
+        <h1 style={{ fontSize: 'clamp(44px, 9vw, 92px)', fontWeight: 900, lineHeight: 0.95, letterSpacing: '-0.04em', marginBottom: '36px' }}>
+          You don't need<br />
+          <span style={{ color: 'hsl(205,90%,55%)' }}>another app.</span><br />
+          You need one<br />
+          that does all of it.
         </h1>
 
-        <p style={{ fontSize: 'clamp(15px,3vw,18px)', color: 'hsl(240 5% 55%)', maxWidth: '520px', margin: '0 auto 28px', lineHeight: 1.65 }}>
-          Notes, tasks, invoices, content, AI assistant — all in one dashboard. No context switching. No monthly app stack guilt.
+        <p style={{ fontSize: 'clamp(15px, 2.2vw, 19px)', color: 'hsl(240 5% 50%)', maxWidth: '580px', marginBottom: '44px', lineHeight: 1.75 }}>
+          You're paying for Notion. And Todoist. And ChatGPT. And probably something else you forgot to cancel.
+          Four logins. Four subscriptions. Four times the friction.<br /><br />
+          Omnia is the one that replaces all of them — and then goes further, taking real action on your behalf.
         </p>
 
-        <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '36px' }}>
-          <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '13px 28px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '12px', fontSize: '15px', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 22px hsl(205 90% 48% / 0.35)' }}>
-            Start Free <ArrowRight size={16} />
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', marginBottom: '64px' }}>
+          <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 28px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '10px', fontSize: '15px', fontWeight: 700, textDecoration: 'none' }}>
+            Start for free <ArrowRight size={16} />
           </Link>
-          <Link href="#replace-stack" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '13px 22px', border: '1px solid hsl(240 6% 18%)', color: 'hsl(0 0% 85%)', borderRadius: '12px', fontSize: '15px', fontWeight: 600, textDecoration: 'none' }}>
-            <Layers size={14} /> See what you'd save
+          <Link href="#replace-stack" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '14px 22px', border: '1px solid hsl(240 6% 18%)', color: 'hsl(0 0% 72%)', borderRadius: '10px', fontSize: '15px', fontWeight: 600, textDecoration: 'none' }}>
+            <Layers size={14} /> Calculate your savings
           </Link>
         </div>
 
-        {/* Stats row */}
-        <div className="stats-row" style={{ background: 'hsl(240 8% 7%)' }}>
+        <div className="stats-row" style={{ background: 'hsl(240 8% 6%)' }}>
           {[
-            { value: '15', label: 'features' },
-            { value: '150+', label: 'tools replaced' },
-            { value: 'A$25', label: 'from /mo' },
-            { value: '24/7', label: 'Autopilot' },
+            { value: '15',    label: 'features built in' },
+            { value: '150+',  label: 'tools replaced' },
+            { value: 'A$25',  label: 'from per month' },
+            { value: '24/7',  label: 'Autopilot runtime' },
           ].map(s => (
             <div key={s.label} className="stat-item">
-              <p style={{ fontSize: 'clamp(18px,4vw,22px)', fontWeight: 800, color: 'hsl(205,90%,65%)', letterSpacing: '-0.02em' }}>{s.value}</p>
-              <p style={{ fontSize: '11px', color: 'hsl(240 5% 48%)', marginTop: '2px' }}>{s.label}</p>
+              <p style={{ fontSize: 'clamp(18px,4vw,24px)', fontWeight: 900, color: '#fff', letterSpacing: '-0.03em' }}>{s.value}</p>
+              <p style={{ fontSize: '11px', color: 'hsl(240 5% 38%)', marginTop: '3px' }}>{s.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* ── Autopilot mockup + bullets ── */}
-      <section style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px 52px' }}>
-        <div style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '20px', padding: 'clamp(20px,4vw,40px)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, right: 0, width: '300px', height: '300px', background: 'radial-gradient(circle, hsl(205 90% 48% / 0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
-          <div className="ap-grid">
-            {/* Left: bullets */}
-            <div style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 11px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.12)', border: '1px solid hsl(205 90% 48% / 0.25)', marginBottom: '14px' }}>
-                <Zap size={11} color="hsl(205, 90%, 60%)" />
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(205, 90%, 60%)' }}>Autopilot</span>
-              </div>
-              <h2 style={{ fontSize: 'clamp(20px,3vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '8px' }}>Set it once. Omnia runs the rest.</h2>
-              <p style={{ fontSize: '13px', color: 'hsl(240 5% 55%)', lineHeight: 1.6, marginBottom: '16px' }}>Real actions taken on your behalf — not just suggestions to ignore.</p>
-              <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
-                {[
-                  'Chases unpaid invoices automatically',
-                  'Finds freelance gigs matching your skills',
-                  'Drafts follow-up emails and proposals',
-                  'Generates content ideas every morning',
-                  'Monitors your goals in real time',
-                  'Briefs you at 7am every day',
-                ].map(item => (
-                  <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '13px' }}>
-                    <div style={{ width: '16px', height: '16px', borderRadius: '50%', background: 'hsl(142 70% 40% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: '1px' }}>
-                      <Check size={8} color="hsl(142, 70%, 55%)" />
-                    </div>
-                    <span style={{ color: 'hsl(0 0% 78%)', lineHeight: 1.5 }}>{item}</span>
-                  </li>
-                ))}
-              </ul>
-              <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '10px 18px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '9px', fontSize: '13px', fontWeight: 700, textDecoration: 'none' }}>
-                Enable Autopilot <ArrowRight size={13} />
-              </Link>
-            </div>
+      {/* ── Callout bar ── */}
+      <div style={{ borderTop: '1px solid hsl(240 6% 10%)', borderBottom: '1px solid hsl(240 6% 10%)', padding: 'clamp(24px,4vw,36px) 24px', background: 'hsl(240 8% 5%)' }}>
+        <p style={{ fontSize: 'clamp(15px, 2.2vw, 21px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'hsl(0 0% 58%)', textAlign: 'center', maxWidth: '700px', margin: '0 auto', lineHeight: 1.4 }}>
+          Most people pay <span style={{ color: '#fff' }}>$100–$300/month</span> for apps that don't talk to each other.{' '}
+          <span style={{ color: 'hsl(205,90%,60%)' }}>Omnia is A$25.</span>
+        </p>
+      </div>
 
-            {/* Right: mockup */}
-            <div className="ap-right-first" style={{ position: 'relative', zIndex: 1 }}>
-              <div style={{ background: 'hsl(240 10% 4%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '14px', padding: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '7px', marginBottom: '12px' }}>
-                  <Zap size={12} color="hsl(205, 90%, 60%)" />
-                  <span style={{ fontWeight: 700, fontSize: '12px' }}>Today's Actions</span>
-                  <span style={{ marginLeft: 'auto', fontSize: '10px', padding: '2px 7px', borderRadius: '999px', background: 'hsl(142 70% 40% / 0.15)', color: 'hsl(142, 70%, 55%)', fontWeight: 600 }}>3 ready</span>
+      {/* ── Autopilot ── */}
+      <section style={{ maxWidth: '960px', margin: '0 auto', padding: 'clamp(64px,8vw,96px) 24px' }}>
+        <p className="section-label" style={{ marginBottom: '20px' }}>Autopilot</p>
+        <div className="ap-grid">
+          <div>
+            <h2 style={{ fontSize: 'clamp(28px, 4.5vw, 48px)', fontWeight: 900, letterSpacing: '-0.03em', lineHeight: 1.05, marginBottom: '20px' }}>
+              The only AI that acts<br />without being asked.
+            </h2>
+            <p style={{ fontSize: '14px', color: 'hsl(240 5% 50%)', lineHeight: 1.75, marginBottom: '28px' }}>
+              Every other AI tool waits for you to type something. Autopilot runs on a schedule —
+              chasing invoices, finding opportunities, drafting content, briefing you every morning at 7am.
+              It doesn't wait for permission. It just runs.
+            </p>
+            <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '11px', marginBottom: '32px' }}>
+              {[
+                'Chases unpaid invoices automatically',
+                'Finds freelance gigs matching your skills',
+                'Drafts follow-up emails and proposals',
+                'Delivers a morning briefing every day at 7am',
+                'Monitors your goals and flags what needs attention',
+              ].map(item => (
+                <li key={item} style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', fontSize: '14px' }}>
+                  <Check size={14} color="hsl(142, 70%, 55%)" style={{ flexShrink: 0, marginTop: '2px' }} />
+                  <span style={{ color: 'hsl(0 0% 72%)', lineHeight: 1.5 }}>{item}</span>
+                </li>
+              ))}
+            </ul>
+            <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 20px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '9px', fontSize: '14px', fontWeight: 700, textDecoration: 'none' }}>
+              Enable Autopilot <ArrowRight size={14} />
+            </Link>
+          </div>
+
+          {/* Mockup */}
+          <div className="ap-mockup-first" style={{ background: 'hsl(240 8% 6%)', border: '1px solid hsl(240 6% 13%)', borderRadius: '16px', padding: '20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
+              <Zap size={13} color="hsl(205, 90%, 60%)" />
+              <span style={{ fontWeight: 700, fontSize: '13px' }}>Today's Actions</span>
+              <span style={{ marginLeft: 'auto', fontSize: '10px', padding: '2px 8px', borderRadius: '999px', background: 'hsl(142 70% 40% / 0.15)', color: 'hsl(142, 70%, 55%)', fontWeight: 700, animation: 'pulse 2s infinite' }}>3 ready</span>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {[
+                { label: 'Invoice Chase',     desc: 'Chase #INV-042 — overdue 7 days', color: 'hsl(142,70%,55%)', bg: 'hsl(142 70% 40%/0.06)', bd: 'hsl(142 70% 40%/0.18)' },
+                { label: 'Content Ideas',     desc: '3 ideas ready for your LinkedIn',  color: 'hsl(262,83%,75%)', bg: 'hsl(262 83% 58%/0.06)', bd: 'hsl(262 83% 58%/0.18)' },
+                { label: 'Opportunity Found', desc: 'React Developer gig — $85/hr',     color: 'hsl(38,95%,65%)',  bg: 'hsl(38 95% 60%/0.06)',  bd: 'hsl(38 95% 60%/0.18)'  },
+              ].map(a => (
+                <div key={a.label} style={{ padding: '12px 14px', background: a.bg, border: `1px solid ${a.bd}`, borderRadius: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '5px' }}>
+                    <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: a.color, flexShrink: 0 }} />
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: a.color }}>{a.label}</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'hsl(0 0% 65%)', marginBottom: '9px', lineHeight: 1.45 }}>{a.desc}</p>
+                  <div style={{ display: 'flex', gap: '6px' }}>
+                    <button style={{ padding: '4px 10px', borderRadius: '5px', background: `${a.color}20`, border: `1px solid ${a.color}40`, color: a.color, fontSize: '10px', fontWeight: 700, cursor: 'pointer' }}>Approve</button>
+                    <button style={{ padding: '4px 10px', borderRadius: '5px', background: 'transparent', border: '1px solid hsl(240 6% 18%)', color: 'hsl(240 5% 42%)', fontSize: '10px', cursor: 'pointer' }}>Dismiss</button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  {[
-                    { label: 'Invoice Chase',     desc: 'Chase #INV-042 — overdue 7 days', color: 'hsl(142,70%,55%)', bg: 'hsl(142 70% 40%/0.06)', bd: 'hsl(142 70% 40%/0.2)' },
-                    { label: 'Content Ideas',     desc: '3 ideas ready for your LinkedIn',  color: 'hsl(262,83%,75%)', bg: 'hsl(262 83% 58%/0.06)', bd: 'hsl(262 83% 58%/0.2)' },
-                    { label: 'Opportunity Found', desc: 'React Developer gig — $85/hr',     color: 'hsl(38,95%,65%)',  bg: 'hsl(38 95% 60%/0.06)',  bd: 'hsl(38 95% 60%/0.2)'  },
-                  ].map(a => (
-                    <div key={a.label} style={{ padding: '10px 12px', background: a.bg, border: `1px solid ${a.bd}`, borderRadius: '9px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '5px', marginBottom: '5px' }}>
-                        <div style={{ width: '5px', height: '5px', borderRadius: '50%', background: a.color, flexShrink: 0 }} />
-                        <span style={{ fontSize: '11px', fontWeight: 600, color: a.color }}>{a.label}</span>
-                      </div>
-                      <p style={{ fontSize: '11px', color: 'hsl(0 0% 72%)', marginBottom: '7px', lineHeight: 1.4 }}>{a.desc}</p>
-                      <div style={{ display: 'flex', gap: '5px' }}>
-                        <button style={{ padding: '3px 8px', borderRadius: '5px', background: `${a.color}25`, border: `1px solid ${a.color}45`, color: a.color, fontSize: '10px', fontWeight: 600, cursor: 'pointer' }}>Approve</button>
-                        <button style={{ padding: '3px 8px', borderRadius: '5px', background: 'transparent', border: '1px solid hsl(240 6% 20%)', color: 'hsl(240 5% 50%)', fontSize: '10px', cursor: 'pointer' }}>Dismiss</button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* ── Why Omnia (two comparison tables, stacking on mobile) ── */}
-      <section style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px 52px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>ChatGPT answers. Omnia acts.</h2>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>There's a difference. Here's what it looks like.</p>
-        </div>
+      {/* ── Bold statement ── */}
+      <div style={{ background: 'hsl(205 90% 48%)', padding: 'clamp(44px,7vw,80px) 24px', textAlign: 'center' }}>
+        <p style={{ fontSize: 'clamp(22px,4vw,40px)', fontWeight: 900, letterSpacing: '-0.03em', color: 'white', maxWidth: '640px', margin: '0 auto', lineHeight: 1.15 }}>
+          "ChatGPT tells you what to do.<br />Omnia just does it."
+        </p>
+      </div>
+
+      {/* ── Replace Stack ── */}
+      <section id="replace-stack" style={{ maxWidth: '960px', margin: '0 auto', padding: 'clamp(64px,8vw,96px) 24px' }}>
+        <p className="section-label" style={{ marginBottom: '20px' }}>Replace My Stack</p>
+        <h2 style={{ fontSize: 'clamp(26px,4vw,42px)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '14px' }}>See exactly how much you'd save.</h2>
+        <p style={{ fontSize: '14px', color: 'hsl(240 5% 46%)', marginBottom: '36px', maxWidth: '460px', lineHeight: 1.7 }}>
+          Type the apps you currently pay for. We'll show you which ones Omnia replaces and what you'd keep in your pocket every month.
+        </p>
+        <StackWidget />
+      </section>
+
+      {/* ── Comparison ── */}
+      <section style={{ maxWidth: '960px', margin: '0 auto', padding: '0 24px clamp(64px,8vw,96px)' }}>
+        <p className="section-label" style={{ marginBottom: '20px' }}>How it stacks up</p>
+        <h2 style={{ fontSize: 'clamp(26px,4vw,42px)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '32px' }}>ChatGPT answers. Omnia acts.</h2>
         <div className="compare-outer">
-          {/* vs ChatGPT */}
           <div className="compare-inner">
             <div className="compare-head">
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 40%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}></span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>ChatGPT</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 38%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}></span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 42%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>ChatGPT</span>
               <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(205,90%,60%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>Omnia</span>
             </div>
             {[
-              ['Works without asking', '✗', '✓'],
-              ['Remembers you',        '✗', '✓'],
-              ['Proactive actions',    '✗', '✓'],
-              ['Personalised to you',  '✗', '✓'],
-              ['Works while you sleep','✗', '✓'],
+              ['Acts without prompting', '✗', '✓'],
+              ['Remembers who you are',  '✗', '✓'],
+              ['Takes real actions',     '✗', '✓'],
+              ['Knows your context',     '✗', '✓'],
+              ['Runs while you sleep',   '✗', '✓'],
             ].map(([feat, bad, good], i) => (
-              <div key={i} className="compare-row" style={{ borderTop: '1px solid hsl(240 6% 11%)' }}>
-                <span style={{ fontSize: '12px', color: 'hsl(0 0% 74%)' }}>{feat}</span>
-                <span style={{ fontSize: '14px', color: 'hsl(0 60% 55%)', textAlign: 'center', fontWeight: 700 }}>{bad}</span>
+              <div key={i} className="compare-row" style={{ borderTop: '1px solid hsl(240 6% 10%)' }}>
+                <span style={{ fontSize: '12px', color: 'hsl(0 0% 68%)' }}>{feat}</span>
+                <span style={{ fontSize: '14px', color: 'hsl(0 60% 52%)', textAlign: 'center', fontWeight: 700 }}>{bad}</span>
                 <span style={{ fontSize: '14px', color: 'hsl(142,70%,55%)', textAlign: 'center', fontWeight: 700 }}>{good}</span>
               </div>
             ))}
           </div>
-
-          {/* vs 10 separate apps */}
           <div className="compare-inner">
             <div className="compare-head">
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 40%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}></span>
-              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 45%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>10 apps</span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 38%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}></span>
+              <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 42%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>10 apps</span>
               <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(205,90%,60%)', textTransform: 'uppercase', letterSpacing: '0.04em', textAlign: 'center' }}>Omnia</span>
             </div>
             {[
@@ -256,9 +266,9 @@ export default function HomePage() {
               ['AI across all',     'Maybe',     'Always'],
               ['Works together',    'Never',     'Always'],
             ].map(([feat, bad, good], i) => (
-              <div key={i} className="compare-row" style={{ borderTop: '1px solid hsl(240 6% 11%)' }}>
-                <span style={{ fontSize: '12px', color: 'hsl(0 0% 74%)' }}>{feat}</span>
-                <span style={{ fontSize: '11px', color: 'hsl(0 60% 60%)', textAlign: 'center', fontWeight: 600 }}>{bad}</span>
+              <div key={i} className="compare-row" style={{ borderTop: '1px solid hsl(240 6% 10%)' }}>
+                <span style={{ fontSize: '12px', color: 'hsl(0 0% 68%)' }}>{feat}</span>
+                <span style={{ fontSize: '11px', color: 'hsl(0 60% 58%)', textAlign: 'center', fontWeight: 600 }}>{bad}</span>
                 <span style={{ fontSize: '11px', color: 'hsl(142,70%,55%)', textAlign: 'center', fontWeight: 600 }}>{good}</span>
               </div>
             ))}
@@ -266,79 +276,58 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Replace My Stack ── */}
-      <section id="replace-stack" style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px 52px' }}>
-        <div style={{ background: 'hsl(240 8% 7%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '20px', padding: 'clamp(24px,4vw,40px)', position: 'relative', overflow: 'hidden' }}>
-          <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '500px', height: '250px', background: 'radial-gradient(ellipse, hsl(142 70% 40% / 0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 13px', borderRadius: '999px', background: 'hsl(142 70% 40% / 0.1)', border: '1px solid hsl(142 70% 40% / 0.25)', marginBottom: '14px' }}>
-                <Layers size={11} color="hsl(142, 70%, 55%)" />
-                <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(142, 70%, 55%)' }}>Replace My Stack</span>
-              </div>
-              <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '8px' }}>See exactly how much you'd save</h2>
-              <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)', maxWidth: '420px', margin: '0 auto' }}>
-                Type the apps you currently pay for — we'll show which ones Omnia replaces and your savings in your currency.
-              </p>
-            </div>
-            <StackWidget />
-          </div>
-        </div>
-      </section>
-
-      {/* ── Features grid ── */}
-      <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 52px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>15 tools. One tab open.</h2>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>Everything you actually use — finally in the same place.</p>
-        </div>
+      {/* ── Features ── */}
+      <section style={{ maxWidth: '1020px', margin: '0 auto', padding: '0 24px clamp(64px,8vw,96px)' }}>
+        <p className="section-label" style={{ marginBottom: '20px' }}>What's included</p>
+        <h2 style={{ fontSize: 'clamp(26px,4vw,42px)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '10px' }}>15 tools. One subscription.</h2>
+        <p style={{ fontSize: '14px', color: 'hsl(240 5% 44%)', marginBottom: '32px', lineHeight: 1.6 }}>
+          Everything you currently use separately — now in one place, all talking to each other.
+        </p>
         <div className="features-grid">
           {FEATURES.map((f: any) => (
-            <div key={f.label} style={{ padding: '16px', background: 'hsl(240 6% 7%)', border: `1px solid ${f.pro ? 'hsl(262 83% 58% / 0.2)' : 'hsl(240 6% 13%)'}`, borderRadius: '12px', position: 'relative' }}>
-              {f.pro && (
-                <span style={{ position: 'absolute', top: '9px', right: '9px', fontSize: '8px', fontWeight: 700, padding: '2px 6px', borderRadius: '999px', background: 'hsl(262 83% 58% / 0.15)', color: 'hsl(262,83%,75%)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pro</span>
-              )}
-              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '10px' }}>
+            <div key={f.label} style={{ padding: '18px', background: 'hsl(240 6% 6%)', border: '1px solid hsl(240 6% 11%)', borderRadius: '12px' }}>
+              <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: f.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '12px' }}>
                 <f.icon size={17} color={f.color} />
               </div>
-              <p style={{ fontWeight: 600, fontSize: '13px', marginBottom: '3px' }}>{f.label}</p>
-              <p style={{ fontSize: '11.5px', color: 'hsl(240 5% 48%)', lineHeight: 1.5 }}>{f.desc}</p>
+              <p style={{ fontWeight: 700, fontSize: '13px', marginBottom: '4px', color: '#e0e0e0' }}>{f.label}</p>
+              <p style={{ fontSize: '11.5px', color: 'hsl(240 5% 42%)', lineHeight: 1.55 }}>{f.desc}</p>
             </div>
           ))}
         </div>
       </section>
 
       {/* ── Pricing ── */}
-      <section style={{ maxWidth: '860px', margin: '0 auto', padding: '0 20px 64px' }}>
-        <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>Less than one app. All of them.</h2>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>Start free. From A$25/mo you get more than your entire current stack.</p>
-        </div>
+      <section style={{ maxWidth: '880px', margin: '0 auto', padding: '0 24px clamp(64px,8vw,96px)' }}>
+        <p className="section-label" style={{ marginBottom: '20px' }}>Pricing</p>
+        <h2 style={{ fontSize: 'clamp(26px,4vw,42px)', fontWeight: 900, letterSpacing: '-0.03em', marginBottom: '10px' }}>Less than one app. All of them.</h2>
+        <p style={{ fontSize: '14px', color: 'hsl(240 5% 44%)', marginBottom: '36px', lineHeight: 1.6 }}>
+          Start free. From A$25/mo you get more than your entire current stack.
+        </p>
         <div className="pricing-grid">
           {PRICING_PLANS.map(plan => (
-            <div key={plan.name} style={{ padding: '22px 18px', background: 'hsl(240 8% 7%)', border: `1px solid ${plan.highlight ? 'hsl(205 90% 48% / 0.4)' : 'hsl(240 6% 14%)'}`, borderRadius: '16px', display: 'flex', flexDirection: 'column', position: 'relative', boxShadow: plan.highlight ? '0 0 36px hsl(205 90% 48% / 0.08)' : 'none' }}>
+            <div key={plan.name} style={{ padding: '24px 20px', background: 'hsl(240 8% 6%)', border: `1px solid ${plan.highlight ? 'hsl(205 90% 48% / 0.5)' : 'hsl(240 6% 12%)'}`, borderRadius: '16px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
               {plan.highlight && (
-                <div style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', padding: '3px 11px', borderRadius: '999px', background: 'hsl(205, 90%, 48%)', color: 'white', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap', letterSpacing: '0.05em' }}>
+                <div style={{ position: 'absolute', top: '-11px', left: '50%', transform: 'translateX(-50%)', padding: '3px 12px', borderRadius: '999px', background: 'hsl(205, 90%, 48%)', color: 'white', fontSize: '10px', fontWeight: 700, whiteSpace: 'nowrap', letterSpacing: '0.08em' }}>
                   MOST POPULAR
                 </div>
               )}
-              <h3 style={{ fontSize: '15px', fontWeight: 700, color: plan.color, marginBottom: '5px' }}>{plan.name}</h3>
+              <h3 style={{ fontSize: '14px', fontWeight: 700, color: plan.color, marginBottom: '6px' }}>{plan.name}</h3>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '2px', marginBottom: '4px' }}>
-                <span style={{ fontSize: '28px', fontWeight: 800, letterSpacing: '-0.02em' }}>{plan.price}</span>
-                <span style={{ fontSize: '12px', color: 'hsl(240 5% 48%)' }}>{plan.period}</span>
+                <span style={{ fontSize: '30px', fontWeight: 900, letterSpacing: '-0.03em', color: '#fff' }}>{plan.price}</span>
+                <span style={{ fontSize: '12px', color: 'hsl(240 5% 40%)' }}>{plan.period}</span>
               </div>
-              <p style={{ fontSize: '11px', color: (plan as any).sub ? '#34d399' : 'transparent', marginBottom: '14px', fontWeight: 500, minHeight: '16px' }}>
+              <p style={{ fontSize: '11px', color: (plan as any).sub ? '#34d399' : 'transparent', marginBottom: '16px', fontWeight: 500, minHeight: '16px' }}>
                 {(plan as any).sub ?? ''}
               </p>
-              <ul style={{ listStyle: 'none', margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '7px', flex: 1 }}>
+              <ul style={{ listStyle: 'none', margin: '0 0 20px', display: 'flex', flexDirection: 'column', gap: '8px', flex: 1 }}>
                 {plan.features.map(f => (
-                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '7px', fontSize: '12px' }}>
+                  <li key={f} style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '12px' }}>
                     <Check size={10} color="hsl(142, 70%, 55%)" style={{ flexShrink: 0, marginTop: '2px' }} />
-                    <span style={{ color: 'hsl(240 5% 65%)', lineHeight: 1.5 }}>{f}</span>
+                    <span style={{ color: 'hsl(240 5% 58%)', lineHeight: 1.5 }}>{f}</span>
                   </li>
                 ))}
               </ul>
-              <Link href={plan.href} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '10px', background: plan.primary ? 'hsl(205 90% 48%)' : 'hsl(240 6% 13%)', color: plan.primary ? 'white' : 'hsl(0 0% 78%)', borderRadius: '9px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', border: plan.primary ? 'none' : '1px solid hsl(240 6% 17%)' }}>
+              <Link href={plan.href} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '11px', background: plan.primary ? 'hsl(205 90% 48%)' : 'hsl(240 6% 11%)', color: plan.primary ? 'white' : 'hsl(0 0% 70%)', borderRadius: '9px', fontSize: '13px', fontWeight: 700, textDecoration: 'none', border: plan.primary ? 'none' : '1px solid hsl(240 6% 16%)' }}>
                 {plan.cta}
               </Link>
             </div>
@@ -347,23 +336,22 @@ export default function HomePage() {
       </section>
 
       {/* ── Final CTA ── */}
-      <section style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px 72px', textAlign: 'center' }}>
-        <div style={{ background: 'hsl(205 90% 48% / 0.06)', border: '1px solid hsl(205 90% 48% / 0.18)', borderRadius: '20px', padding: '40px 28px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,4vw,30px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '10px' }}>
-            You already know<br />you need this.
-          </h2>
-          <p style={{ fontSize: '14px', color: 'hsl(240 5% 52%)', marginBottom: '24px', lineHeight: 1.65 }}>
-            Stop paying for apps that don't talk to each other. One login. Everything works together.
-          </p>
-          <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', padding: '13px 30px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '12px', fontSize: '15px', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 24px hsl(205 90% 48% / 0.35)' }}>
-            Start Free <ArrowRight size={16} />
-          </Link>
-          <p style={{ marginTop: '10px', fontSize: '12px', color: 'hsl(240 5% 34%)' }}>No card required · Cancel anytime</p>
-        </div>
+      <section style={{ maxWidth: '700px', margin: '0 auto', padding: '0 24px clamp(80px,10vw,120px)', textAlign: 'center' }}>
+        <p className="section-label" style={{ marginBottom: '24px' }}>Get started today</p>
+        <h2 style={{ fontSize: 'clamp(36px,7vw,64px)', fontWeight: 900, letterSpacing: '-0.04em', lineHeight: 1.0, marginBottom: '24px' }}>
+          You already know<br />you need this.
+        </h2>
+        <p style={{ fontSize: '16px', color: 'hsl(240 5% 46%)', marginBottom: '36px', lineHeight: 1.75, maxWidth: '400px', margin: '0 auto 36px' }}>
+          Stop paying for apps that don't talk to each other.<br />One login. Everything works together.
+        </p>
+        <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', padding: '15px 32px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '12px', fontSize: '16px', fontWeight: 800, textDecoration: 'none' }}>
+          Start for free <ArrowRight size={17} />
+        </Link>
+        <p style={{ marginTop: '14px', fontSize: '12px', color: 'hsl(240 5% 28%)' }}>No card required · Cancel anytime</p>
       </section>
 
       {/* ── Footer ── */}
-      <footer style={{ borderTop: '1px solid hsl(240 6% 11%)', padding: '20px', textAlign: 'center', fontSize: '12px', color: 'hsl(240 5% 34%)' }}>
+      <footer style={{ borderTop: '1px solid hsl(240 6% 10%)', padding: '24px', textAlign: 'center', fontSize: '12px', color: 'hsl(240 5% 28%)' }}>
         © {new Date().getFullYear()} Omnia ·{' '}
         <Link href="/pricing" style={{ color: 'inherit', textDecoration: 'none' }}>Pricing</Link> ·{' '}
         <Link href="/login" style={{ color: 'inherit', textDecoration: 'none' }}>Sign In</Link>
