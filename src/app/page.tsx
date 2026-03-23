@@ -106,18 +106,18 @@ export default function HomePage() {
       <section style={{ maxWidth: '760px', margin: '0 auto', padding: '56px 20px 48px', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '6px 14px', borderRadius: '999px', background: 'hsl(205 90% 48% / 0.1)', border: '1px solid hsl(205 90% 48% / 0.25)', marginBottom: '20px' }}>
           <Zap size={12} color="hsl(205, 90%, 60%)" />
-          <span style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(205, 90%, 60%)' }}>New: Omnia Autopilot — Your AI works while you sleep</span>
+          <span style={{ fontSize: '12px', fontWeight: 600, color: 'hsl(205, 90%, 60%)' }}>Autopilot is live — AI that acts, not just answers</span>
         </div>
 
         <h1 style={{ fontSize: 'clamp(34px, 8vw, 64px)', fontWeight: 400, lineHeight: 1.08, marginBottom: '18px', letterSpacing: '-0.03em' }}>
-          Stop juggling apps.<br />
+          Your life runs on 12 apps.<br />
           <span style={{ fontWeight: 800, background: 'linear-gradient(135deg, hsl(205,90%,60%), hsl(262,83%,75%))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-            One app does it all.
+            Kill 11 of them.
           </span>
         </h1>
 
         <p style={{ fontSize: 'clamp(15px,3vw,18px)', color: 'hsl(240 5% 55%)', maxWidth: '520px', margin: '0 auto 28px', lineHeight: 1.65 }}>
-          Omnia replaces Notion, ChatGPT, Todoist, FreshBooks and 150+ more tools — then runs on autopilot overnight.
+          Notes, tasks, invoices, content, AI assistant — all in one dashboard. No context switching. No monthly app stack guilt.
         </p>
 
         <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap', marginBottom: '36px' }}>
@@ -156,8 +156,8 @@ export default function HomePage() {
                 <Zap size={11} color="hsl(205, 90%, 60%)" />
                 <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(205, 90%, 60%)' }}>Autopilot</span>
               </div>
-              <h2 style={{ fontSize: 'clamp(20px,3vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '8px' }}>Your AI Chief of Staff</h2>
-              <p style={{ fontSize: '13px', color: 'hsl(240 5% 55%)', lineHeight: 1.6, marginBottom: '16px' }}>Works overnight — you wake up to a done list.</p>
+              <h2 style={{ fontSize: 'clamp(20px,3vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '8px' }}>Set it once. Omnia runs the rest.</h2>
+              <p style={{ fontSize: '13px', color: 'hsl(240 5% 55%)', lineHeight: 1.6, marginBottom: '16px' }}>Real actions taken on your behalf — not just suggestions to ignore.</p>
               <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px' }}>
                 {[
                   'Chases unpaid invoices automatically',
@@ -216,8 +216,8 @@ export default function HomePage() {
       {/* ── Why Omnia (two comparison tables, stacking on mobile) ── */}
       <section style={{ maxWidth: '900px', margin: '0 auto', padding: '0 20px 52px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>Why Omnia beats everything else</h2>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>ChatGPT waits for you. Omnia works for you.</p>
+          <h2 style={{ fontSize: 'clamp(20px,4vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>ChatGPT answers. Omnia acts.</h2>
+          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>There's a difference. Here's what it looks like.</p>
         </div>
         <div className="compare-outer">
           {/* vs ChatGPT */}
@@ -289,8 +289,8 @@ export default function HomePage() {
       {/* ── Features grid ── */}
       <section style={{ maxWidth: '1000px', margin: '0 auto', padding: '0 20px 52px' }}>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>Everything in one place</h2>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>15 features. One subscription. Zero juggling.</p>
+          <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>15 tools. One tab open.</h2>
+          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>Everything you actually use — finally in the same place.</p>
         </div>
         <div className="features-grid">
           {FEATURES.map((f: any) => (
@@ -311,8 +311,8 @@ export default function HomePage() {
       {/* ── Pricing ── */}
       <section style={{ maxWidth: '860px', margin: '0 auto', padding: '0 20px 64px' }}>
         <div style={{ textAlign: 'center', marginBottom: '28px' }}>
-          <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>Simple, honest pricing</h2>
-          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>Start free. Unlock Autopilot and full features from Plus.</p>
+          <h2 style={{ fontSize: 'clamp(20px,3.5vw,28px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '6px' }}>Less than one app. All of them.</h2>
+          <p style={{ fontSize: '13px', color: 'hsl(240 5% 52%)' }}>Start free. From A$25/mo you get more than your entire current stack.</p>
         </div>
         <div className="pricing-grid">
           {PRICING_PLANS.map(plan => (
@@ -350,10 +350,10 @@ export default function HomePage() {
       <section style={{ maxWidth: '560px', margin: '0 auto', padding: '0 20px 72px', textAlign: 'center' }}>
         <div style={{ background: 'hsl(205 90% 48% / 0.06)', border: '1px solid hsl(205 90% 48% / 0.18)', borderRadius: '20px', padding: '40px 28px' }}>
           <h2 style={{ fontSize: 'clamp(20px,4vw,30px)', fontWeight: 800, letterSpacing: '-0.02em', marginBottom: '10px' }}>
-            The only AI that gets smarter<br />the longer you use it
+            You already know<br />you need this.
           </h2>
           <p style={{ fontSize: '14px', color: 'hsl(240 5% 52%)', marginBottom: '24px', lineHeight: 1.65 }}>
-            Every task, chat and goal — Omnia remembers it all and works harder for you every day.
+            Stop paying for apps that don't talk to each other. One login. Everything works together.
           </p>
           <Link href="/signup" style={{ display: 'inline-flex', alignItems: 'center', gap: '9px', padding: '13px 30px', background: 'hsl(205 90% 48%)', color: 'white', borderRadius: '12px', fontSize: '15px', fontWeight: 700, textDecoration: 'none', boxShadow: '0 4px 24px hsl(205 90% 48% / 0.35)' }}>
             Start Free <ArrowRight size={16} />
