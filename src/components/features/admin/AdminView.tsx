@@ -75,7 +75,11 @@ export function AdminView() {
     setError('');
     try {
       const res = await fetch('/api/admin/metrics');
-      if (!res.ok) { setError('Failed to load metrics'); return; }
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(`HTTP ${res.status} — ${body.error || res.statusText}`);
+        return;
+      }
       setData(await res.json());
       setLastRefresh(new Date());
       resetCountdown();
@@ -101,8 +105,11 @@ export function AdminView() {
     </div>
   );
 
-  if (error && !data) return (
-    <div className="page"><p style={{ color: 'hsl(0,72%,65%)' }}>{error}</p></div>
+  if (!data && error) return (
+    <div className="page" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '40vh', gap: '12px' }}>
+      <p style={{ color: 'hsl(0,72%,65%)', fontWeight: 600 }}>{error}</p>
+      <button onClick={() => load(false)} className="btn btn-outline" style={{ fontSize: '13px' }}>Retry</button>
+    </div>
   );
 
   if (!data) return null;
@@ -133,6 +140,13 @@ export function AdminView() {
           {refreshing ? 'Refreshing…' : 'Refresh Now'}
         </button>
       </div>
+
+      {/* Inline error (failed refresh while data already loaded) */}
+      {error && (
+        <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'hsl(0 72% 50% / 0.1)', border: '1px solid hsl(0 72% 50% / 0.3)', color: 'hsl(0,72%,65%)', fontSize: '13px', marginBottom: '16px' }}>
+          {error}
+        </div>
+      )}
 
       {/* Top stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px', marginBottom: '20px' }} className="admin-4col">
