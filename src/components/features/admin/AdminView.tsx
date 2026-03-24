@@ -114,7 +114,7 @@ export function AdminView() {
 
   if (!data) return null;
 
-  const { totals, revenue, featureUsage, regions, topTimezones, recentUsers, topUsers, growth, views } = data;
+  const { totals, revenue, featureUsage, regions, topTimezones, recentUsers, topUsers, growth, views, queryErrors } = data;
   const maxFeature = featureUsage[0]?.count || 1;
   const maxRegion = regions[0]?.count || 1;
   const conversionRate = totals.users > 0 ? (((totals.plus + totals.pro) / totals.users) * 100).toFixed(1) : '0';
@@ -145,6 +145,18 @@ export function AdminView() {
       {error && (
         <div style={{ padding: '10px 14px', borderRadius: '8px', background: 'hsl(0 72% 50% / 0.1)', border: '1px solid hsl(0 72% 50% / 0.3)', color: 'hsl(0,72%,65%)', fontSize: '13px', marginBottom: '16px' }}>
           {error}
+        </div>
+      )}
+
+      {/* DB query errors — which specific queries failed */}
+      {queryErrors && Object.keys(queryErrors).length > 0 && (
+        <div style={{ padding: '12px 14px', borderRadius: '8px', background: 'hsl(38 90% 50% / 0.08)', border: '1px solid hsl(38 90% 50% / 0.3)', marginBottom: '16px' }}>
+          <p style={{ fontSize: '12px', fontWeight: 700, color: 'hsl(38,90%,65%)', marginBottom: '8px' }}>⚠ Some database queries failed (showing partial data)</p>
+          {Object.entries(queryErrors).map(([key, msg]) => (
+            <p key={key} style={{ fontSize: '11px', color: 'hsl(38,90%,55%)', fontFamily: 'monospace', marginBottom: '2px' }}>
+              <strong>{key}:</strong> {msg as string}
+            </p>
+          ))}
         </div>
       )}
 

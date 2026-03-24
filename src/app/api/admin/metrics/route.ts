@@ -86,6 +86,15 @@ export async function GET() {
     s.from('page_views').select('session_id').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
   ]);
 
+  // Collect any query errors so the client can show what's broken
+  const queryErrors: Record<string, string> = {};
+  if (profilesRes.error)    queryErrors.profiles    = profilesRes.error.message;
+  if (usageRes.error)       queryErrors.usage       = usageRes.error.message;
+  if (subsRes.error)        queryErrors.subs        = subsRes.error.message;
+  if (recentUsersRes.error) queryErrors.recentUsers = recentUsersRes.error.message;
+  if (viewsTodayRes.error)  queryErrors.viewsToday  = viewsTodayRes.error.message;
+  if (viewsRawRes.error)    queryErrors.viewsRaw    = viewsRawRes.error.message;
+
   const profiles = profilesRes.data || [];
   const usage = usageRes.data || [];
   const subs = subsRes.data || [];
@@ -217,5 +226,6 @@ export async function GET() {
       topPages,
     },
     generatedAt: new Date().toISOString(),
+    queryErrors: Object.keys(queryErrors).length ? queryErrors : undefined,
   });
 }
