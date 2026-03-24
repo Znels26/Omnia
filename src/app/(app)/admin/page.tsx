@@ -8,6 +8,6 @@ export const metadata = { title: 'Owner Dashboard — Omnia' };
 
 export default async function AdminPage() {
   const user = await getUser();
-  if (!user || user.email !== OWNER_EMAIL) redirect('/dashboard');
+  if (!user || user.email?.toLowerCase() !== OWNER_EMAIL.toLowerCase()) redirect('/dashboard');
   return <AdminView />;
 }

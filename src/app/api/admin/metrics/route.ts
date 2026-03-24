@@ -34,7 +34,7 @@ function tzToRegion(tz: string): string {
 
 export async function GET() {
   const user = await getUser();
-  if (!user || user.email !== OWNER_EMAIL) {
+  if (!user || user.email?.toLowerCase() !== OWNER_EMAIL.toLowerCase()) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
   }
 
