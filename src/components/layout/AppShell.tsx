@@ -56,7 +56,7 @@ await createClient().auth.signOut();
 router.push('/login');
 };
 
-const isOwner = profile?.email === 'zacharynelson96@gmail.com';
+const isOwner = profile?.is_owner === true;
 const initial = (profile?.display_name || profile?.email || 'U')[0].toUpperCase();
 const planColor: Record<string, string> = { free: '#888', plus: 'hsl(205,90%,60%)', pro: 'hsl(262,83%,75%)' };
 

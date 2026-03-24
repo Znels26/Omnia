@@ -31,7 +31,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     if (!profile) redirect('/login');
   }
 
-  if (profile.email === OWNER_EMAIL) profile = { ...profile, plan_tier: 'pro' };
+  // Derive owner status from the auth user email (guaranteed correct) rather than
+  // the profiles DB row, which may differ in case or be stale.
+  const isOwner = user.email?.toLowerCase() === OWNER_EMAIL.toLowerCase();
+  if (isOwner) profile = { ...profile, plan_tier: 'pro', is_owner: true };
 
   return (
     <>
