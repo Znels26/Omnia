@@ -251,6 +251,16 @@ CREATE TABLE IF NOT EXISTS feature_flags (
   is_enabled BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+ALTER TABLE feature_flags ADD COLUMN IF NOT EXISTS key TEXT;
+UPDATE feature_flags SET key = id::TEXT WHERE key IS NULL;
+ALTER TABLE feature_flags ALTER COLUMN key SET NOT NULL;
+DO $$ BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'feature_flags_key_key' AND conrelid = 'feature_flags'::regclass
+  ) THEN
+    ALTER TABLE feature_flags ADD CONSTRAINT feature_flags_key_key UNIQUE (key);
+  END IF;
+END $$;
 
 -- ============================================================
 -- INDEXES
