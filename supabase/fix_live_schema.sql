@@ -3,6 +3,12 @@
 -- Copy from GitHub Raw and paste into Supabase SQL Editor
 -- ============================================================
 
+-- STEP 0: Drop stale trigger that references non-existent token_wallets table
+-- This trigger was created directly in Supabase and fires on every profile INSERT
+DROP TRIGGER IF EXISTS on_profile_created ON profiles;
+DROP TRIGGER IF EXISTS handle_new_profile ON profiles;
+DROP FUNCTION IF EXISTS handle_new_profile() CASCADE;
+
 -- STEP 1: Add every column that may be missing from profiles
 -- (ADD COLUMN IF NOT EXISTS is safe to run multiple times)
 
