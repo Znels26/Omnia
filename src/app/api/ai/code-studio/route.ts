@@ -248,6 +248,31 @@ Then add a 1-2 sentence explanation of what you built.
 
 IMPORTANT: Always output COMPLETE file contents. If a file is long, write the whole thing. Never abbreviate.`;
 
+const GENERAL_CODING_PROMPT = `You are an elite software engineer — the kind hired by Stripe, Linear, or OpenAI. You write clean, idiomatic, production-quality code that other engineers admire.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ABSOLUTE RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Write complete, runnable code — never truncate or abbreviate
+2. Use idiomatic patterns for the language (Pythonic Python, modern JS, etc.)
+3. Add clear comments only where logic is non-obvious
+4. Handle errors and edge cases appropriately
+5. Use descriptive names — no single-letter variables except in tight loops
+6. Keep functions small and focused (single responsibility)
+7. Never use deprecated APIs
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+OUTPUT FORMAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+For each file, use this exact format:
+=== filename.ext ===
+[complete file content]
+===END===
+
+Output ALL files needed. Always complete — never use "// rest of code here".
+
+Then add a 1-2 sentence explanation of what you built and how to run it.`;
+
 export async function POST(req: NextRequest) {
   const user = await getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -258,9 +283,16 @@ export async function POST(req: NextRequest) {
   const { prompt, language, files, designStyle } = await req.json();
   if (!prompt) return NextResponse.json({ error: 'Prompt required' }, { status: 400 });
 
-  const styleKey = designStyle && STYLE_DESCRIPTIONS[designStyle] ? designStyle : 'dark-modern';
-  const styleBlock = STYLE_DESCRIPTIONS[styleKey];
-  const systemPrompt = BASE_SYSTEM_PROMPT.replace('{STYLE_BLOCK}', styleBlock);
+  // Use the general coding prompt for backend/scripting languages
+  const isGeneralCoding = language === 'python' || language === 'nodejs';
+  let systemPrompt: string;
+  if (isGeneralCoding) {
+    systemPrompt = GENERAL_CODING_PROMPT;
+  } else {
+    const styleKey = designStyle && STYLE_DESCRIPTIONS[designStyle] ? designStyle : 'dark-modern';
+    const styleBlock = STYLE_DESCRIPTIONS[styleKey];
+    systemPrompt = BASE_SYSTEM_PROMPT.replace('{STYLE_BLOCK}', styleBlock);
+  }
 
   const fileContext = (files || [])
     .map((f: { name: string; content: string }) => `=== ${f.name} ===\n${f.content}`)
@@ -268,14 +300,16 @@ export async function POST(req: NextRequest) {
 
   const langNames: Record<string, string> = {
     html: 'HTML/CSS/JavaScript',
-    react: 'React (JSX — no imports needed, React/ReactDOM are available globally)',
+    react: 'React (JSX)',
     python: 'Python',
     nodejs: 'Node.js',
   };
 
   const userMessage = files?.length
     ? `Current project files:\n\n${fileContext}\n\n---\n\nRequest: ${prompt}`
-    : `Create a complete, production-quality ${langNames[language] || 'web'} project: ${prompt}\n\nFor React: generate ALL necessary files (App.jsx, components/, CSS, etc.) as a proper multi-file project using ES module imports. Make it impressive and fully functional.`;
+    : isGeneralCoding
+      ? `Create a complete, well-structured ${langNames[language]} project: ${prompt}\n\nWrite all necessary files. Make it production-quality and fully functional.`
+      : `Create a complete, production-quality ${langNames[language] || 'web'} project: ${prompt}\n\nFor React: generate ALL necessary files (App.jsx, components/, CSS, etc.) as a proper multi-file project using ES module imports. Make it impressive and fully functional.`;
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',

@@ -7,7 +7,7 @@ import {
   Play, Sparkles, Plus, Trash2, Copy, X, Loader2,
   Globe, Terminal, FileCode, Crown, ArrowRight, Eye,
   ChevronDown, Upload, Check, Code2, RefreshCw, PanelLeft,
-  Save, LayoutTemplate,
+  Save, LayoutTemplate, Github,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -472,7 +472,7 @@ function loadSavedProjects(): Array<{ id: string; name: string; lang: Lang; file
 }
 
 export function CodeStudioView({ profile }: { profile: any }) {
-  const isPro = profile?.plan_tier === 'pro';
+  const isPro = profile?.plan_tier === 'pro' || profile?.plan_tier === 'plus';
 
   const [lang, setLang] = useState<Lang>('react');
   const [files, setFiles] = useState<ProjectFile[]>(DEFAULT_FILES.react);
@@ -498,6 +498,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [projectName, setProjectName] = useState('my-project');
   const [projectId, setProjectId] = useState(() => Date.now().toString());
   const [showTemplates, setShowTemplates] = useState(false);
+  const [githubPushing, setGithubPushing] = useState(false);
+  const [githubRepoUrl, setGithubRepoUrl] = useState('');
 
   const previewDebounce = useRef<NodeJS.Timeout>();
   const langBtnRef = useRef<HTMLDivElement>(null);
@@ -581,7 +583,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
   }
 
   async function runCode() {
-    if (!isPro) return toast.error('Code execution requires Pro plan');
+    if (!isPro) return toast.error('Code execution requires Plus or Pro plan');
     if (lang !== 'python' && lang !== 'nodejs') return;
     setRunning(true);
     setOutputTab('console');
@@ -605,7 +607,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
   }
 
   async function deployToVercel() {
-    if (!isPro) return toast.error('Deployment requires Pro plan');
+    if (!isPro) return toast.error('Deployment requires Plus or Pro plan');
     setDeploying(true);
     try {
       const res = await fetch('/api/code-studio/deploy', {
@@ -721,6 +723,26 @@ export function CodeStudioView({ profile }: { profile: any }) {
     toast.success('Project saved');
   }
 
+  async function pushToGithub() {
+    setGithubPushing(true);
+    try {
+      const res = await fetch('/api/github/push', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ files: files.map(f => ({ name: f.name, content: f.content })), repoName: projectName }),
+      });
+      const data = await res.json();
+      if (res.status === 422) { toast.error('Connect GitHub in Settings first'); return; }
+      if (!res.ok && res.status !== 207) { toast.error(data.error || 'GitHub push failed'); return; }
+      setGithubRepoUrl(data.repoUrl);
+      toast.success('Pushed to GitHub!');
+    } catch (err: any) {
+      toast.error(err.message || 'GitHub push failed');
+    } finally {
+      setGithubPushing(false);
+    }
+  }
+
   function loadTemplate(t: Template) {
     setLang(t.lang);
     setFiles(t.files);
@@ -748,14 +770,14 @@ export function CodeStudioView({ profile }: { profile: any }) {
           </div>
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '4px 12px', borderRadius: '999px', background: 'hsl(262 83% 58% / 0.1)', border: '1px solid hsl(262 83% 58% / 0.2)', marginBottom: '16px' }}>
             <Crown size={11} color="hsl(262,83%,75%)" />
-            <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(262,83%,75%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Pro Feature</span>
+            <span style={{ fontSize: '11px', fontWeight: 700, color: 'hsl(262,83%,75%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Plus &amp; Pro Feature</span>
           </div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, marginBottom: '12px', letterSpacing: '-0.02em' }}>Code Studio</h1>
           <p style={{ fontSize: '15px', color: 'hsl(240 5% 55%)', lineHeight: 1.65, marginBottom: '28px' }}>
             A full in-browser IDE with Monaco editor, live preview, AI code generation, Python &amp; Node.js execution via E2B, and one-click Vercel deployment.
           </p>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxWidth: '300px', margin: '0 auto 28px', textAlign: 'left' }}>
-            {['Monaco editor (VS Code in the browser)', 'Live HTML, CSS, JS & React preview', 'AI code generation with Claude', 'Python & Node.js execution (E2B)', 'One-click Vercel deployment', 'Multi-file project tree'].map(item => (
+            {['Monaco editor (VS Code in the browser)', 'Live HTML, CSS, JS & React preview', 'AI code generation with Claude', 'Python & Node.js execution (E2B)', 'One-click Vercel deployment', 'Push to GitHub in one click'].map(item => (
               <div key={item} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <div style={{ width: '18px', height: '18px', borderRadius: '50%', background: 'hsl(262 83% 58% / 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                   <Check size={10} color="hsl(262,83%,75%)" />
@@ -1020,6 +1042,17 @@ export function CodeStudioView({ profile }: { profile: any }) {
           {deploying ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Globe size={13} />}
           {!isMobile && <Upload size={13} />}
         </button>
+
+        {/* Push to GitHub */}
+        <button
+          onClick={pushToGithub}
+          disabled={githubPushing}
+          title="Push to GitHub"
+          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: 'hsl(240 5% 14% / 0.8)', border: '1px solid hsl(240 5% 22%)', borderRadius: '8px', color: 'hsl(240 5% 70%)', fontSize: '13px', fontWeight: 600, cursor: githubPushing ? 'not-allowed' : 'pointer', opacity: githubPushing ? 0.6 : 1, flexShrink: 0 }}
+        >
+          {githubPushing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Github size={13} />}
+          {!isMobile && <span>GitHub</span>}
+        </button>
       </div>
 
       {/* ── AI Panel ── */}
@@ -1062,6 +1095,18 @@ export function CodeStudioView({ profile }: { profile: any }) {
           <span style={{ fontSize: '13px', color: 'hsl(142,70%,60%)', fontWeight: 500 }}>Deployed!</span>
           <a href={deployUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: 'hsl(205,90%,60%)', textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployUrl}</a>
           <button onClick={() => setDeployUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', flexShrink: 0 }}>
+            <X size={14} />
+          </button>
+        </div>
+      )}
+
+      {/* GitHub repo URL banner */}
+      {githubRepoUrl && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'hsl(240 5% 10%)', borderBottom: '1px solid hsl(240 5% 18%)', flexShrink: 0 }}>
+          <Github size={13} color="hsl(240 5% 70%)" />
+          <span style={{ fontSize: '13px', color: 'hsl(240 5% 70%)', fontWeight: 500 }}>Pushed!</span>
+          <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: 'hsl(205,90%,60%)', textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{githubRepoUrl}</a>
+          <button onClick={() => setGithubRepoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', flexShrink: 0 }}>
             <X size={14} />
           </button>
         </div>

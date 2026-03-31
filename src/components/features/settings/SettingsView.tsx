@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { User, Bell, LogOut, Brain, Plus, Trash2, Zap, Upload } from 'lucide-react';
+import { User, Bell, LogOut, Brain, Plus, Trash2, Zap, Upload, Github, Eye, EyeOff, Check } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -44,6 +44,11 @@ export function SettingsView({ profile }: any) {
   const [newMemory, setNewMemory] = useState('');
   const [addingMemory, setAddingMemory] = useState(false);
   const [showImport, setShowImport] = useState(false);
+  const [githubToken, setGithubToken] = useState(profile?.github_token ? '••••••••••••••••' : '');
+  const [githubTokenEditing, setGithubTokenEditing] = useState(false);
+  const [showGithubToken, setShowGithubToken] = useState(false);
+  const [savingGithub, setSavingGithub] = useState(false);
+  const [githubSaved, setGithubSaved] = useState(!!profile?.github_token);
   const router = useRouter();
 
   useEffect(() => {
@@ -77,6 +82,31 @@ export function SettingsView({ profile }: any) {
     await fetch(`/api/memories/${id}`, { method: 'DELETE' });
     setMemories(p => p.filter(m => m.id !== id));
     toast.success('Removed');
+  };
+
+  const saveGithubToken = async () => {
+    if (!githubToken.trim() || githubToken.includes('•')) return;
+    setSavingGithub(true);
+    try {
+      const res = await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ github_token: githubToken.trim() }) });
+      if (!res.ok) { toast.error('Failed to save GitHub token'); return; }
+      toast.success('GitHub connected!');
+      setGithubSaved(true);
+      setGithubTokenEditing(false);
+      setGithubToken('••••••••••••••••');
+    } finally { setSavingGithub(false); }
+  };
+
+  const disconnectGithub = async () => {
+    setSavingGithub(true);
+    try {
+      const res = await fetch('/api/profile', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ github_token: null }) });
+      if (!res.ok) { toast.error('Failed to disconnect'); return; }
+      toast.success('GitHub disconnected');
+      setGithubSaved(false);
+      setGithubToken('');
+      setGithubTokenEditing(false);
+    } finally { setSavingGithub(false); }
   };
 
   const signOut = async () => {
@@ -223,6 +253,57 @@ export function SettingsView({ profile }: any) {
                 <button onClick={() => setShowImport(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', fontSize: '12px', padding: '2px 6px' }}>✕ Close</button>
               </div>
               <MemoryImport onComplete={() => setShowImport(false)} compact />
+            </div>
+          )}
+        </div>
+
+        {/* GitHub Integration */}
+        <div className="card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
+            <Github size={15} color="hsl(240 5% 70%)" />
+            <h2 style={{ fontWeight: 600, fontSize: '15px', margin: 0 }}>GitHub</h2>
+            {githubSaved && (
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '10px', fontWeight: 700, padding: '2px 7px', borderRadius: '999px', background: 'hsl(142 70% 40% / 0.15)', color: 'hsl(142,70%,60%)' }}>
+                <Check size={9} /> Connected
+              </span>
+            )}
+          </div>
+          <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 50%)', marginBottom: '14px', lineHeight: 1.6 }}>
+            Connect GitHub to push your Code Studio projects directly to a repo with one click.{' '}
+            <a href="https://github.com/settings/tokens/new?scopes=repo&description=Omnia+Code+Studio" target="_blank" rel="noopener noreferrer" style={{ color: 'hsl(205,90%,60%)', textDecoration: 'none' }}>
+              Generate a token →
+            </a>
+          </p>
+          {githubSaved && !githubTokenEditing ? (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={() => { setGithubToken(''); setGithubTokenEditing(true); setGithubSaved(false); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', background: 'hsl(240 6% 12%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '9px', color: 'hsl(240 5% 65%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}>
+                Update Token
+              </button>
+              <button onClick={disconnectGithub} disabled={savingGithub} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '9px 14px', background: 'transparent', border: '1px solid hsl(0 70% 50% / 0.3)', borderRadius: '9px', color: 'hsl(0,70%,65%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', opacity: savingGithub ? 0.5 : 1 }}>
+                Disconnect
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <div style={{ flex: 1, position: 'relative' }}>
+                <input
+                  type={showGithubToken ? 'text' : 'password'}
+                  value={githubToken.includes('•') ? '' : githubToken}
+                  onChange={e => setGithubToken(e.target.value)}
+                  placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
+                  style={{ width: '100%', fontSize: '13px', padding: '8px 36px 8px 12px', fontFamily: 'ui-monospace, monospace' }}
+                />
+                <button onClick={() => setShowGithubToken(v => !v)} style={{ position: 'absolute', right: '8px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '2px' }}>
+                  {showGithubToken ? <EyeOff size={14} /> : <Eye size={14} />}
+                </button>
+              </div>
+              <button
+                onClick={saveGithubToken}
+                disabled={savingGithub || !githubToken.trim() || githubToken.includes('•')}
+                style={{ padding: '8px 16px', background: 'hsl(142 70% 40% / 0.15)', border: '1px solid hsl(142 70% 40% / 0.3)', borderRadius: '9px', color: 'hsl(142,70%,60%)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', flexShrink: 0, opacity: savingGithub || !githubToken.trim() ? 0.5 : 1 }}
+              >
+                {savingGithub ? 'Saving…' : 'Save'}
+              </button>
             </div>
           )}
         </div>

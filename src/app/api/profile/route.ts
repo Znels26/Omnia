@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUser, createAdminSupabaseClient } from '@/lib/supabase/server';
 
-const CORE_FIELDS  = ['display_name', 'full_name', 'assistant_mode', 'email_notifications', 'timezone'];
-const PUSH_FIELDS  = ['push_notifications', 'push_reminders', 'push_morning_briefing', 'push_streak_alerts', 'push_goal_reminders', 'push_invoice_alerts'];
+const CORE_FIELDS    = ['display_name', 'full_name', 'assistant_mode', 'email_notifications', 'timezone'];
+const PUSH_FIELDS    = ['push_notifications', 'push_reminders', 'push_morning_briefing', 'push_streak_alerts', 'push_goal_reminders', 'push_invoice_alerts'];
+const GITHUB_FIELDS  = ['github_token'];
 
 export async function PATCH(req: NextRequest) {
   const user = await getUser();
@@ -34,6 +35,17 @@ export async function PATCH(req: NextRequest) {
     if (error) {
       // Migration likely not applied yet — log but don't fail the whole request.
       console.error('[profile PATCH] push prefs error (run migration 004):', error.message);
+    }
+  }
+
+  // ── GitHub token (added in migration 008) ────────────────────────────────
+  const githubUpdates: any = {};
+  for (const k of GITHUB_FIELDS) if (k in body) githubUpdates[k] = body[k];
+
+  if (Object.keys(githubUpdates).length > 0) {
+    const { error } = await s.from('profiles').update(githubUpdates).eq('id', user.id);
+    if (error) {
+      console.error('[profile PATCH] github token error (run migration 008):', error.message);
     }
   }
 
