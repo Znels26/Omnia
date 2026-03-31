@@ -460,7 +460,9 @@ const LANG_OPTIONS: { id: Lang; label: string; emoji: string; desc: string }[] =
 ];
 
 interface Template { label: string; emoji: string; desc: string; lang: Lang; files: ProjectFile[]; }
+const BLANK_FILE: ProjectFile = { id: 'blank-1', name: 'index.html', content: '' };
 const TEMPLATES: Template[] = [
+  { label: 'Blank',          emoji: '📄', desc: 'Empty file — complete clean slate',          lang: 'html',   files: [BLANK_FILE] },
   { label: 'React App',      emoji: '⚛️', desc: 'Multi-file React with components',          lang: 'react',  files: DEFAULT_FILES.react },
   { label: 'Landing Page',   emoji: '🚀', desc: 'Animated marketing page',                   lang: 'html',   files: DEFAULT_FILES.html  },
   { label: 'Python Script',  emoji: '🐍', desc: 'Python 3 executed in a secure sandbox',     lang: 'python', files: DEFAULT_FILES.python },
@@ -576,7 +578,13 @@ export function CodeStudioView({ profile }: { profile: any }) {
   }
 
   function deleteFile(id: string) {
-    if (files.length === 1) return toast.error('Cannot delete the last file');
+    if (files.length === 1) {
+      // Replace with a blank file rather than blocking deletion
+      const blank: ProjectFile = { id: `blank-${Date.now()}`, name: 'index.html', content: '' };
+      setFiles([blank]);
+      setActiveFileId(blank.id);
+      return;
+    }
     const remaining = files.filter(f => f.id !== id);
     setFiles(remaining);
     if (activeFileId === id) setActiveFileId(remaining[0].id);
