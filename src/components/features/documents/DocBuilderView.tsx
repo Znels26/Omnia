@@ -56,10 +56,20 @@ export function DocBuilderView({ profile }: any) {
   };
 
   return (
+    <>
+    <style>{`
+      .db-layout { display: grid; grid-template-columns: 1fr 260px; gap: 20px; align-items: start; }
+      .db-type-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      @media (max-width: 680px) {
+        .db-layout { grid-template-columns: 1fr; }
+        .db-sidebar { order: -1; }
+        .db-type-grid { grid-template-columns: repeat(2, 1fr); }
+      }
+    `}</style>
     <div className="page">
       <h1 style={{ fontSize: '24px', fontWeight: 700, marginBottom: '24px' }}>Document Builder</h1>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: '20px', alignItems: 'start' }}>
+      <div className="db-layout">
         <div>
           <div style={{ display: 'flex', background: 'hsl(240 6% 11%)', borderRadius: '10px', padding: '3px', marginBottom: '16px', gap: '2px' }}>
             {(['write', 'ai'] as const).map(t => (
@@ -74,7 +84,7 @@ export function DocBuilderView({ profile }: any) {
             <div className="card" style={{ padding: '20px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div>
                 <label style={{ fontSize: '11px', color: 'hsl(240 5% 50%)', display: 'block', marginBottom: '5px' }}>Document Type</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+                <div className="db-type-grid">
                   {['report', 'summary', 'outline', 'proposal', 'meeting_notes', 'action_plan'].map(t => (
                     <button key={t} onClick={() => setAiType(t)} style={{ padding: '7px', borderRadius: '8px', border: `1px solid ${aiType === t ? 'hsl(205 90% 48%)' : 'hsl(240 6% 20%)'}`, background: aiType === t ? 'hsl(205 90% 48% / 0.1)' : 'transparent', color: aiType === t ? 'hsl(205,90%,60%)' : 'hsl(240 5% 60%)', cursor: 'pointer', fontSize: '12px', textTransform: 'capitalize' }}>{t.replace('_',' ')}</button>
                   ))}
@@ -91,7 +101,7 @@ export function DocBuilderView({ profile }: any) {
           ) : (
             <div className="card" style={{ padding: '16px' }}>
               <input value={title} onChange={e => setTitle(e.target.value)} placeholder="Document title…" style={{ fontSize: '17px', fontWeight: 600, marginBottom: '12px', background: 'transparent', border: 'none', borderBottom: '1px solid hsl(240 6% 16%)', borderRadius: 0, padding: '0 0 10px' }} />
-              <textarea value={content} onChange={e => setContent(e.target.value)} rows={18} placeholder={'Start writing…
+              <textarea value={content} onChange={e => setContent(e.target.value)} rows={14} placeholder={'Start writing…
 
 # Section Heading
 ## Subsection
@@ -103,7 +113,7 @@ export function DocBuilderView({ profile }: any) {
           {content && <p style={{ marginTop: '8px', fontSize: '12px', color: 'hsl(240 5% 45%)' }}>{content.split(/\s+/).filter(Boolean).length} words · {content.length} characters</p>}
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="db-sidebar" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div className="card" style={{ padding: '16px' }}>
             <h2 style={{ fontWeight: 600, fontSize: '14px', marginBottom: '12px' }}>Export Format</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginBottom: '14px' }}>
@@ -130,5 +140,6 @@ export function DocBuilderView({ profile }: any) {
         </div>
       </div>
     </div>
+    </>
   );
 }

@@ -548,7 +548,7 @@ export function AssistantView({ profile, initialChats }: any) {
                 <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>How can I help?</h2>
                 <p style={{ fontSize: '14px', color: 'hsl(240 5% 55%)' }}>I'm in <strong style={{ color: 'hsl(205, 90%, 60%)' }}>{mode}</strong> mode</p>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', width: '100%', maxWidth: '480px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '8px', width: '100%', maxWidth: '480px' }}>
                 {(STARTERS[mode] || STARTERS.general).map((s: string) => (
                   <button key={s} onClick={() => { setInput(s); inputRef.current?.focus(); }} style={{ padding: '10px 14px', borderRadius: '10px', border: '1px solid hsl(240 6% 16%)', background: 'transparent', color: 'hsl(0 0% 75%)', fontSize: '13px', cursor: 'pointer', textAlign: 'left', touchAction: 'manipulation' }}>
                     {s}

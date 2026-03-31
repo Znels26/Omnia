@@ -107,7 +107,7 @@ export function ProposalView({ profile }: any) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <div className="card" style={{ padding: '20px' }}>
             <h2 style={{ fontWeight: 600, fontSize: '14px', marginBottom: '14px', color: 'hsl(240 5% 70%)' }}>YOUR INFO</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="prop-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>{label('Your Name')}<input value={form.yourName} onChange={e => f('yourName', e.target.value)} placeholder="Jane Smith" /></div>
               <div>{label('Your Company')}<input value={form.yourCompany} onChange={e => f('yourCompany', e.target.value)} placeholder="Smith Agency" /></div>
             </div>
@@ -115,7 +115,7 @@ export function ProposalView({ profile }: any) {
 
           <div className="card" style={{ padding: '20px' }}>
             <h2 style={{ fontWeight: 600, fontSize: '14px', marginBottom: '14px', color: 'hsl(240 5% 70%)' }}>CLIENT INFO</h2>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div className="prop-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               <div>{label('Client Name *')}<input value={form.clientName} onChange={e => f('clientName', e.target.value)} placeholder="John Doe" /></div>
               <div>{label('Client Company')}<input value={form.clientCompany} onChange={e => f('clientCompany', e.target.value)} placeholder="Acme Inc." /></div>
             </div>
@@ -145,7 +145,7 @@ export function ProposalView({ profile }: any) {
               {showAdvanced && (
                 <>
                   <div>{label('Deliverables')}<textarea value={form.deliverables} onChange={e => f('deliverables', e.target.value)} placeholder="e.g. 5-page website, mobile-responsive, CMS integration" rows={2} style={{ resize: 'none' }} /></div>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="prop-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     <div>{label('Timeline')}<input value={form.timeline} onChange={e => f('timeline', e.target.value)} placeholder="e.g. 4 weeks" /></div>
                     <div>{label('Budget')}<input value={form.budget} onChange={e => f('budget', e.target.value)} placeholder="e.g. $3,500" /></div>
                   </div>
@@ -184,6 +184,7 @@ export function ProposalView({ profile }: any) {
       <style>{`
         @media (max-width: 768px) {
           .proposal-grid { grid-template-columns: 1fr !important; }
+          .prop-2col { grid-template-columns: 1fr !important; }
         }
       `}</style>
     </div>

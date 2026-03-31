@@ -130,8 +130,8 @@ export function SettingsView({ profile }: any) {
 
         <div className="card" style={{ padding: '20px' }}>
           <h2 style={{ fontWeight: 600, fontSize: '15px', marginBottom: '12px' }}>Default AI Mode</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
-            {MODES.map(m => <button key={m.v} onClick={() => setForm(p => ({ ...p, assistant_mode: m.v }))} style={{ padding: '9px', borderRadius: '10px', border: `1px solid ${form.assistant_mode === m.v ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 16%)'}`, background: form.assistant_mode === m.v ? 'hsl(205 90% 48% / 0.1)' : 'transparent', color: form.assistant_mode === m.v ? 'hsl(205, 90%, 60%)' : 'hsl(240 5% 60%)', fontSize: '12px', cursor: 'pointer' }}>{m.l}</button>)}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: '8px' }}>
+            {MODES.map(m => <button key={m.v} onClick={() => setForm(p => ({ ...p, assistant_mode: m.v }))} style={{ padding: '9px', borderRadius: '10px', border: `1px solid ${form.assistant_mode === m.v ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 16%)'}`, background: form.assistant_mode === m.v ? 'hsl(205 90% 48% / 0.1)' : 'transparent', color: form.assistant_mode === m.v ? 'hsl(205, 90%, 60%)' : 'hsl(240 5% 60%)', fontSize: '12px', cursor: 'pointer', textAlign: 'center' }}>{m.l}</button>)}
           </div>
         </div>
 

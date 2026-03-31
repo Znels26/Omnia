@@ -142,9 +142,11 @@ export function AiToolsView({ profile }: { profile: any }) {
         @media (max-width: 700px) {
           .ait-tabs { grid-template-columns: repeat(2, 1fr); }
           .ait-layout { grid-template-columns: 1fr; }
-          .ait-output-panel { min-height: 400px; }
+          .ait-output-panel { min-height: 300px; }
           .ait-form-panel { display: block; }
           .ait-mobile-back { display: flex; }
+          .ait-tab { padding: 8px 6px; font-size: 12px; }
+          .ait-tab-emoji { font-size: 16px; }
         }
       `}</style>
       <div className="page" style={{ paddingBottom: '80px' }}>

@@ -244,7 +244,7 @@ export function PlannerView({ profile, initialTasks, initialGoals, initialHabits
 
       {/* Habits tab */}
       {tab === 'habits' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '10px' }}>
           {habits.length === 0 ? (
             <div className="empty" style={{ gridColumn: '1/-1' }}>
               <Zap size={32} color="hsl(240 5% 35%)" />

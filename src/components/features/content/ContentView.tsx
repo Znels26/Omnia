@@ -58,11 +58,18 @@ export function ContentView({ profile, initialItems }: any) {
 
   return (
     <div className="page" style={{ paddingBottom: '80px' }}>
-      <style>{`.content-studio-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}@media(max-width:768px){.content-studio-grid{grid-template-columns:1fr}}`}</style>
+      <style>{`
+        .content-studio-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px}
+        .cs-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+        @media(max-width:768px){
+          .content-studio-grid{grid-template-columns:1fr}
+          .cs-type-grid{grid-template-columns:repeat(2,1fr)}
+        }
+      `}</style>
       <div style={{ marginBottom: '24px' }}><h1 style={{ fontSize: '24px', fontWeight: 700 }}>Content Studio</h1><p style={{ fontSize: '14px', color: 'hsl(240 5% 55%)', marginTop: '2px' }}>Generate captions, posts, blogs, scripts with AI</p></div>
       <div className="content-studio-grid">
         <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px' }}>
+          <div className="cs-type-grid">
             {TYPES.map(t => (
               <button key={t.v} onClick={() => setType(t.v)} style={{ padding: '10px 8px', borderRadius: '10px', border: `1px solid ${type === t.v ? 'hsl(205, 90%, 48%)' : 'hsl(240 6% 16%)'}`, background: type === t.v ? 'hsl(205 90% 48% / 0.1)' : 'transparent', color: type === t.v ? 'hsl(205, 90%, 60%)' : 'hsl(240 5% 60%)', cursor: 'pointer', fontSize: '12px', fontWeight: 500, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '5px', transition: 'all 0.15s' }}>
                 <t.icon size={15} />{t.l}

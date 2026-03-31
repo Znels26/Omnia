@@ -51,12 +51,28 @@ export function InvoicesView({ profile, initialInvoices }: any) {
   const STATUS_COLORS: any = { draft: '#6b7280', sent: '#38aaf5', paid: '#34d399', overdue: '#ef4444' };
 
   if (view === 'create') return (
+    <>
+      <style>{`
+        .inv-parties { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+        .inv-meta { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 20px; }
+        .inv-item-row { display: grid; grid-template-columns: 1fr 70px 90px 90px 28px; gap: 6px; margin-bottom: 6px; }
+        .inv-item-header { display: grid; grid-template-columns: 1fr 70px 90px 90px 28px; gap: 6px; margin-bottom: 6px; padding: 0 4px; }
+        .inv-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+        @media (max-width: 600px) {
+          .inv-parties { grid-template-columns: 1fr; }
+          .inv-meta { grid-template-columns: 1fr 1fr; }
+          .inv-item-row { grid-template-columns: 1fr 56px 72px 28px; }
+          .inv-item-header { grid-template-columns: 1fr 56px 72px 28px; }
+          .inv-item-price { display: none; }
+          .inv-notes { grid-template-columns: 1fr; }
+        }
+      `}</style>
     <div className="page" style={{ paddingBottom: '80px', maxWidth: '800px' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
         <button onClick={() => setView('list')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 55%)', display: 'flex', padding: '6px' }}><ArrowLeft size={18} /></button>
         <h1 style={{ fontSize: '22px', fontWeight: 700 }}>New Invoice</h1>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+      <div className="inv-parties">
         {[
           { title: 'From', fields: [['sender_name','Your name *'],['sender_email','Email'],['sender_company','Company']] },
           { title: 'Bill To', fields: [['client_name','Client name *'],['client_email','Email'],['client_company','Company']] }
@@ -70,7 +86,7 @@ export function InvoicesView({ profile, initialInvoices }: any) {
         ))}
       </div>
       <div className="card" style={{ padding: '16px', marginBottom: '16px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', marginBottom: '20px' }}>
+        <div className="inv-meta">
           {[['issue_date','date','Issue Date'],['due_date','date','Due Date'],['currency','select','Currency'],['tax_rate','number','Tax %']].map(([k,t,l]) => (
             <div key={k}>
               <label style={{ display: 'block', fontSize: '11px', color: 'hsl(240 5% 55%)', marginBottom: '5px' }}>{l}</label>
@@ -78,14 +94,14 @@ export function InvoicesView({ profile, initialInvoices }: any) {
             </div>
           ))}
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 100px 30px', gap: '6px', marginBottom: '6px', padding: '0 4px' }}>
-          {['Description','Qty','Price','Total',''].map(h => <span key={h} style={{ fontSize: '11px', color: 'hsl(240 5% 50%)', fontWeight: 600 }}>{h}</span>)}
+        <div className="inv-item-header">
+          {['Description','Qty','Price','Total',''].map((h, idx) => <span key={h+idx} className={idx === 2 ? 'inv-item-price' : ''} style={{ fontSize: '11px', color: 'hsl(240 5% 50%)', fontWeight: 600 }}>{h}</span>)}
         </div>
         {items.map((item, i) => (
-          <div key={item.id} style={{ display: 'grid', gridTemplateColumns: '1fr 80px 100px 100px 30px', gap: '6px', marginBottom: '6px' }}>
+          <div key={item.id} className="inv-item-row">
             <input value={item.description} onChange={e => setItems(p => p.map((it, idx) => idx === i ? { ...it, description: e.target.value } : it))} placeholder="Item" style={{ height: '34px', fontSize: '13px' }} />
             <input type="number" min="1" value={item.quantity} onChange={e => setItems(p => p.map((it, idx) => idx === i ? { ...it, quantity: parseFloat(e.target.value)||1 } : it))} style={{ height: '34px', fontSize: '13px', textAlign: 'center' }} />
-            <input type="number" min="0" step="0.01" value={item.unit_price} onChange={e => setItems(p => p.map((it, idx) => idx === i ? { ...it, unit_price: parseFloat(e.target.value)||0 } : it))} style={{ height: '34px', fontSize: '13px' }} />
+            <input type="number" min="0" step="0.01" value={item.unit_price} onChange={e => setItems(p => p.map((it, idx) => idx === i ? { ...it, unit_price: parseFloat(e.target.value)||0 } : it))} style={{ height: '34px', fontSize: '13px' }} className="inv-item-price" />
             <span style={{ display: 'flex', alignItems: 'center', fontSize: '13px', fontWeight: 500 }}>{formatCurrency(Math.round(item.quantity*item.unit_price*100))}</span>
             {items.length > 1 && <button onClick={() => setItems(p => p.filter((_,idx) => idx !== i))} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', padding: 0 }}><X size={13} /></button>}
           </div>
@@ -99,7 +115,7 @@ export function InvoicesView({ profile, initialInvoices }: any) {
           ))}
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '16px' }}>
+      <div className="inv-notes">
         <div><label style={{ display: 'block', fontSize: '12px', color: 'hsl(240 5% 55%)', marginBottom: '5px' }}>Notes</label><textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} rows={3} placeholder="Notes for client…" style={{ resize: 'none', fontSize: '13px' }} /></div>
         <div><label style={{ display: 'block', fontSize: '12px', color: 'hsl(240 5% 55%)', marginBottom: '5px' }}>Terms</label><textarea value={form.terms} onChange={e => setForm(p => ({ ...p, terms: e.target.value }))} rows={3} style={{ resize: 'none', fontSize: '13px' }} /></div>
       </div>
@@ -108,6 +124,7 @@ export function InvoicesView({ profile, initialInvoices }: any) {
         <button onClick={create} disabled={saving} className="btn btn-primary" style={{ flex: 1 }}>{saving ? 'Creating…' : <><Receipt size={14} /> Create Invoice</>}</button>
       </div>
     </div>
+    </>
   );
 
   return (

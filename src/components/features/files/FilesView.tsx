@@ -78,7 +78,7 @@ export function FilesView({ profile, initialFiles }: any) {
           <p style={{ fontSize: '14px', color: 'hsl(240 5% 50%)' }}>{search ? 'No matching files' : 'No files uploaded yet'}</p>
         </div>
       ) : (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '12px' }}>
           {filtered.map((f: any) => (
             <div key={f.id} className="card card-hover" style={{ padding: '16px' }} onClick={() => setSelected(selected?.id === f.id ? null : f)}>
               <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '10px' }}>

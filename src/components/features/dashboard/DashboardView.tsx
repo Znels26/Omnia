@@ -43,9 +43,12 @@ export function DashboardView({ profile, tasks, reminders, notes, chats, exports
         .ai-tools-row { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
         .dash-main { display: grid; grid-template-columns: minmax(0,3fr) minmax(0,2fr); gap: 16px; }
         @media (max-width: 700px) {
-          .qa-grid { grid-template-columns: repeat(4, 1fr); }
+          .qa-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
           .ai-tools-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
           .dash-main { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 380px) {
+          .qa-grid { grid-template-columns: 1fr 1fr; font-size: 11px; }
         }
       `}</style>
 

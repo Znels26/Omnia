@@ -521,6 +521,14 @@ html {
 
 a { color: inherit; text-decoration: none; }
 
+/* Responsive visibility helpers */
+.desktop-only { display: flex; }
+.mobile-only  { display: none; }
+@media (max-width: 768px) {
+  .desktop-only { display: none !important; }
+  .mobile-only  { display: flex !important; }
+}
+
 /* Show note actions on hover (desktop), always on mobile */
 .note-item:hover .note-actions { opacity: 1 !important; }
 @media (max-width: 768px) {
