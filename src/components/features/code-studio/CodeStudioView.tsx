@@ -7,7 +7,7 @@ import {
   Play, Sparkles, Plus, Trash2, Copy, X, Loader2,
   Globe, Terminal, FileCode, Crown, ArrowRight, Eye,
   ChevronDown, Upload, Check, Code2, RefreshCw, PanelLeft,
-  Save, LayoutTemplate, Github,
+  Save, LayoutTemplate, Github, Send, MessageSquare,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -486,11 +486,10 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [running, setRunning] = useState(false);
   const [deploying, setDeploying] = useState(false);
   const [deployUrl, setDeployUrl] = useState('');
-  const [showAI, setShowAI] = useState(false);
-  const [aiPrompt, setAiPrompt] = useState('');
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiResponse, setAiResponse] = useState('');
-  const [aiApplied, setAiApplied] = useState(false);
+  const [showChat, setShowChat] = useState(false);
+  const [chatInput, setChatInput] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; appliedCode?: boolean }>>([]);
   const [previewSrc, setPreviewSrc] = useState(() => buildPreviewSrcdoc(DEFAULT_FILES.react, 'react'));
   const [iframeLogs, setIframeLogs] = useState<Array<{ level: string; text: string }>>([]);
   const [showLangPicker, setShowLangPicker] = useState(false);
@@ -505,6 +504,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
 
   const previewDebounce = useRef<NodeJS.Timeout>();
   const langBtnRef = useRef<HTMLDivElement>(null);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+  const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const [langBtnRect, setLangBtnRect] = useState<{ left: number; top: number }>({ left: 0, top: 50 });
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
 
@@ -516,13 +517,13 @@ export function CodeStudioView({ profile }: { profile: any }) {
     return () => window.removeEventListener('resize', check);
   }, []);
 
-  // Deep-link: /code-studio?prompt=... auto-opens AI panel with pre-filled prompt
+  // Deep-link: /code-studio?prompt=... auto-opens chat with pre-filled prompt
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const urlPrompt = params.get('prompt');
     if (urlPrompt) {
-      setAiPrompt(decodeURIComponent(urlPrompt));
-      setShowAI(true);
+      setChatInput(decodeURIComponent(urlPrompt));
+      setShowChat(true);
     }
   }, []);
 
@@ -633,16 +634,79 @@ export function CodeStudioView({ profile }: { profile: any }) {
     }
   }
 
-  async function generateWithAI() {
-    if (!aiPrompt.trim()) return;
-    setAiLoading(true);
-    setAiResponse('');
-    setAiApplied(false);
+  function applyCodeFromText(fullText: string, currentFiles: ProjectFile[]): { newFiles: ProjectFile[]; updated: boolean } {
+    const newFiles = [...currentFiles];
+    let updated = false;
+
+    // Strategy 1: strict format  === filename ===\ncontent\n===END===
+    const strictRegex = /===\s*([^\n=][^\n]*?)\s*===\s*\n([\s\S]*?)===\s*END\s*===/gi;
+    let match;
+    while ((match = strictRegex.exec(fullText)) !== null) {
+      const [, fname, content] = match;
+      const trimmedName = fname.trim();
+      const trimmedContent = content.trim();
+      const existing = newFiles.findIndex(f => f.name === trimmedName);
+      if (existing >= 0) newFiles[existing] = { ...newFiles[existing], content: trimmedContent };
+      else newFiles.push({ id: `ai-${Date.now()}-${trimmedName}`, name: trimmedName, content: trimmedContent });
+      updated = true;
+    }
+
+    // Strategy 2: === filename === headers without END markers
+    if (!updated) {
+      const headerRegex = /===\s*([^\n=][^\n]*?)\s*===\s*\n/gi;
+      const headers: { name: string; start: number }[] = [];
+      let h;
+      while ((h = headerRegex.exec(fullText)) !== null) {
+        headers.push({ name: h[1].trim(), start: h.index + h[0].length });
+      }
+      for (let i = 0; i < headers.length; i++) {
+        const end = i + 1 < headers.length ? headers[i + 1].start - headers[i + 1].name.length - 10 : fullText.length;
+        const content = fullText.slice(headers[i].start, end).replace(/===\s*END\s*===/gi, '').trim();
+        if (!content) continue;
+        const name = headers[i].name;
+        const existing = newFiles.findIndex(f => f.name === name);
+        if (existing >= 0) newFiles[existing] = { ...newFiles[existing], content };
+        else newFiles.push({ id: `ai-${Date.now()}-${name}`, name, content });
+        updated = true;
+      }
+    }
+
+    // Strategy 3: single code block — apply to active file
+    if (!updated) {
+      const codeBlock = fullText.match(/```(?:\w+)?\n([\s\S]+?)```/);
+      if (codeBlock) {
+        const content = codeBlock[1].trim();
+        const idx = newFiles.findIndex(f => f.id === activeFileId);
+        if (idx >= 0) { newFiles[idx] = { ...newFiles[idx], content }; updated = true; }
+      }
+    }
+
+    return { newFiles, updated };
+  }
+
+  async function sendChatMessage() {
+    const text = chatInput.trim();
+    if (!text || chatLoading) return;
+
+    const userMsg = { role: 'user' as const, content: text };
+    const updatedHistory = [...chatMessages, userMsg];
+    setChatMessages(updatedHistory);
+    setChatInput('');
+    setChatLoading(true);
+
+    // Add placeholder for streaming assistant message
+    setChatMessages(prev => [...prev, { role: 'assistant', content: '', appliedCode: false }]);
+
     try {
       const res = await fetch('/api/ai/code-studio', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: aiPrompt, language: lang, files: files.map(f => ({ name: f.name, content: f.content })) }),
+        body: JSON.stringify({
+          prompt: text,
+          language: lang,
+          files: files.map(f => ({ name: f.name, content: f.content })),
+          messages: updatedHistory.map(m => ({ role: m.role, content: m.content })),
+        }),
       });
       if (!res.ok) throw new Error('AI request failed');
 
@@ -656,63 +720,43 @@ export function CodeStudioView({ profile }: { profile: any }) {
         const chunk = decoder.decode(value, { stream: true });
         for (const line of chunk.split('\n')) {
           if (line.startsWith('data: ')) {
-            try { const { text } = JSON.parse(line.slice(6)); fullText += text; setAiResponse(fullText); } catch {}
+            try {
+              const { text: t } = JSON.parse(line.slice(6));
+              fullText += t;
+              // Update the last (assistant) message in real time
+              setChatMessages(prev => {
+                const updated = [...prev];
+                updated[updated.length - 1] = { role: 'assistant', content: fullText, appliedCode: false };
+                return updated;
+              });
+              chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+            } catch {}
           }
         }
       }
 
-      const newFiles = [...files];
-      let updated = false;
-
-      // Strategy 1: strict format  === filename ===\ncontent\n===END===
-      const strictRegex = /===\s*([^\n=][^\n]*?)\s*===\s*\n([\s\S]*?)===\s*END\s*===/gi;
-      let match;
-      while ((match = strictRegex.exec(fullText)) !== null) {
-        const [, fname, content] = match;
-        const trimmedName = fname.trim();
-        const trimmedContent = content.trim();
-        const existing = newFiles.findIndex(f => f.name === trimmedName);
-        if (existing >= 0) newFiles[existing] = { ...newFiles[existing], content: trimmedContent };
-        else newFiles.push({ id: `ai-${Date.now()}-${trimmedName}`, name: trimmedName, content: trimmedContent });
-        updated = true;
+      // Apply any code blocks found in the response
+      const { newFiles, updated } = applyCodeFromText(fullText, files);
+      if (updated) {
+        setFiles(newFiles);
+        setIframeLogs([]);
+        if (isMobile) setMobilePanel('editor');
+        setChatMessages(prev => {
+          const msgs = [...prev];
+          msgs[msgs.length - 1] = { role: 'assistant', content: fullText, appliedCode: true };
+          return msgs;
+        });
       }
-
-      // Strategy 2: === filename === headers without END markers — split on next header
-      if (!updated) {
-        const headerRegex = /===\s*([^\n=][^\n]*?)\s*===\s*\n/gi;
-        const headers: { name: string; start: number }[] = [];
-        let h;
-        while ((h = headerRegex.exec(fullText)) !== null) {
-          headers.push({ name: h[1].trim(), start: h.index + h[0].length });
-        }
-        for (let i = 0; i < headers.length; i++) {
-          const end = i + 1 < headers.length ? headers[i + 1].start - headers[i + 1].name.length - 10 : fullText.length;
-          const content = fullText.slice(headers[i].start, end).replace(/===\s*END\s*===/gi, '').trim();
-          if (!content) continue;
-          const name = headers[i].name;
-          const existing = newFiles.findIndex(f => f.name === name);
-          if (existing >= 0) newFiles[existing] = { ...newFiles[existing], content };
-          else newFiles.push({ id: `ai-${Date.now()}-${name}`, name, content });
-          updated = true;
-        }
-      }
-
-      // Strategy 3: single code block — apply to active file
-      if (!updated) {
-        const codeBlock = fullText.match(/```(?:\w+)?\n([\s\S]+?)```/);
-        if (codeBlock) {
-          const content = codeBlock[1].trim();
-          const idx = newFiles.findIndex(f => f.id === activeFileId);
-          if (idx >= 0) { newFiles[idx] = { ...newFiles[idx], content }; updated = true; }
-        }
-      }
-
-      if (updated) { setFiles(newFiles); setAiApplied(true); setIframeLogs([]); toast.success('Code applied to editor'); if (isMobile) setMobilePanel('editor'); }
-      else toast('AI responded — no code blocks found to apply', { icon: 'ℹ️' });
     } catch (err: any) {
-      toast.error(err.message || 'AI generation failed');
+      setChatMessages(prev => {
+        const msgs = [...prev];
+        msgs[msgs.length - 1] = { role: 'assistant', content: 'Sorry, something went wrong. Please try again.', appliedCode: false };
+        return msgs;
+      });
+      toast.error(err.message || 'AI request failed');
     } finally {
-      setAiLoading(false);
+      setChatLoading(false);
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }
 
@@ -1019,13 +1063,18 @@ export function CodeStudioView({ profile }: { profile: any }) {
           {copied ? <Check size={14} /> : <Copy size={14} />}
         </button>
 
-        {/* AI Generate */}
+        {/* AI Chat */}
         <button
-          onClick={() => setShowAI(v => !v)}
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: showAI ? 'hsl(262 83% 58% / 0.2)' : 'hsl(262 83% 58% / 0.1)', border: `1px solid ${showAI ? 'hsl(262 83% 58% / 0.5)' : 'hsl(262 83% 58% / 0.25)'}`, borderRadius: '8px', color: 'hsl(262,83%,75%)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
+          onClick={() => setShowChat(v => !v)}
+          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: showChat ? 'hsl(262 83% 58% / 0.2)' : 'hsl(262 83% 58% / 0.1)', border: `1px solid ${showChat ? 'hsl(262 83% 58% / 0.5)' : 'hsl(262 83% 58% / 0.25)'}`, borderRadius: '8px', color: 'hsl(262,83%,75%)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
         >
-          <Sparkles size={13} />
-          {!isMobile && <span>AI</span>}
+          <MessageSquare size={13} />
+          {!isMobile && <span>AI Chat</span>}
+          {chatMessages.length > 0 && (
+            <span style={{ background: 'hsl(262 83% 58%)', color: 'white', borderRadius: '999px', fontSize: '10px', fontWeight: 700, padding: '1px 5px', lineHeight: 1.4 }}>
+              {chatMessages.filter(m => m.role === 'user').length}
+            </span>
+          )}
         </button>
 
         {/* Run */}
@@ -1063,36 +1112,97 @@ export function CodeStudioView({ profile }: { profile: any }) {
         </button>
       </div>
 
-      {/* ── AI Panel ── */}
-      {showAI && (
-        <div style={{ borderBottom: '1px solid hsl(240 6% 14%)', padding: '10px 12px', background: 'hsl(240 6% 6%)', flexShrink: 0 }}>
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-start' }}>
-            <Sparkles size={14} color="hsl(262,83%,75%)" style={{ marginTop: '9px', flexShrink: 0 }} />
-            <textarea
-              value={aiPrompt}
-              onChange={e => setAiPrompt(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generateWithAI(); }}
-              placeholder='Describe what to build or change… e.g. "Add a dark mode toggle"'
-              rows={isMobile ? 3 : 2}
-              style={{ flex: 1, background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(0 0% 88%)', fontSize: '14px', padding: '8px 12px', resize: 'none', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5 }}
-            />
-            <button
-              onClick={generateWithAI}
-              disabled={aiLoading || !aiPrompt.trim()}
-              style={{ padding: '8px 14px', background: 'hsl(262 83% 58%)', border: 'none', borderRadius: '8px', color: 'white', fontSize: '13px', fontWeight: 600, cursor: aiLoading || !aiPrompt.trim() ? 'not-allowed' : 'pointer', opacity: !aiPrompt.trim() ? 0.5 : 1, flexShrink: 0, display: 'flex', alignItems: 'center', gap: '5px' }}
-            >
-              {aiLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Sparkles size={13} />}
-              {aiLoading ? '…' : 'Go'}
+      {/* ── AI Chat Drawer ── */}
+      {showChat && (
+        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: isMobile ? '100%' : '380px', zIndex: 9998, display: 'flex', flexDirection: 'column', background: 'hsl(240 8% 5%)', borderLeft: '1px solid hsl(240 6% 14%)', boxShadow: '-8px 0 40px rgba(0,0,0,0.5)' }}>
+
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', borderBottom: '1px solid hsl(240 6% 13%)', flexShrink: 0 }}>
+            <Sparkles size={14} color="hsl(262,83%,75%)" />
+            <span style={{ fontSize: '13px', fontWeight: 600, color: 'hsl(0 0% 88%)', flex: 1 }}>AI Assistant</span>
+            {chatMessages.length > 0 && (
+              <button onClick={() => setChatMessages([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', fontSize: '11px', padding: '3px 7px', borderRadius: '6px' }} title="Clear chat">
+                Clear
+              </button>
+            )}
+            <button onClick={() => setShowChat(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', padding: '3px' }}>
+              <X size={15} />
             </button>
           </div>
-          {aiResponse && (
-            <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 10px', background: aiApplied ? 'hsl(142 70% 40% / 0.08)' : 'hsl(240 6% 8%)', border: `1px solid ${aiApplied ? 'hsl(142 70% 40% / 0.2)' : 'hsl(240 6% 14%)'}`, borderRadius: '8px' }}>
-              {aiApplied
-                ? <><Check size={13} color="hsl(142,70%,55%)" /><span style={{ fontSize: '12px', color: 'hsl(142,70%,60%)', fontWeight: 500 }}>Applied to editor</span></>
-                : <><Loader2 size={13} color="hsl(262,83%,75%)" style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} /><span style={{ fontSize: '12px', color: 'hsl(240 5% 55%)', fontFamily: 'ui-monospace, monospace', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>{aiResponse.slice(-120)}</span></>
-              }
+
+          {/* Messages */}
+          <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {chatMessages.length === 0 && (
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 20px', gap: '12px' }}>
+                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'hsl(262 83% 58% / 0.12)', border: '1px solid hsl(262 83% 58% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Sparkles size={18} color="hsl(262,83%,75%)" />
+                </div>
+                <div>
+                  <p style={{ fontSize: '14px', fontWeight: 600, color: 'hsl(0 0% 80%)', margin: '0 0 6px' }}>Ask me anything</p>
+                  <p style={{ fontSize: '12px', color: 'hsl(240 5% 45%)', margin: 0, lineHeight: 1.6 }}>Describe what to build, what to change, or ask questions about the code. I&apos;ll apply changes directly to the editor.</p>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginTop: '8px' }}>
+                  {['Build me a login form with validation', 'Add a dark mode toggle', 'Make this responsive for mobile', 'Add smooth animations to the hero'].map(suggestion => (
+                    <button key={suggestion} onClick={() => setChatInput(suggestion)} style={{ padding: '8px 12px', background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 15%)', borderRadius: '8px', color: 'hsl(240 5% 60%)', fontSize: '12px', cursor: 'pointer', textAlign: 'left' }}>
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+            {chatMessages.map((msg, i) => (
+              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', gap: '4px' }}>
+                <div style={{
+                  maxWidth: '92%',
+                  padding: '9px 12px',
+                  borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
+                  background: msg.role === 'user' ? 'hsl(262 83% 58%)' : 'hsl(240 6% 10%)',
+                  border: msg.role === 'user' ? 'none' : '1px solid hsl(240 6% 15%)',
+                  color: msg.role === 'user' ? 'white' : 'hsl(0 0% 85%)',
+                  fontSize: '13px',
+                  lineHeight: 1.6,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                }}>
+                  {msg.content || (chatLoading && i === chatMessages.length - 1
+                    ? <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Thinking…</span>
+                    : ''
+                  )}
+                </div>
+                {msg.role === 'assistant' && msg.appliedCode && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'hsl(142,70%,55%)', paddingLeft: '4px' }}>
+                    <Check size={11} />
+                    <span>Applied to editor</span>
+                  </div>
+                )}
+              </div>
+            ))}
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Input */}
+          <div style={{ padding: '10px 12px', borderTop: '1px solid hsl(240 6% 13%)', flexShrink: 0 }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
+              <textarea
+                ref={chatInputRef}
+                value={chatInput}
+                onChange={e => setChatInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
+                placeholder="Ask me to build or change something…"
+                rows={1}
+                style={{ flex: 1, background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '10px', color: 'hsl(0 0% 88%)', fontSize: '13px', padding: '9px 12px', resize: 'none', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5, maxHeight: '120px', overflowY: 'auto' }}
+                onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }}
+              />
+              <button
+                onClick={sendChatMessage}
+                disabled={chatLoading || !chatInput.trim()}
+                style={{ width: '36px', height: '36px', borderRadius: '10px', background: chatLoading || !chatInput.trim() ? 'hsl(240 6% 14%)' : 'hsl(262 83% 58%)', border: 'none', color: 'white', cursor: chatLoading || !chatInput.trim() ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}
+              >
+                {chatLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
+              </button>
             </div>
-          )}
+            <p style={{ fontSize: '11px', color: 'hsl(240 5% 38%)', margin: '6px 0 0', textAlign: 'center' }}>Enter to send · Shift+Enter for new line</p>
+          </div>
         </div>
       )}
 

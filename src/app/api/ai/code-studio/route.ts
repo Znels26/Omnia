@@ -280,8 +280,10 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) return NextResponse.json({ error: 'AI not configured' }, { status: 503 });
 
-  const { prompt, language, files, designStyle } = await req.json();
-  if (!prompt) return NextResponse.json({ error: 'Prompt required' }, { status: 400 });
+  const { prompt, language, files, designStyle, messages } = await req.json();
+  if (!prompt && (!messages || messages.length === 0)) {
+    return NextResponse.json({ error: 'Prompt required' }, { status: 400 });
+  }
 
   // Use the general coding prompt for backend/scripting languages
   const isGeneralCoding = language === 'python' || language === 'nodejs';
@@ -294,9 +296,14 @@ export async function POST(req: NextRequest) {
     systemPrompt = BASE_SYSTEM_PROMPT.replace('{STYLE_BLOCK}', styleBlock);
   }
 
-  const fileContext = (files || [])
-    .map((f: { name: string; content: string }) => `=== ${f.name} ===\n${f.content}`)
-    .join('\n\n');
+  // Always inject current file state into system prompt so the AI has full context
+  // regardless of how many turns have occurred
+  if (files?.length) {
+    const fileContext = files
+      .map((f: { name: string; content: string }) => `=== ${f.name} ===\n${f.content}`)
+      .join('\n\n');
+    systemPrompt += `\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\nCURRENT PROJECT FILES (always up to date)\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n${fileContext}`;
+  }
 
   const langNames: Record<string, string> = {
     html: 'HTML/CSS/JavaScript',
@@ -305,11 +312,19 @@ export async function POST(req: NextRequest) {
     nodejs: 'Node.js',
   };
 
-  const userMessage = files?.length
-    ? `Current project files:\n\n${fileContext}\n\n---\n\nRequest: ${prompt}`
-    : isGeneralCoding
-      ? `Create a complete, well-structured ${langNames[language]} project: ${prompt}\n\nWrite all necessary files. Make it production-quality and fully functional.`
-      : `Create a complete, production-quality ${langNames[language] || 'web'} project: ${prompt}\n\nFor React: generate ALL necessary files (App.jsx, components/, CSS, etc.) as a proper multi-file project using ES module imports. Make it impressive and fully functional.`;
+  // Build the messages array — support multi-turn conversation history
+  let conversationMessages: Array<{ role: string; content: string }>;
+  if (messages && messages.length > 0) {
+    conversationMessages = messages;
+  } else {
+    // Fallback: single-turn from prompt
+    const singlePrompt = files?.length
+      ? prompt
+      : isGeneralCoding
+        ? `Create a complete, well-structured ${langNames[language]} project: ${prompt}\n\nWrite all necessary files. Make it production-quality and fully functional.`
+        : `Create a complete, production-quality ${langNames[language] || 'web'} project: ${prompt}\n\nFor React: generate ALL necessary files (App.jsx, components/, CSS, etc.) as a proper multi-file project using ES module imports. Make it impressive and fully functional.`;
+    conversationMessages = [{ role: 'user', content: singlePrompt }];
+  }
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -322,7 +337,7 @@ export async function POST(req: NextRequest) {
       model: 'claude-sonnet-4-6',
       max_tokens: 8192,
       system: systemPrompt,
-      messages: [{ role: 'user', content: userMessage }],
+      messages: conversationMessages,
       stream: true,
     }),
   });
