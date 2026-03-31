@@ -13,24 +13,49 @@ import { createClient } from '@/lib/supabase/client';
 import { PWAInstallBanner } from './PWAInstallBanner';
 import { NotificationPrompt } from '@/components/notifications/NotificationPrompt';
 
-const NAV = [
-{ href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-{ href: '/autopilot', label: 'Autopilot', icon: Zap },
-{ href: '/assistant', label: 'AI Assistant', icon: MessageSquare },
-{ href: '/planner', label: 'Planner', icon: CalendarDays },
-{ href: '/notes', label: 'Notes', icon: FileText },
-{ href: '/files', label: 'Files', icon: FolderOpen },
-{ href: '/content-studio', label: 'Content Studio', icon: Wand2 },
-{ href: '/ai-tools', label: 'AI Money Tools', icon: DollarSign },
-{ href: '/life-hub', label: 'Life Hub', icon: Heart },
-{ href: '/document-builder', label: 'Doc Builder', icon: FileOutput },
-{ href: '/invoices', label: 'Invoices', icon: Receipt },
-{ href: '/reminders', label: 'Reminders', icon: Bell },
-{ href: '/proposal', label: 'Proposals', icon: FileSignature },
-{ href: '/code-studio', label: 'Code Studio', icon: Code2 },
-{ href: '/my-stack', label: 'My Stack', icon: Layers },
-{ href: '/settings', label: 'Settings', icon: Settings },
-{ href: '/billing', label: 'Billing', icon: CreditCard },
+const NAV_GROUPS = [
+  {
+    label: 'Core',
+    items: [
+      { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+      { href: '/autopilot', label: 'Autopilot', icon: Zap },
+    ],
+  },
+  {
+    label: 'AI',
+    items: [
+      { href: '/assistant', label: 'AI Assistant', icon: MessageSquare },
+      { href: '/content-studio', label: 'Content Studio', icon: Wand2 },
+      { href: '/code-studio', label: 'Code Studio', icon: Code2 },
+      { href: '/ai-tools', label: 'AI Money Tools', icon: DollarSign },
+    ],
+  },
+  {
+    label: 'Workspace',
+    items: [
+      { href: '/planner', label: 'Planner', icon: CalendarDays },
+      { href: '/notes', label: 'Notes', icon: FileText },
+      { href: '/files', label: 'Files', icon: FolderOpen },
+      { href: '/document-builder', label: 'Doc Builder', icon: FileOutput },
+      { href: '/life-hub', label: 'Life Hub', icon: Heart },
+    ],
+  },
+  {
+    label: 'Business',
+    items: [
+      { href: '/invoices', label: 'Invoices', icon: Receipt },
+      { href: '/proposal', label: 'Proposals', icon: FileSignature },
+      { href: '/reminders', label: 'Reminders', icon: Bell },
+      { href: '/my-stack', label: 'My Stack', icon: Layers },
+    ],
+  },
+  {
+    label: 'Account',
+    items: [
+      { href: '/settings', label: 'Settings', icon: Settings },
+      { href: '/billing', label: 'Billing', icon: CreditCard },
+    ],
+  },
 ];
 
 const COMING_SOON = [
@@ -69,13 +94,13 @@ onClick={() => setMenuOpen(false)}
 style={{
 display: 'flex',
 alignItems: 'center',
-gap: '10px',
-padding: '9px 12px',
+gap: '9px',
+padding: '7px 12px',
 borderRadius: '8px',
 textDecoration: 'none',
-fontSize: '13.5px',
+fontSize: '13px',
 fontWeight: active ? 600 : 400,
-color: active ? 'hsl(205,90%,60%)' : 'hsl(240 5% 60%)',
+color: active ? 'hsl(205,90%,62%)' : 'hsl(240 5% 58%)',
 background: active ? 'hsl(205 90% 48% / 0.1)' : 'transparent',
 transition: 'all 0.15s',
 position: 'relative',
@@ -115,27 +140,38 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
 </div>
 
   {/* Nav links */}
-  <nav style={{ flex: 1, overflowY: 'auto', padding: '8px' }}>
-    {NAV.map(item => <NavLink key={item.href} {...item} />)}
+  <nav style={{ flex: 1, overflowY: 'auto', padding: '8px 8px 4px' }}>
+    {NAV_GROUPS.map((group, gi) => (
+      <div key={group.label} style={{ marginBottom: gi < NAV_GROUPS.length - 1 ? '4px' : 0 }}>
+        <p style={{
+          fontSize: '10px', fontWeight: 600,
+          color: 'hsl(240 5% 34%)',
+          textTransform: 'uppercase', letterSpacing: '0.09em',
+          padding: '8px 12px 3px',
+          margin: 0,
+        }}>{group.label}</p>
+        {group.items.map(item => <NavLink key={item.href} {...item} />)}
+      </div>
+    ))}
 
     {/* Coming Soon */}
-    <div style={{ height: '1px', background: 'hsl(240 6% 14%)', margin: '8px 4px 6px' }} />
-    <p style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 38%)', textTransform: 'uppercase', letterSpacing: '0.08em', padding: '0 12px', margin: '0 0 4px' }}>Coming Soon</p>
+    <div style={{ height: '1px', background: 'hsl(240 6% 12%)', margin: '8px 4px 4px' }} />
+    <p style={{ fontSize: '10px', fontWeight: 600, color: 'hsl(240 5% 34%)', textTransform: 'uppercase', letterSpacing: '0.09em', padding: '0 12px', margin: '0 0 3px' }}>Coming Soon</p>
     {COMING_SOON.map(({ label, icon: Icon }) => (
       <div
         key={label}
         style={{
           display: 'flex', alignItems: 'center', gap: '10px',
-          padding: '9px 12px', borderRadius: '8px',
-          fontSize: '13.5px', color: 'hsl(240 5% 38%)',
+          padding: '8px 12px', borderRadius: '8px',
+          fontSize: '13.5px', color: 'hsl(240 5% 36%)',
           cursor: 'default', userSelect: 'none',
         }}
       >
         <Icon size={16} />
         {label}
         <span style={{
-          marginLeft: 'auto', fontSize: '9px', fontWeight: 700,
-          background: 'hsl(240 6% 14%)', color: 'hsl(240 5% 45%)',
+          marginLeft: 'auto', fontSize: '9px', fontWeight: 600,
+          background: 'hsl(240 6% 12%)', color: 'hsl(240 5% 42%)',
           padding: '2px 6px', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '0.05em',
         }}>Soon</span>
       </div>
@@ -143,7 +179,7 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
 
     {isOwner && (
       <>
-        <div style={{ height: '1px', background: 'hsl(240 6% 14%)', margin: '6px 4px' }} />
+        <div style={{ height: '1px', background: 'hsl(240 6% 12%)', margin: '8px 4px 4px' }} />
         <NavLink href="/admin" label="Owner Dashboard" icon={ShieldCheck} />
       </>
     )}
