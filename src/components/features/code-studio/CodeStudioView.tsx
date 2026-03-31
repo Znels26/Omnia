@@ -489,7 +489,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [showChat, setShowChat] = useState(false);
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
-  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; appliedCode?: boolean }>>([]);
+  const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; toolCalls?: string[]; appliedCode?: boolean }>>([]);
   const [previewSrc, setPreviewSrc] = useState(() => buildPreviewSrcdoc(DEFAULT_FILES.react, 'react'));
   const [iframeLogs, setIframeLogs] = useState<Array<{ level: string; text: string }>>([]);
   const [showLangPicker, setShowLangPicker] = useState(false);
@@ -684,76 +684,121 @@ export function CodeStudioView({ profile }: { profile: any }) {
     return { newFiles, updated };
   }
 
+  function toolLabel(tool: string, path?: string, language?: string): string {
+    if (tool === 'write_file') return `📝 Writing ${path || 'file'}`;
+    if (tool === 'read_file')  return `📖 Reading ${path || 'file'}`;
+    if (tool === 'delete_file') return `🗑 Deleting ${path || 'file'}`;
+    if (tool === 'list_files') return `📁 Listing files`;
+    if (tool === 'run_code')   return `▶ Running ${language || 'code'}`;
+    return tool;
+  }
+
   async function sendChatMessage() {
     const text = chatInput.trim();
     if (!text || chatLoading) return;
 
-    const userMsg = { role: 'user' as const, content: text };
+    const userMsg = { role: 'user' as const, content: text, toolCalls: [] as string[], appliedCode: false };
     const updatedHistory = [...chatMessages, userMsg];
     setChatMessages(updatedHistory);
     setChatInput('');
     setChatLoading(true);
 
-    // Add placeholder for streaming assistant message
-    setChatMessages(prev => [...prev, { role: 'assistant', content: '', appliedCode: false }]);
+    // Placeholder for the streaming assistant response
+    setChatMessages(prev => [...prev, { role: 'assistant', content: '', toolCalls: [], appliedCode: false }]);
+
+    let accText = '';
+    let accTools: string[] = [];
+    let filesModified = false;
+
+    const flush = () => {
+      setChatMessages(prev => {
+        const msgs = [...prev];
+        msgs[msgs.length - 1] = { role: 'assistant', content: accText, toolCalls: [...accTools], appliedCode: filesModified };
+        return msgs;
+      });
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
 
     try {
-      const res = await fetch('/api/ai/code-studio', {
+      const res = await fetch('/api/ai/code-studio/agent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: text,
-          language: lang,
-          files: files.map(f => ({ name: f.name, content: f.content })),
           messages: updatedHistory.map(m => ({ role: m.role, content: m.content })),
+          files: files.map(f => ({ name: f.name, content: f.content })),
+          language: lang,
         }),
       });
-      if (!res.ok) throw new Error('AI request failed');
+      if (!res.ok) throw new Error('Agent request failed');
 
       const reader = res.body!.getReader();
-      const decoder = new TextDecoder();
-      let fullText = '';
+      const dec = new TextDecoder();
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
-        const chunk = decoder.decode(value, { stream: true });
+        const chunk = dec.decode(value, { stream: true });
         for (const line of chunk.split('\n')) {
-          if (line.startsWith('data: ')) {
-            try {
-              const { text: t } = JSON.parse(line.slice(6));
-              fullText += t;
-              // Update the last (assistant) message in real time
-              setChatMessages(prev => {
-                const updated = [...prev];
-                updated[updated.length - 1] = { role: 'assistant', content: fullText, appliedCode: false };
-                return updated;
+          if (!line.startsWith('data: ')) continue;
+          let ev: any;
+          try { ev = JSON.parse(line.slice(6)); } catch { continue; }
+
+          switch (ev.type) {
+            case 'text':
+              accText += ev.text;
+              flush();
+              break;
+
+            case 'tool_call':
+              accTools = [...accTools, toolLabel(ev.tool, ev.path, ev.language)];
+              flush();
+              break;
+
+            case 'file_update':
+              filesModified = true;
+              setFiles(prev => {
+                const next = [...prev];
+                const idx = next.findIndex(f => f.name === ev.path);
+                if (idx >= 0) next[idx] = { ...next[idx], content: ev.content };
+                else next.push({ id: `agent-${Date.now()}-${ev.path}`, name: ev.path, content: ev.content });
+                return next;
               });
-              chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-            } catch {}
+              setIframeLogs([]);
+              if (isMobile) setMobilePanel('editor');
+              flush();
+              break;
+
+            case 'file_delete':
+              setFiles(prev => {
+                const remaining = prev.filter(f => f.name !== ev.path);
+                if (remaining.length === 0) {
+                  const blank = { id: `blank-${Date.now()}`, name: 'index.html', content: '' };
+                  setActiveFileId(blank.id);
+                  return [blank];
+                }
+                setActiveFileId(cur => {
+                  const deleted = prev.find(f => f.name === ev.path);
+                  return deleted?.id === cur ? remaining[0].id : cur;
+                });
+                return remaining;
+              });
+              break;
+
+            case 'run_output':
+              setConsoleOutput(ev.output || '');
+              setOutputTab('console');
+              break;
+
+            case 'error':
+              toast.error(ev.message || 'Agent error');
+              break;
           }
         }
       }
-
-      // Apply any code blocks found in the response
-      const { newFiles, updated } = applyCodeFromText(fullText, files);
-      if (updated) {
-        setFiles(newFiles);
-        setIframeLogs([]);
-        if (isMobile) setMobilePanel('editor');
-        setChatMessages(prev => {
-          const msgs = [...prev];
-          msgs[msgs.length - 1] = { role: 'assistant', content: fullText, appliedCode: true };
-          return msgs;
-        });
-      }
     } catch (err: any) {
-      setChatMessages(prev => {
-        const msgs = [...prev];
-        msgs[msgs.length - 1] = { role: 'assistant', content: 'Sorry, something went wrong. Please try again.', appliedCode: false };
-        return msgs;
-      });
-      toast.error(err.message || 'AI request failed');
+      accText = 'Something went wrong. Please try again.';
+      flush();
+      toast.error(err.message || 'Agent failed');
     } finally {
       setChatLoading(false);
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -1164,15 +1209,29 @@ export function CodeStudioView({ profile }: { profile: any }) {
                   whiteSpace: 'pre-wrap',
                   wordBreak: 'break-word',
                 }}>
-                  {msg.content || (chatLoading && i === chatMessages.length - 1
+                  {/* Tool call indicators for assistant messages */}
+                  {msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0 && (
+                    <div style={{ marginBottom: msg.content ? '8px' : 0, display: 'flex', flexDirection: 'column', gap: '3px', paddingBottom: msg.content ? '8px' : 0, borderBottom: msg.content ? '1px solid hsl(240 6% 18%)' : 'none' }}>
+                      {msg.toolCalls.map((tc, j) => (
+                        <span key={j} style={{ fontSize: '11px', color: 'hsl(240 5% 55%)', fontFamily: 'ui-monospace, monospace' }}>{tc}</span>
+                      ))}
+                      {/* Show spinner on last tool call if still loading */}
+                      {chatLoading && i === chatMessages.length - 1 && !msg.content && (
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: 'hsl(262,83%,65%)' }}>
+                          <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Working…
+                        </span>
+                      )}
+                    </div>
+                  )}
+                  {msg.content || (chatLoading && i === chatMessages.length - 1 && (!msg.toolCalls || msg.toolCalls.length === 0)
                     ? <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Thinking…</span>
-                    : ''
+                    : null
                   )}
                 </div>
                 {msg.role === 'assistant' && msg.appliedCode && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'hsl(142,70%,55%)', paddingLeft: '4px' }}>
                     <Check size={11} />
-                    <span>Applied to editor</span>
+                    <span>Changes applied to editor</span>
                   </div>
                 )}
               </div>
