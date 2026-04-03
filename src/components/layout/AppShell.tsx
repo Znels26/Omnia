@@ -7,7 +7,7 @@ import {
 LayoutDashboard, MessageSquare, CalendarDays, FileText,
 FolderOpen, Wand2, FileOutput, Receipt, Bell, Settings,
 CreditCard, LogOut, Sparkles, Menu, X, FileSignature, Layers, ShieldCheck,
-DollarSign, CalendarClock, Share2, Heart, Code2, Zap
+DollarSign, CalendarClock, Share2, Heart, Code2, Zap, AlertTriangle, Send
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { PWAInstallBanner } from './PWAInstallBanner';
@@ -75,6 +75,20 @@ export function AppShell({ profile, children }: { profile: any; children: React.
 const pathname = usePathname();
 const router = useRouter();
 const [menuOpen, setMenuOpen] = useState(false);
+const [showReport, setShowReport] = useState(false);
+const [reportForm, setReportForm] = useState({ category: 'bug', title: '', description: '' });
+const [reportSubmitting, setReportSubmitting] = useState(false);
+const [reportDone, setReportDone] = useState(false);
+
+const submitReport = async () => {
+  if (!reportForm.title.trim()) return;
+  setReportSubmitting(true);
+  try {
+    await fetch('/api/report', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(reportForm) });
+    setReportDone(true);
+    setTimeout(() => { setShowReport(false); setReportDone(false); setReportForm({ category: 'bug', title: '', description: '' }); }, 2000);
+  } finally { setReportSubmitting(false); }
+};
 
 const signOut = async () => {
 await createClient().auth.signOut();
@@ -185,8 +199,19 @@ style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointe
     )}
   </nav>
 
+  {/* Report a Problem */}
+  <div style={{ padding: '4px 8px 0' }}>
+    <button
+      onClick={() => setShowReport(true)}
+      style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 12px', borderRadius: '8px', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 44%)', fontSize: '12px', transition: 'all 0.15s' }}
+    >
+      <AlertTriangle size={13} />
+      Report a problem
+    </button>
+  </div>
+
   {/* User profile footer */}
-  <div style={{ padding: '12px', borderTop: '1px solid hsl(240 6% 14%)' }}>
+  <div style={{ padding: '8px 12px 12px', borderTop: '1px solid hsl(240 6% 14%)', marginTop: '4px' }}>
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px', borderRadius: '10px', background: 'hsl(240 6% 9%)' }}>
       <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'hsl(205 90% 48% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '13px', fontWeight: 700, color: 'hsl(205,90%,60%)', flexShrink: 0 }}>
         {initial}
@@ -263,6 +288,57 @@ return (
   <main className="main-content">
     {children}
   </main>
+
+  {/* ── REPORT A PROBLEM MODAL ── */}
+  {showReport && (
+    <div style={{ position: 'fixed', inset: 0, zIndex: 200, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', background: 'rgba(0,0,0,0.7)', backdropFilter: 'blur(6px)' }} onClick={e => { if (e.target === e.currentTarget) setShowReport(false); }}>
+      <div style={{ background: 'hsl(240 8% 8%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '420px', boxShadow: '0 24px 80px rgba(0,0,0,0.6)' }}>
+        {reportDone ? (
+          <div style={{ textAlign: 'center', padding: '16px 0' }}>
+            <div style={{ fontSize: '32px', marginBottom: '10px' }}>✅</div>
+            <p style={{ fontWeight: 600, fontSize: '15px', marginBottom: '4px' }}>Report submitted!</p>
+            <p style={{ fontSize: '13px', color: 'hsl(240 5% 50%)' }}>We'll look into it shortly.</p>
+          </div>
+        ) : (
+          <>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <AlertTriangle size={16} color="hsl(38,90%,65%)" />
+                <span style={{ fontWeight: 700, fontSize: '15px' }}>Report a Problem</span>
+              </div>
+              <button onClick={() => setShowReport(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', padding: '4px' }}><X size={16} /></button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'hsl(240 5% 55%)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</label>
+                <select value={reportForm.category} onChange={e => setReportForm(p => ({ ...p, category: e.target.value }))} style={{ height: '38px', fontSize: '13px' }}>
+                  <option value="bug">🐛 Bug / Something broken</option>
+                  <option value="feature">💡 Feature request</option>
+                  <option value="billing">💳 Billing issue</option>
+                  <option value="other">💬 Other</option>
+                </select>
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'hsl(240 5% 55%)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Title *</label>
+                <input value={reportForm.title} onChange={e => setReportForm(p => ({ ...p, title: e.target.value }))} placeholder="Brief description of the issue" style={{ fontSize: '13px' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'hsl(240 5% 55%)', marginBottom: '5px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Details</label>
+                <textarea value={reportForm.description} onChange={e => setReportForm(p => ({ ...p, description: e.target.value }))} placeholder="Steps to reproduce, what you expected, what happened…" rows={4} style={{ resize: 'none', fontSize: '13px' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button onClick={() => setShowReport(false)} className="btn btn-outline" style={{ fontSize: '13px' }}>Cancel</button>
+                <button onClick={submitReport} disabled={reportSubmitting || !reportForm.title.trim()} className="btn btn-primary" style={{ flex: 1, fontSize: '13px', gap: '6px' }}>
+                  {reportSubmitting ? 'Sending…' : <><Send size={13} /> Send Report</>}
+                </button>
+              </div>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  )}
 
   {/* ── PWA INSTALL BANNER ── */}
   <PWAInstallBanner />

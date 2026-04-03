@@ -55,6 +55,7 @@ export async function GET() {
     viewsWeekRes,
     viewsRawRes,
     sessionsRawRes,
+    reportsRes,
   ] = await Promise.all([
     // All profiles with plan tier
     s.from('profiles').select('id, email, display_name, plan_tier, created_at, timezone'),
@@ -84,6 +85,8 @@ export async function GET() {
     s.from('page_views').select('page, created_at').gte('created_at', new Date(Date.now() - 30 * 86400000).toISOString()).order('created_at'),
     // Unique sessions today
     s.from('page_views').select('session_id').gte('created_at', new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    // Problem reports — most recent 50
+    s.from('problem_reports').select('id, user_id, email, display_name, category, title, description, status, created_at').order('created_at', { ascending: false }).limit(50),
   ]);
 
   // Collect any query errors so the client can show what's broken
@@ -225,6 +228,7 @@ export async function GET() {
       growth:             viewGrowth,
       topPages,
     },
+    reports: reportsRes.data || [],
     generatedAt: new Date().toISOString(),
     queryErrors: Object.keys(queryErrors).length ? queryErrors : undefined,
   });

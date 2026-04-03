@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Users, DollarSign, Zap, Globe, TrendingUp, RefreshCw, Crown, Activity, MessageSquare, FileText, Eye } from 'lucide-react';
+import { Users, DollarSign, Zap, Globe, TrendingUp, RefreshCw, Crown, Activity, MessageSquare, FileText, Eye, AlertTriangle, CheckCircle2, Clock } from 'lucide-react';
 
 const POLL_INTERVAL = 30_000; // 30 seconds
 
@@ -51,11 +51,18 @@ const REGION_COLORS: Record<string, string> = { Americas: 'hsl(205,90%,60%)', Eu
 
 export function AdminView() {
   const [data, setData] = useState<any>(null);
-  const [loading, setLoading] = useState(true);   // initial full-screen load only
-  const [refreshing, setRefreshing] = useState(false); // manual refresh button
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState('');
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [countdown, setCountdown] = useState(POLL_INTERVAL / 1000);
+  const [reportStatuses, setReportStatuses] = useState<Record<string, string>>({});
+  const [reportFilter, setReportFilter] = useState<'open' | 'resolved' | 'all'>('open');
+
+  const resolveReport = async (id: string, status: 'open' | 'resolved') => {
+    setReportStatuses(p => ({ ...p, [id]: status }));
+    await fetch('/api/admin/reports', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ id, status }) });
+  };
   const countdownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const resetCountdown = () => {
@@ -114,7 +121,7 @@ export function AdminView() {
 
   if (!data) return null;
 
-  const { totals, revenue, featureUsage, regions, topTimezones, recentUsers, topUsers, growth, views, queryErrors } = data;
+  const { totals, revenue, featureUsage, regions, topTimezones, recentUsers, topUsers, growth, views, reports, queryErrors } = data;
   const maxFeature = featureUsage[0]?.count || 1;
   const maxRegion = regions[0]?.count || 1;
   const conversionRate = totals.users > 0 ? (((totals.plus + totals.pro) / totals.users) * 100).toFixed(1) : '0';
@@ -317,6 +324,78 @@ export function AdminView() {
           </div>
         </div>
       </div>
+
+      {/* Problem Reports */}
+      {reports && (
+        <div className="card" style={{ padding: '18px', marginTop: '16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '14px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+              <AlertTriangle size={14} color="hsl(38,90%,65%)" />
+              <span style={{ fontWeight: 600, fontSize: '14px' }}>Problem Reports</span>
+              {reports.filter((r: any) => (reportStatuses[r.id] ?? r.status) === 'open').length > 0 && (
+                <span style={{ fontSize: '11px', padding: '2px 8px', borderRadius: '999px', background: 'hsl(38 90% 50% / 0.15)', color: 'hsl(38,90%,65%)', fontWeight: 700 }}>
+                  {reports.filter((r: any) => (reportStatuses[r.id] ?? r.status) === 'open').length} open
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', gap: '4px' }}>
+              {(['open','all','resolved'] as const).map(f => (
+                <button key={f} onClick={() => setReportFilter(f)} style={{ padding: '4px 10px', borderRadius: '6px', border: `1px solid ${reportFilter === f ? 'hsl(205 90% 48%)' : 'hsl(240 6% 18%)'}`, background: reportFilter === f ? 'hsl(205 90% 48% / 0.1)' : 'transparent', color: reportFilter === f ? 'hsl(205,90%,62%)' : 'hsl(240 5% 50%)', fontSize: '11px', cursor: 'pointer', fontWeight: 500, textTransform: 'capitalize' }}>{f}</button>
+              ))}
+            </div>
+          </div>
+
+          {(() => {
+            const CATEGORY_LABELS: Record<string, string> = { bug: '🐛 Bug', feature: '💡 Feature', billing: '💳 Billing', other: '💬 Other' };
+            const filtered = reports.filter((r: any) => {
+              const s = reportStatuses[r.id] ?? r.status;
+              if (reportFilter === 'open') return s === 'open';
+              if (reportFilter === 'resolved') return s === 'resolved';
+              return true;
+            });
+            if (filtered.length === 0) return (
+              <p style={{ fontSize: '13px', color: 'hsl(240 5% 45%)', textAlign: 'center', padding: '20px 0' }}>
+                {reportFilter === 'open' ? '🎉 No open reports' : 'No reports yet'}
+              </p>
+            );
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {filtered.map((r: any) => {
+                  const status = reportStatuses[r.id] ?? r.status;
+                  const isResolved = status === 'resolved';
+                  return (
+                    <div key={r.id} style={{ display: 'flex', gap: '12px', alignItems: 'flex-start', padding: '12px', borderRadius: '10px', background: 'hsl(240 6% 8%)', border: `1px solid ${isResolved ? 'hsl(142 70% 40% / 0.2)' : 'hsl(240 6% 13%)'}`, opacity: isResolved ? 0.65 : 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '11px', padding: '1px 7px', borderRadius: '999px', background: 'hsl(240 6% 14%)', color: 'hsl(240 5% 55%)' }}>
+                            {CATEGORY_LABELS[r.category] || r.category}
+                          </span>
+                          <span style={{ fontSize: '12px', fontWeight: 600, color: isResolved ? 'hsl(240 5% 55%)' : 'hsl(0 0% 88%)' }}>{r.title}</span>
+                        </div>
+                        {r.description && <p style={{ fontSize: '12px', color: 'hsl(240 5% 52%)', lineHeight: 1.5, margin: '0 0 6px' }}>{r.description}</p>}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '11px', color: 'hsl(240 5% 42%)' }}>{r.display_name || r.email?.split('@')[0] || 'User'}</span>
+                          {r.email && <span style={{ fontSize: '10px', color: 'hsl(240 5% 36%)' }}>{r.email}</span>}
+                          <span style={{ fontSize: '10px', color: 'hsl(240 5% 36%)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                            <Clock size={10} />{new Date(r.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => resolveReport(r.id, isResolved ? 'open' : 'resolved')}
+                        title={isResolved ? 'Mark as open' : 'Mark as resolved'}
+                        style={{ padding: '6px', borderRadius: '7px', background: isResolved ? 'hsl(240 6% 14%)' : 'hsl(142 70% 40% / 0.12)', border: `1px solid ${isResolved ? 'hsl(240 6% 18%)' : 'hsl(142 70% 40% / 0.3)'}`, cursor: 'pointer', display: 'flex', color: isResolved ? 'hsl(240 5% 45%)' : '#34d399', flexShrink: 0 }}
+                      >
+                        <CheckCircle2 size={15} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
+        </div>
+      )}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
