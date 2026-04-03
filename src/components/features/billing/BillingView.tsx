@@ -29,15 +29,20 @@ const PLANS = [
 export function BillingView({ profile, subscription }: any) {
   const [loading, setLoading] = useState<string | null>(null);
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
+  const [promoCode, setPromoCode] = useState('');
+  const [showPromo, setShowPromo] = useState(false);
+  const [promoStatus, setPromoStatus] = useState<'idle' | 'valid' | 'invalid'>('idle');
   const plan = profile?.plan_tier || 'free';
 
   const upgrade = async (tier: string) => {
     setLoading(tier);
     try {
+      const body: any = { tier, interval: billingInterval };
+      if (tier === 'plus' && promoCode.trim()) body.promoCode = promoCode.trim();
       const res = await fetch('/api/billing/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tier, interval: billingInterval }),
+        body: JSON.stringify(body),
       });
       const d = await res.json();
       if (d.url) window.location.href = d.url;
@@ -45,6 +50,12 @@ export function BillingView({ profile, subscription }: any) {
     } finally {
       setLoading(null);
     }
+  };
+
+  const validatePromo = () => {
+    const upper = promoCode.trim().toUpperCase();
+    if (upper === 'RYAN') { setPromoStatus('valid'); toast.success('$5 off your first month!'); }
+    else { setPromoStatus('invalid'); toast.error('Invalid promo code'); }
   };
 
   const portal = async () => {
@@ -189,6 +200,42 @@ export function BillingView({ profile, subscription }: any) {
                   </li>
                 ))}
               </ul>
+
+              {/* Promo code field — Plus monthly only */}
+              {!isCurrent && p.tier === 'plus' && billingInterval === 'monthly' && (
+                <div style={{ marginBottom: '10px' }}>
+                  {!showPromo ? (
+                    <button onClick={() => setShowPromo(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '12px', color: 'hsl(240 5% 48%)', padding: '2px 0', textDecoration: 'underline' }}>
+                      Have a promo code?
+                    </button>
+                  ) : (
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input
+                        value={promoCode}
+                        onChange={e => { setPromoCode(e.target.value); setPromoStatus('idle'); }}
+                        onKeyDown={e => e.key === 'Enter' && validatePromo()}
+                        placeholder="Enter code"
+                        style={{
+                          flex: 1, height: '34px', fontSize: '13px', padding: '0 10px',
+                          borderColor: promoStatus === 'valid' ? '#34d399' : promoStatus === 'invalid' ? '#ef4444' : undefined,
+                          textTransform: 'uppercase',
+                        }}
+                      />
+                      <button
+                        onClick={validatePromo}
+                        style={{ padding: '0 12px', height: '34px', borderRadius: '8px', border: 'none', background: 'hsl(240 6% 18%)', color: 'hsl(0 0% 80%)', fontSize: '12px', cursor: 'pointer', flexShrink: 0 }}
+                      >
+                        Apply
+                      </button>
+                    </div>
+                  )}
+                  {promoStatus === 'valid' && (
+                    <p style={{ fontSize: '11px', color: '#34d399', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Check size={11} /> $5 off first month — $20 today
+                    </p>
+                  )}
+                </div>
+              )}
 
               {isCurrent ? (
                 <button disabled className="btn" style={{ background: 'hsl(240 6% 16%)', color: 'hsl(240 5% 45%)', cursor: 'default', height: '38px', fontSize: '13px' }}>

@@ -100,16 +100,31 @@ const STARTERS: Record<string, string[]> = {
 };
 
 function isImageRequest(text: string): boolean {
-  return /^(\/image\s|generate\s+(an?\s+)?image\s|create\s+(an?\s+)?image\s|draw\s|imagine\s|make\s+(an?\s+)?image\s|paint\s|render\s+a\s|show\s+me\s+(an?\s+)?image\s|generate\s+(a\s+)?picture\s|create\s+(a\s+)?picture\s)/i.test(text.trim());
+  // Strip common conversational prefixes so "can you draw a cat" → "draw a cat"
+  const t = text.trim()
+    .replace(/^(please\s+|can\s+you\s+|could\s+you\s+|i\s+want\s+(you\s+to\s+)?|i('d)?\s+like\s+(you\s+to\s+)?|i\s+need\s+(you\s+to\s+)?|hey[,\s]+|omnia[,\s]+)/i, '')
+    .trim();
+  return /^(\/image\s+|\/img\s+|generate\s+(an?\s+)?image\s|create\s+(an?\s+)?image\s|draw\s|imagine\s|make\s+(an?\s+)?image\s|paint\s|render\s+a\s|show\s+me\s+(an?\s+)?image\s|generate\s+(a\s+)?picture\s|create\s+(a\s+)?picture\s|illustrate\s|visuali[sz]e\s|sketch\s(me\s+)?|design\s+(an?\s+)?image\s|generate\s+(a\s+)?photo\s|create\s+(a\s+)?photo\s)/i.test(t);
 }
 
 function extractImagePrompt(text: string): string {
-  return text
+  // Strip conversational prefixes first
+  const stripped = text.trim()
+    .replace(/^(please\s+|can\s+you\s+|could\s+you\s+|i\s+want\s+(you\s+to\s+)?|i('d)?\s+like\s+(you\s+to\s+)?|i\s+need\s+(you\s+to\s+)?|hey[,\s]+|omnia[,\s]+)/i, '')
+    .trim();
+  return stripped
+    .replace(/^\/img\s+/i, '')
     .replace(/^\/image\s+/i, '')
     .replace(/^generate\s+(an?\s+)?image\s+(of\s+)?/i, '')
     .replace(/^create\s+(an?\s+)?image\s+(of\s+)?/i, '')
+    .replace(/^design\s+(an?\s+)?image\s+(of\s+)?/i, '')
+    .replace(/^generate\s+(a\s+)?photo\s+(of\s+)?/i, '')
+    .replace(/^create\s+(a\s+)?photo\s+(of\s+)?/i, '')
     .replace(/^draw\s+(an?\s+|me\s+)?/i, '')
     .replace(/^imagine\s+/i, '')
+    .replace(/^illustrate\s+(me\s+)?/i, '')
+    .replace(/^visuali[sz]e\s+/i, '')
+    .replace(/^sketch\s+(me\s+)?/i, '')
     .replace(/^make\s+(an?\s+)?image\s+(of\s+)?/i, '')
     .replace(/^paint\s+(an?\s+|me\s+)?/i, '')
     .replace(/^render\s+a\s+/i, '')
