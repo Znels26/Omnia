@@ -261,7 +261,7 @@ export function BillingView({ profile, subscription }: any) {
       </div>
 
       <p style={{ textAlign: 'center', fontSize: '12px', color: 'hsl(240 5% 40%)', marginTop: '8px' }}>
-        7-day free trial on paid plans · Cancel anytime · No hidden fees
+        Cancel anytime · No hidden fees · Billed immediately on signup
       </p>
     </div>
   );

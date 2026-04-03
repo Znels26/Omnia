@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${appUrl}/billing?success=true`,
     cancel_url: `${appUrl}/billing`,
-    subscription_data: { trial_period_days: 7 },
+    subscription_data: { metadata: { omnia_user_id: user.id } },
     metadata: { omnia_user_id: user.id },
     ...(discounts ? { discounts } : { allow_promotion_codes: true }),
   };
