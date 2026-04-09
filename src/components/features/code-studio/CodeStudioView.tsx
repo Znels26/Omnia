@@ -6,8 +6,8 @@ import Link from 'next/link';
 import {
   Play, Sparkles, Plus, Trash2, Copy, X, Loader2,
   Globe, Terminal, FileCode, Crown, ArrowRight, Eye,
-  ChevronDown, Upload, Check, Code2, RefreshCw, PanelLeft,
-  Save, LayoutTemplate, Github, Send, MessageSquare,
+  ChevronDown, Upload, Check, Code2, RefreshCw,
+  Save, LayoutTemplate, Github, Send,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -22,7 +22,7 @@ const MonacoEditor = dynamic(() => import('@monaco-editor/react'), {
 
 type Lang = 'html' | 'react' | 'python' | 'nodejs';
 type OutputTab = 'preview' | 'console';
-type MobilePanel = 'files' | 'editor' | 'output';
+type MobilePanel = 'chat' | 'editor' | 'output';
 
 interface ProjectFile {
   id: string;
@@ -486,7 +486,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const [running, setRunning] = useState(false);
   const [deploying, setDeploying] = useState(false);
   const [deployUrl, setDeployUrl] = useState('');
-  const [showChat, setShowChat] = useState(false);
+
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; toolCalls?: string[]; appliedCode?: boolean }>>([]);
@@ -523,7 +523,6 @@ export function CodeStudioView({ profile }: { profile: any }) {
     const urlPrompt = params.get('prompt');
     if (urlPrompt) {
       setChatInput(decodeURIComponent(urlPrompt));
-      setShowChat(true);
     }
   }, []);
 
@@ -897,65 +896,153 @@ export function CodeStudioView({ profile }: { profile: any }) {
     );
   }
 
-  // ── Shared panel pieces ──
-  const fileTreePanel = (
-    <div style={{ display: 'flex', flexDirection: 'column', background: 'hsl(240 6% 5%)', flex: isMobile ? 1 : undefined, width: isMobile ? undefined : '188px', flexShrink: 0, borderRight: isMobile ? 'none' : '1px solid hsl(240 6% 14%)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 12px', borderBottom: '1px solid hsl(240 6% 12%)' }}>
-        <span style={{ fontSize: '10px', fontWeight: 700, color: 'hsl(240 5% 40%)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Files</span>
-        <button onClick={() => setShowNewFile(v => !v)} title="New file" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', padding: '4px' }}>
-          <Plus size={15} />
+  // ── Manus-style layout ──
+
+  // Agent chat panel (always visible left column)
+  const agentPanel = (
+    <div style={{ width: isMobile ? '100%' : '360px', minWidth: isMobile ? undefined : '360px', display: 'flex', flexDirection: 'column', background: 'hsl(240 8% 5%)', borderRight: isMobile ? 'none' : '1px solid hsl(240 6% 13%)', overflow: 'hidden' }}>
+      {/* Messages */}
+      <div style={{ flex: 1, overflowY: 'auto', padding: '16px 14px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        {chatMessages.length === 0 && (
+          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '32px 16px 16px', gap: '16px' }}>
+            <div style={{ width: '52px', height: '52px', borderRadius: '16px', background: 'hsl(262 83% 58% / 0.12)', border: '1px solid hsl(262 83% 58% / 0.22)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Sparkles size={22} color="hsl(262,83%,75%)" />
+            </div>
+            <div>
+              <p style={{ fontSize: '16px', fontWeight: 700, color: 'hsl(0 0% 88%)', margin: '0 0 8px', letterSpacing: '-0.01em' }}>What do you want to build?</p>
+              <p style={{ fontSize: '12.5px', color: 'hsl(240 5% 45%)', margin: 0, lineHeight: 1.65 }}>Describe your idea and the AI agent will write code, create files, and make it work — all in real time.</p>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%' }}>
+              {['Build a beautiful login form with validation', 'Create an animated React todo app', 'Make a dark landing page with animations', 'Write a Python data analysis script'].map(s => (
+                <button key={s} onClick={() => { setChatInput(s); chatInputRef.current?.focus(); }}
+                  style={{ padding: '9px 13px', background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 15%)', borderRadius: '9px', color: 'hsl(240 5% 62%)', fontSize: '12.5px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s, color 0.15s' }}
+                  onMouseEnter={e => { e.currentTarget.style.borderColor = 'hsl(262 83% 58% / 0.4)'; e.currentTarget.style.color = 'hsl(0 0% 80%)'; }}
+                  onMouseLeave={e => { e.currentTarget.style.borderColor = 'hsl(240 6% 15%)'; e.currentTarget.style.color = 'hsl(240 5% 62%)'; }}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {chatMessages.map((msg, i) => (
+          <div key={i} style={{ display: 'flex', flexDirection: 'column', gap: '5px', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            {msg.role === 'user' ? (
+              <div style={{ maxWidth: '88%', padding: '10px 13px', borderRadius: '14px 14px 4px 14px', background: 'hsl(262 83% 58%)', color: 'white', fontSize: '13.5px', lineHeight: 1.55, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                {msg.content}
+              </div>
+            ) : (
+              <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                {msg.toolCalls && msg.toolCalls.length > 0 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+                    {msg.toolCalls.map((tc, j) => {
+                      const isLast = j === msg.toolCalls!.length - 1;
+                      const isRunning = chatLoading && i === chatMessages.length - 1 && isLast;
+                      return (
+                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 10px', background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '8px', fontSize: '12px', color: 'hsl(240 5% 58%)', fontFamily: 'ui-monospace, monospace' }}>
+                          {isRunning
+                            ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} color="hsl(262,83%,65%)" />
+                            : <Check size={10} color="hsl(142,70%,55%)" style={{ flexShrink: 0 }} />}
+                          {tc}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+                {(msg.content || (chatLoading && i === chatMessages.length - 1 && (!msg.toolCalls || msg.toolCalls.length === 0))) && (
+                  <div style={{ padding: '10px 13px', background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '4px 14px 14px 14px', color: 'hsl(0 0% 82%)', fontSize: '13.5px', lineHeight: 1.6, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {msg.content || <span style={{ display: 'flex', alignItems: 'center', gap: '7px', color: 'hsl(240 5% 48%)' }}><Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> Thinking…</span>}
+                  </div>
+                )}
+                {msg.appliedCode && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'hsl(142,70%,55%)', paddingLeft: '2px' }}>
+                    <Check size={10} /> Files updated
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{ padding: '12px', borderTop: '1px solid hsl(240 6% 12%)', flexShrink: 0 }}>
+        <div style={{ position: 'relative', background: 'hsl(240 6% 9%)', border: `1px solid ${chatInput.trim() ? 'hsl(262 83% 58% / 0.5)' : 'hsl(240 6% 18%)'}`, borderRadius: '12px', transition: 'border-color 0.15s' }}>
+          <textarea
+            ref={chatInputRef}
+            value={chatInput}
+            onChange={e => setChatInput(e.target.value)}
+            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
+            placeholder="Describe what to build or change…"
+            rows={2}
+            style={{ width: '100%', background: 'none', border: 'none', color: 'hsl(0 0% 88%)', fontSize: '13.5px', padding: '11px 48px 11px 14px', resize: 'none', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5, maxHeight: '150px', overflowY: 'auto', display: 'block', boxSizing: 'border-box' }}
+            onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 150) + 'px'; }}
+          />
+          <button
+            onClick={sendChatMessage}
+            disabled={chatLoading || !chatInput.trim()}
+            style={{ position: 'absolute', right: '8px', bottom: '8px', width: '34px', height: '34px', borderRadius: '9px', background: chatLoading || !chatInput.trim() ? 'hsl(240 6% 14%)' : 'hsl(262 83% 58%)', border: 'none', color: 'white', cursor: chatLoading || !chatInput.trim() ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'background 0.15s' }}
+          >
+            {chatLoading ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
+          </button>
+        </div>
+        <p style={{ fontSize: '11px', color: 'hsl(240 5% 35%)', margin: '6px 0 0', textAlign: 'center' }}>↵ Send · Shift+↵ new line</p>
+        {chatMessages.length > 0 && (
+          <button onClick={() => setChatMessages([])} style={{ display: 'block', width: '100%', marginTop: '6px', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 38%)', fontSize: '11px', padding: '4px' }}>
+            Clear conversation
+          </button>
+        )}
+      </div>
+    </div>
+  );
+
+  // ── Editor Panel (file tabs + Monaco) ──
+  const editorPanel = (
+    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+      {/* File tabs */}
+      <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid hsl(240 6% 14%)', background: 'hsl(240 6% 6%)', height: '38px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', flex: 1, overflowX: 'auto', height: '100%' }}>
+          {files.map(file => (
+            <button
+              key={file.id}
+              onClick={() => setActiveFileId(file.id)}
+              style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '0 12px', background: 'none', border: 'none', borderBottom: activeFileId === file.id ? '2px solid hsl(205,90%,48%)' : '2px solid transparent', color: activeFileId === file.id ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)', fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'ui-monospace, monospace', flexShrink: 0, height: '100%' }}
+            >
+              <FileCode size={11} />
+              {file.name}
+              {files.length > 1 && (
+                <span
+                  onClick={e => { e.stopPropagation(); deleteFile(file.id); }}
+                  style={{ marginLeft: '2px', opacity: 0.5, fontSize: '14px', lineHeight: 1, cursor: 'pointer', display: 'flex', alignItems: 'center' }}
+                  onMouseEnter={e => (e.currentTarget.style.opacity = '1')}
+                  onMouseLeave={e => (e.currentTarget.style.opacity = '0.5')}
+                >×</span>
+              )}
+            </button>
+          ))}
+        </div>
+        <button onClick={() => setShowNewFile(v => !v)} title="New file" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', alignItems: 'center', padding: '0 12px', height: '100%', flexShrink: 0 }}>
+          <Plus size={14} />
         </button>
       </div>
+
+      {/* New file input */}
       {showNewFile && (
-        <div style={{ padding: '8px 10px', borderBottom: '1px solid hsl(240 6% 12%)' }}>
+        <div style={{ padding: '6px 10px', borderBottom: '1px solid hsl(240 6% 12%)', background: 'hsl(240 6% 6%)', flexShrink: 0 }}>
           <input
             autoFocus
             value={newFileName}
             onChange={e => setNewFileName(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter') addFile(); if (e.key === 'Escape') setShowNewFile(false); }}
             placeholder="filename.ext"
-            style={{ width: '100%', background: 'hsl(240 6% 10%)', border: '1px solid hsl(205 90% 48% / 0.4)', borderRadius: '6px', color: 'hsl(0 0% 88%)', fontSize: '13px', padding: '7px 10px', outline: 'none' }}
+            style={{ width: '100%', background: 'hsl(240 6% 10%)', border: '1px solid hsl(205 90% 48% / 0.4)', borderRadius: '6px', color: 'hsl(0 0% 88%)', fontSize: '13px', padding: '6px 10px', outline: 'none' }}
           />
         </div>
       )}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '6px' }}>
-        {files.map(file => (
-          <div
-            key={file.id}
-            onClick={() => { setActiveFileId(file.id); if (isMobile) setMobilePanel('editor'); }}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: isMobile ? '12px 10px' : '7px 8px', borderRadius: '8px', cursor: 'pointer', background: activeFileId === file.id ? 'hsl(205 90% 48% / 0.1)' : 'transparent', color: activeFileId === file.id ? 'hsl(205,90%,70%)' : 'hsl(240 5% 60%)', fontSize: '13px', userSelect: 'none' }}
-          >
-            <FileCode size={14} style={{ flexShrink: 0 }} />
-            <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{file.name}</span>
-            {files.length > 1 && (
-              <button
-                onClick={e => { e.stopPropagation(); deleteFile(file.id); }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 38%)', display: 'flex', padding: '4px', flexShrink: 0 }}
-              >
-                <Trash2 size={13} />
-              </button>
-            )}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 
-  const editorPanel = (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
-      {/* File tabs */}
-      <div style={{ display: 'flex', borderBottom: '1px solid hsl(240 6% 14%)', background: 'hsl(240 6% 6%)', overflowX: 'auto', flexShrink: 0 }}>
-        {files.map(file => (
-          <button
-            key={file.id}
-            onClick={() => setActiveFileId(file.id)}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '8px 14px', background: 'none', border: 'none', borderBottom: activeFileId === file.id ? '2px solid hsl(205,90%,48%)' : '2px solid transparent', color: activeFileId === file.id ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)', fontSize: '12.5px', cursor: 'pointer', whiteSpace: 'nowrap', fontFamily: 'ui-monospace, monospace', flexShrink: 0 }}
-          >
-            <FileCode size={11} />
-            {file.name}
-          </button>
-        ))}
-      </div>
+      {/* Monaco */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <MonacoEditor
           key={activeFileId}
@@ -977,7 +1064,6 @@ export function CodeStudioView({ profile }: { profile: any }) {
             renderLineHighlight: 'gutter',
             fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace",
             fontLigatures: !isMobile,
-            // Touch-friendly scrolling
             scrollbar: { verticalScrollbarSize: isMobile ? 8 : 6, useShadows: false },
           }}
         />
@@ -985,31 +1071,33 @@ export function CodeStudioView({ profile }: { profile: any }) {
     </div>
   );
 
+  // ── Output Panel ──
   const outputPanel = (
-    <div style={{ display: 'flex', flexDirection: 'column', background: 'hsl(240 6% 5%)', flex: isMobile ? 1 : undefined, width: isMobile ? undefined : '42%', flexShrink: 0, borderLeft: isMobile ? 'none' : '1px solid hsl(240 6% 14%)' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', background: 'hsl(240 6% 5%)', flex: isMobile ? 1 : undefined, height: isMobile ? undefined : '260px', flexShrink: 0, borderTop: isMobile ? 'none' : '1px solid hsl(240 6% 14%)' }}>
       <div style={{ display: 'flex', alignItems: 'center', borderBottom: '1px solid hsl(240 6% 12%)', padding: '0 8px', gap: '4px', height: '38px', flexShrink: 0 }}>
         {canPreview && (
-          <button
-            onClick={() => setOutputTab('preview')}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', background: outputTab === 'preview' ? 'hsl(240 6% 12%)' : 'none', border: 'none', color: outputTab === 'preview' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-          >
-            <Eye size={13} /> Preview
+          <button onClick={() => setOutputTab('preview')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '6px', background: outputTab === 'preview' ? 'hsl(240 6% 12%)' : 'none', border: 'none', color: outputTab === 'preview' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)', fontSize: '12.5px', fontWeight: 500, cursor: 'pointer' }}>
+            <Eye size={12} /> Preview
           </button>
         )}
-        <button
-          onClick={() => setOutputTab('console')}
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 12px', borderRadius: '6px', background: outputTab === 'console' ? 'hsl(240 6% 12%)' : 'none', border: 'none', color: outputTab === 'console' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
-        >
-          <Terminal size={13} /> Console
+        <button onClick={() => setOutputTab('console')} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', borderRadius: '6px', background: outputTab === 'console' ? 'hsl(240 6% 12%)' : 'none', border: 'none', color: outputTab === 'console' ? 'hsl(0 0% 88%)' : 'hsl(240 5% 50%)', fontSize: '12.5px', fontWeight: 500, cursor: 'pointer' }}>
+          <Terminal size={12} /> Console
         </button>
         {outputTab === 'preview' && (
-          <button onClick={() => setPreviewSrc(buildPreviewSrcdoc(files, lang))} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '5px' }} title="Refresh">
-            <RefreshCw size={13} />
+          <button onClick={() => setPreviewSrc(buildPreviewSrcdoc(files, lang))} style={{ marginLeft: '4px', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '5px' }} title="Refresh">
+            <RefreshCw size={12} />
           </button>
         )}
         {outputTab === 'console' && (consoleOutput || iframeLogs.length > 0) && (
-          <button onClick={() => { setConsoleOutput(''); setIframeLogs([]); }} style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '5px' }} title="Clear">
-            <Trash2 size={13} />
+          <button onClick={() => { setConsoleOutput(''); setIframeLogs([]); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', display: 'flex', padding: '5px' }} title="Clear">
+            <Trash2 size={12} />
+          </button>
+        )}
+        <div style={{ flex: 1 }} />
+        {canRun && (
+          <button onClick={runCode} disabled={running} style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '4px 10px', background: 'hsl(142 70% 40% / 0.15)', border: '1px solid hsl(142 70% 40% / 0.3)', borderRadius: '6px', color: 'hsl(142,70%,55%)', fontSize: '12px', fontWeight: 600, cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.6 : 1 }}>
+            {running ? <Loader2 size={11} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={11} />}
+            {running ? 'Running…' : 'Run'}
           </button>
         )}
       </div>
@@ -1021,17 +1109,15 @@ export function CodeStudioView({ profile }: { profile: any }) {
         )}
         {outputTab === 'console' && (
           <div style={{ padding: '12px', height: '100%', overflowY: 'auto', fontFamily: "'JetBrains Mono', ui-monospace, monospace", fontSize: '13px', lineHeight: 1.7, whiteSpace: 'pre-wrap', wordBreak: 'break-all' }}>
-            {/* iframe console logs (HTML / React) */}
             {iframeLogs.map((log, i) => (
-              <div key={i} style={{ color: log.level === 'error' ? 'hsl(0,70%,65%)' : log.level === 'warn' ? 'hsl(38,85%,65%)' : 'hsl(142,70%,60%)', borderLeft: log.level === 'error' ? '2px solid hsl(0,70%,50%)' : log.level === 'warn' ? '2px solid hsl(38,85%,55%)' : 'none', paddingLeft: (log.level === 'error' || log.level === 'warn') ? '8px' : '0', marginBottom: '2px' }}>
+              <div key={i} style={{ color: log.level === 'error' ? 'hsl(0,70%,65%)' : log.level === 'warn' ? 'hsl(38,85%,65%)' : 'hsl(142,70%,60%)', borderLeft: (log.level === 'error' || log.level === 'warn') ? `2px solid ${log.level === 'error' ? 'hsl(0,70%,50%)' : 'hsl(38,85%,55%)'}` : 'none', paddingLeft: (log.level === 'error' || log.level === 'warn') ? '8px' : '0', marginBottom: '2px' }}>
                 {log.level === 'error' ? '✖ ' : log.level === 'warn' ? '⚠ ' : ''}{log.text}
               </div>
             ))}
-            {/* run output (Python / Node.js) */}
             {consoleOutput && <div style={{ color: 'hsl(142,70%,60%)' }}>{consoleOutput}</div>}
             {!consoleOutput && iframeLogs.length === 0 && (
               <span style={{ color: 'hsl(240 5% 38%)' }}>
-                {canRun ? '▶ Press Run to execute your code' : 'console.log() output from your code will appear here'}
+                {canRun ? '▶ Press Run to execute your code' : 'console.log() output appears here'}
               </span>
             )}
           </div>
@@ -1044,22 +1130,10 @@ export function CodeStudioView({ profile }: { profile: any }) {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100dvh', overflow: 'hidden', background: 'hsl(240 10% 4%)' }}>
 
       {/* ── Toolbar ── */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 10px', height: '50px', borderBottom: '1px solid hsl(240 6% 14%)', flexShrink: 0, overflowX: 'auto' }}>
-
-        {/* Project name — hidden on mobile to save space */}
-        {!isMobile && (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexShrink: 0 }}>
-              <Code2 size={16} color="hsl(262,83%,75%)" />
-              <input
-                value={projectName}
-                onChange={e => setProjectName(e.target.value)}
-                style={{ background: 'none', border: 'none', color: 'hsl(0 0% 88%)', fontSize: '14px', fontWeight: 600, outline: 'none', width: '120px' }}
-              />
-            </div>
-            <div style={{ width: '1px', height: '22px', background: 'hsl(240 6% 18%)', flexShrink: 0 }} />
-          </>
-        )}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '0 10px', height: '46px', borderBottom: '1px solid hsl(240 6% 14%)', flexShrink: 0, overflowX: 'auto', background: 'hsl(240 8% 5%)' }}>
+        <Code2 size={15} color="hsl(262,83%,75%)" />
+        {!isMobile && <span style={{ fontSize: '14px', fontWeight: 700, color: 'hsl(0 0% 85%)', letterSpacing: '-0.01em' }}>Code Studio</span>}
+        <div style={{ width: '1px', height: '20px', background: 'hsl(240 6% 18%)', flexShrink: 0 }} />
 
         {/* Language picker */}
         <div ref={langBtnRef} style={{ position: 'relative', flexShrink: 0 }}>
@@ -1071,7 +1145,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
               }
               setShowLangPicker(v => !v);
             }}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(0 0% 85%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
+            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '8px', color: 'hsl(0 0% 85%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer' }}
           >
             <span>{currentLang.emoji}</span>
             {!isMobile && <span>{currentLang.label}</span>}
@@ -1080,16 +1154,9 @@ export function CodeStudioView({ profile }: { profile: any }) {
           {showLangPicker && (
             <div style={{ position: 'fixed', top: langBtnRect.top, left: langBtnRect.left, zIndex: 9999, background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '10px', padding: '6px', minWidth: '180px', boxShadow: '0 8px 32px rgba(0,0,0,0.6)' }}>
               {LANG_OPTIONS.map(opt => (
-                <button
-                  key={opt.id}
-                  onClick={() => switchLang(opt.id)}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '9px 10px', borderRadius: '7px', background: lang === opt.id ? 'hsl(240 6% 14%)' : 'none', border: 'none', color: lang === opt.id ? 'hsl(0 0% 90%)' : 'hsl(240 5% 65%)', fontSize: '13px', cursor: 'pointer', textAlign: 'left' }}
-                >
+                <button key={opt.id} onClick={() => switchLang(opt.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', width: '100%', padding: '9px 10px', borderRadius: '7px', background: lang === opt.id ? 'hsl(240 6% 14%)' : 'none', border: 'none', color: lang === opt.id ? 'hsl(0 0% 90%)' : 'hsl(240 5% 65%)', fontSize: '13px', cursor: 'pointer', textAlign: 'left' }}>
                   <span style={{ fontSize: '16px' }}>{opt.emoji}</span>
-                  <div>
-                    <div style={{ fontWeight: 600 }}>{opt.label}</div>
-                    <div style={{ fontSize: '11px', opacity: 0.6 }}>{opt.desc}</div>
-                  </div>
+                  <div><div style={{ fontWeight: 600 }}>{opt.label}</div><div style={{ fontSize: '11px', opacity: 0.6 }}>{opt.desc}</div></div>
                   {lang === opt.id && <Check size={13} style={{ marginLeft: 'auto' }} color="hsl(205,90%,60%)" />}
                 </button>
               ))}
@@ -1097,243 +1164,83 @@ export function CodeStudioView({ profile }: { profile: any }) {
           )}
         </div>
 
-        <div style={{ flex: 1 }} />
-
-        {/* New project */}
-        <button onClick={() => setShowTemplates(v => !v)} title="New project" style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '5px 10px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(240 5% 65%)', fontSize: '13px', fontWeight: 500, cursor: 'pointer', flexShrink: 0 }}>
-          <LayoutTemplate size={13} />
-          {!isMobile && <span>New</span>}
-        </button>
-
-        {/* Save */}
-        <button onClick={saveProject} title="Save project" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
-          <Save size={14} />
-        </button>
-
-        {/* Copy */}
-        <button onClick={copyCode} title="Copy active file" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '34px', height: '34px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '8px', color: copied ? 'hsl(142,70%,55%)' : 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
-          {copied ? <Check size={14} /> : <Copy size={14} />}
-        </button>
-
-        {/* AI Chat */}
-        <button
-          onClick={() => setShowChat(v => !v)}
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: showChat ? 'hsl(262 83% 58% / 0.2)' : 'hsl(262 83% 58% / 0.1)', border: `1px solid ${showChat ? 'hsl(262 83% 58% / 0.5)' : 'hsl(262 83% 58% / 0.25)'}`, borderRadius: '8px', color: 'hsl(262,83%,75%)', fontSize: '13px', fontWeight: 600, cursor: 'pointer', flexShrink: 0 }}
-        >
-          <MessageSquare size={13} />
-          {!isMobile && <span>AI Chat</span>}
-          {chatMessages.length > 0 && (
-            <span style={{ background: 'hsl(262 83% 58%)', color: 'white', borderRadius: '999px', fontSize: '10px', fontWeight: 700, padding: '1px 5px', lineHeight: 1.4 }}>
-              {chatMessages.filter(m => m.role === 'user').length}
-            </span>
-          )}
-        </button>
-
-        {/* Run */}
-        {canRun && (
-          <button
-            onClick={runCode}
-            disabled={running}
-            style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: 'hsl(142 70% 40% / 0.15)', border: '1px solid hsl(142 70% 40% / 0.3)', borderRadius: '8px', color: 'hsl(142,70%,55%)', fontSize: '13px', fontWeight: 600, cursor: running ? 'not-allowed' : 'pointer', opacity: running ? 0.6 : 1, flexShrink: 0 }}
-          >
-            {running ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Play size={13} />}
-            {!isMobile && <span>{running ? 'Running…' : 'Run'}</span>}
-          </button>
+        {!isMobile && (
+          <input value={projectName} onChange={e => setProjectName(e.target.value)} style={{ background: 'none', border: 'none', color: 'hsl(240 5% 50%)', fontSize: '13px', outline: 'none', width: '100px' }} />
         )}
 
-        {/* Deploy */}
-        <button
-          onClick={deployToVercel}
-          disabled={deploying}
-          title="Deploy to Vercel"
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: 'hsl(205 90% 48% / 0.12)', border: '1px solid hsl(205 90% 48% / 0.3)', borderRadius: '8px', color: 'hsl(205,90%,60%)', fontSize: '13px', fontWeight: 600, cursor: deploying ? 'not-allowed' : 'pointer', opacity: deploying ? 0.6 : 1, flexShrink: 0 }}
-        >
-          {deploying ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Globe size={13} />}
-          {!isMobile && <Upload size={13} />}
-        </button>
+        <div style={{ flex: 1 }} />
 
-        {/* Push to GitHub */}
-        <button
-          onClick={pushToGithub}
-          disabled={githubPushing}
-          title="Push to GitHub"
-          style={{ display: 'flex', alignItems: 'center', gap: '5px', padding: '6px 10px', background: 'hsl(240 5% 14% / 0.8)', border: '1px solid hsl(240 5% 22%)', borderRadius: '8px', color: 'hsl(240 5% 70%)', fontSize: '13px', fontWeight: 600, cursor: githubPushing ? 'not-allowed' : 'pointer', opacity: githubPushing ? 0.6 : 1, flexShrink: 0 }}
-        >
-          {githubPushing ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Github size={13} />}
+        <button onClick={() => setShowTemplates(v => !v)} title="New project" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 9px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: 'hsl(240 5% 60%)', fontSize: '12.5px', cursor: 'pointer', flexShrink: 0 }}>
+          <LayoutTemplate size={12} />{!isMobile && <span>New</span>}
+        </button>
+        <button onClick={saveProject} title="Save" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
+          <Save size={13} />
+        </button>
+        <button onClick={copyCode} title="Copy" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: copied ? 'hsl(142,70%,55%)' : 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
+          {copied ? <Check size={13} /> : <Copy size={13} />}
+        </button>
+        <button onClick={deployToVercel} disabled={deploying} title="Deploy to Vercel" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 9px', background: 'hsl(205 90% 48% / 0.1)', border: '1px solid hsl(205 90% 48% / 0.25)', borderRadius: '7px', color: 'hsl(205,90%,60%)', fontSize: '12.5px', fontWeight: 600, cursor: deploying ? 'not-allowed' : 'pointer', opacity: deploying ? 0.6 : 1, flexShrink: 0 }}>
+          {deploying ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Globe size={12} />}
+          {!isMobile && <span>Deploy</span>}
+        </button>
+        <button onClick={pushToGithub} disabled={githubPushing} title="Push to GitHub" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 9px', background: 'hsl(240 5% 12%)', border: '1px solid hsl(240 5% 20%)', borderRadius: '7px', color: 'hsl(240 5% 65%)', fontSize: '12.5px', fontWeight: 600, cursor: githubPushing ? 'not-allowed' : 'pointer', opacity: githubPushing ? 0.6 : 1, flexShrink: 0 }}>
+          {githubPushing ? <Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> : <Github size={12} />}
           {!isMobile && <span>GitHub</span>}
         </button>
       </div>
 
-      {/* ── AI Chat Drawer ── */}
-      {showChat && (
-        <div style={{ position: 'fixed', top: 0, right: 0, bottom: 0, width: isMobile ? '100%' : '380px', zIndex: 9998, display: 'flex', flexDirection: 'column', background: 'hsl(240 8% 5%)', borderLeft: '1px solid hsl(240 6% 14%)', boxShadow: '-8px 0 40px rgba(0,0,0,0.5)' }}>
-
-          {/* Header */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '12px 14px', borderBottom: '1px solid hsl(240 6% 13%)', flexShrink: 0 }}>
-            <Sparkles size={14} color="hsl(262,83%,75%)" />
-            <span style={{ fontSize: '13px', fontWeight: 600, color: 'hsl(0 0% 88%)', flex: 1 }}>AI Assistant</span>
-            {chatMessages.length > 0 && (
-              <button onClick={() => setChatMessages([])} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 45%)', fontSize: '11px', padding: '3px 7px', borderRadius: '6px' }} title="Clear chat">
-                Clear
-              </button>
-            )}
-            <button onClick={() => setShowChat(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', padding: '3px' }}>
-              <X size={15} />
-            </button>
-          </div>
-
-          {/* Messages */}
-          <div style={{ flex: 1, overflowY: 'auto', padding: '12px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {chatMessages.length === 0 && (
-              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center', padding: '40px 20px', gap: '12px' }}>
-                <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'hsl(262 83% 58% / 0.12)', border: '1px solid hsl(262 83% 58% / 0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Sparkles size={18} color="hsl(262,83%,75%)" />
-                </div>
-                <div>
-                  <p style={{ fontSize: '14px', fontWeight: 600, color: 'hsl(0 0% 80%)', margin: '0 0 6px' }}>Ask me anything</p>
-                  <p style={{ fontSize: '12px', color: 'hsl(240 5% 45%)', margin: 0, lineHeight: 1.6 }}>Describe what to build, what to change, or ask questions about the code. I&apos;ll apply changes directly to the editor.</p>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', width: '100%', marginTop: '8px' }}>
-                  {['Build me a login form with validation', 'Add a dark mode toggle', 'Make this responsive for mobile', 'Add smooth animations to the hero'].map(suggestion => (
-                    <button key={suggestion} onClick={() => setChatInput(suggestion)} style={{ padding: '8px 12px', background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 15%)', borderRadius: '8px', color: 'hsl(240 5% 60%)', fontSize: '12px', cursor: 'pointer', textAlign: 'left' }}>
-                      {suggestion}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-            {chatMessages.map((msg, i) => (
-              <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: msg.role === 'user' ? 'flex-end' : 'flex-start', gap: '4px' }}>
-                <div style={{
-                  maxWidth: '92%',
-                  padding: '9px 12px',
-                  borderRadius: msg.role === 'user' ? '12px 12px 4px 12px' : '12px 12px 12px 4px',
-                  background: msg.role === 'user' ? 'hsl(262 83% 58%)' : 'hsl(240 6% 10%)',
-                  border: msg.role === 'user' ? 'none' : '1px solid hsl(240 6% 15%)',
-                  color: msg.role === 'user' ? 'white' : 'hsl(0 0% 85%)',
-                  fontSize: '13px',
-                  lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                }}>
-                  {/* Tool call indicators for assistant messages */}
-                  {msg.role === 'assistant' && msg.toolCalls && msg.toolCalls.length > 0 && (
-                    <div style={{ marginBottom: msg.content ? '8px' : 0, display: 'flex', flexDirection: 'column', gap: '3px', paddingBottom: msg.content ? '8px' : 0, borderBottom: msg.content ? '1px solid hsl(240 6% 18%)' : 'none' }}>
-                      {msg.toolCalls.map((tc, j) => (
-                        <span key={j} style={{ fontSize: '11px', color: 'hsl(240 5% 55%)', fontFamily: 'ui-monospace, monospace' }}>{tc}</span>
-                      ))}
-                      {/* Show spinner on last tool call if still loading */}
-                      {chatLoading && i === chatMessages.length - 1 && !msg.content && (
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '11px', color: 'hsl(262,83%,65%)' }}>
-                          <Loader2 size={10} style={{ animation: 'spin 1s linear infinite' }} /> Working…
-                        </span>
-                      )}
-                    </div>
-                  )}
-                  {msg.content || (chatLoading && i === chatMessages.length - 1 && (!msg.toolCalls || msg.toolCalls.length === 0)
-                    ? <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Loader2 size={12} style={{ animation: 'spin 1s linear infinite' }} /> Thinking…</span>
-                    : null
-                  )}
-                </div>
-                {msg.role === 'assistant' && msg.appliedCode && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '11px', color: 'hsl(142,70%,55%)', paddingLeft: '4px' }}>
-                    <Check size={11} />
-                    <span>Changes applied to editor</span>
-                  </div>
-                )}
-              </div>
-            ))}
-            <div ref={chatEndRef} />
-          </div>
-
-          {/* Input */}
-          <div style={{ padding: '10px 12px', borderTop: '1px solid hsl(240 6% 13%)', flexShrink: 0 }}>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'flex-end' }}>
-              <textarea
-                ref={chatInputRef}
-                value={chatInput}
-                onChange={e => setChatInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendChatMessage(); } }}
-                placeholder="Ask me to build or change something…"
-                rows={1}
-                style={{ flex: 1, background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '10px', color: 'hsl(0 0% 88%)', fontSize: '13px', padding: '9px 12px', resize: 'none', outline: 'none', fontFamily: 'inherit', lineHeight: 1.5, maxHeight: '120px', overflowY: 'auto' }}
-                onInput={e => { const t = e.currentTarget; t.style.height = 'auto'; t.style.height = Math.min(t.scrollHeight, 120) + 'px'; }}
-              />
-              <button
-                onClick={sendChatMessage}
-                disabled={chatLoading || !chatInput.trim()}
-                style={{ width: '36px', height: '36px', borderRadius: '10px', background: chatLoading || !chatInput.trim() ? 'hsl(240 6% 14%)' : 'hsl(262 83% 58%)', border: 'none', color: 'white', cursor: chatLoading || !chatInput.trim() ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.15s' }}
-              >
-                {chatLoading ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> : <Send size={14} />}
-              </button>
-            </div>
-            <p style={{ fontSize: '11px', color: 'hsl(240 5% 38%)', margin: '6px 0 0', textAlign: 'center' }}>Enter to send · Shift+Enter for new line</p>
-          </div>
-        </div>
-      )}
-
-      {/* Deploy URL banner */}
-      {deployUrl && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'hsl(142 70% 40% / 0.1)', borderBottom: '1px solid hsl(142 70% 40% / 0.2)', flexShrink: 0 }}>
-          <Check size={13} color="hsl(142,70%,55%)" />
-          <span style={{ fontSize: '13px', color: 'hsl(142,70%,60%)', fontWeight: 500 }}>Deployed!</span>
-          <a href={deployUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: 'hsl(205,90%,60%)', textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployUrl}</a>
-          <button onClick={() => setDeployUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', flexShrink: 0 }}>
-            <X size={14} />
-          </button>
-        </div>
-      )}
-
-      {/* GitHub repo URL banner */}
-      {githubRepoUrl && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 14px', background: 'hsl(240 5% 10%)', borderBottom: '1px solid hsl(240 5% 18%)', flexShrink: 0 }}>
-          <Github size={13} color="hsl(240 5% 70%)" />
-          <span style={{ fontSize: '13px', color: 'hsl(240 5% 70%)', fontWeight: 500 }}>Pushed!</span>
-          <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '13px', color: 'hsl(205,90%,60%)', textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{githubRepoUrl}</a>
-          <button onClick={() => setGithubRepoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex', flexShrink: 0 }}>
-            <X size={14} />
-          </button>
-        </div>
-      )}
-
-      {/* ── Mobile panel tab switcher ── */}
+      {/* Mobile tab switcher */}
       {isMobile && (
         <div style={{ display: 'flex', background: 'hsl(240 6% 6%)', borderBottom: '1px solid hsl(240 6% 14%)', flexShrink: 0 }}>
-          {[
-            { id: 'files' as MobilePanel, label: 'Files', icon: <PanelLeft size={14} /> },
-            { id: 'editor' as MobilePanel, label: 'Editor', icon: <FileCode size={14} /> },
-            { id: 'output' as MobilePanel, label: canPreview ? 'Preview' : 'Console', icon: canPreview ? <Eye size={14} /> : <Terminal size={14} /> },
+          {([
+            { id: 'chat', label: 'AI Chat', icon: <Sparkles size={13} /> },
+            { id: 'editor', label: 'Editor', icon: <FileCode size={13} /> },
+            { id: 'output', label: canPreview ? 'Preview' : 'Console', icon: canPreview ? <Eye size={13} /> : <Terminal size={13} /> },
           ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setMobilePanel(tab.id)}
-              style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', padding: '10px 8px', background: 'none', border: 'none', borderBottom: mobilePanel === tab.id ? '2px solid hsl(205,90%,48%)' : '2px solid transparent', color: mobilePanel === tab.id ? 'hsl(205,90%,70%)' : 'hsl(240 5% 50%)', fontSize: '13px', fontWeight: mobilePanel === tab.id ? 600 : 400, cursor: 'pointer' }}
-            >
-              {tab.icon}
-              {tab.label}
+            <button key={tab.id} onClick={() => setMobilePanel(tab.id)} style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px', padding: '9px 6px', background: 'none', border: 'none', borderBottom: mobilePanel === tab.id ? '2px solid hsl(262,83%,58%)' : '2px solid transparent', color: mobilePanel === tab.id ? 'hsl(262,83%,75%)' : 'hsl(240 5% 50%)', fontSize: '12.5px', fontWeight: mobilePanel === tab.id ? 600 : 400, cursor: 'pointer' }}>
+              {tab.icon}{tab.label}
             </button>
-          ))}
+          )))}
+        </div>
+      )}
+
+      {/* Deploy / GitHub banners */}
+      {deployUrl && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px', background: 'hsl(142 70% 40% / 0.1)', borderBottom: '1px solid hsl(142 70% 40% / 0.2)', flexShrink: 0 }}>
+          <Check size={12} color="hsl(142,70%,55%)" />
+          <span style={{ fontSize: '12.5px', color: 'hsl(142,70%,60%)', fontWeight: 500 }}>Deployed!</span>
+          <a href={deployUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12.5px', color: 'hsl(205,90%,60%)', textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{deployUrl}</a>
+          <button onClick={() => setDeployUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex' }}><X size={13} /></button>
+        </div>
+      )}
+      {githubRepoUrl && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 14px', background: 'hsl(240 5% 10%)', borderBottom: '1px solid hsl(240 5% 18%)', flexShrink: 0 }}>
+          <Github size={12} color="hsl(240 5% 70%)" />
+          <span style={{ fontSize: '12.5px', color: 'hsl(240 5% 70%)', fontWeight: 500 }}>Pushed!</span>
+          <a href={githubRepoUrl} target="_blank" rel="noopener noreferrer" style={{ fontSize: '12.5px', color: 'hsl(205,90%,60%)', textDecoration: 'none', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{githubRepoUrl}</a>
+          <button onClick={() => setGithubRepoUrl('')} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'hsl(240 5% 50%)', display: 'flex' }}><X size={13} /></button>
         </div>
       )}
 
       {/* ── Body ── */}
       <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
-        {/* Desktop: all 3 panels side-by-side */}
+        {/* Desktop: Agent chat (left) | Editor + Output (right) */}
         {!isMobile && (
           <>
-            {fileTreePanel}
-            {editorPanel}
-            {outputPanel}
+            {agentPanel}
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }}>
+              {editorPanel}
+              {outputPanel}
+            </div>
           </>
         )}
-
-        {/* Mobile: one panel at a time, full width */}
-        {isMobile && mobilePanel === 'files' && fileTreePanel}
+        {/* Mobile: one panel at a time */}
+        {isMobile && mobilePanel === 'chat' && agentPanel}
         {isMobile && mobilePanel === 'editor' && editorPanel}
         {isMobile && mobilePanel === 'output' && outputPanel}
       </div>
 
-      {/* ── Template picker modal ── */}
+      {/* Template picker modal */}
       {showTemplates && (
         <div onClick={() => setShowTemplates(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.7)', zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
           <div onClick={e => e.stopPropagation()} style={{ background: 'hsl(240 6% 8%)', border: '1px solid hsl(240 6% 16%)', borderRadius: '16px', padding: '24px', width: '100%', maxWidth: '480px' }}>
@@ -1343,9 +1250,11 @@ export function CodeStudioView({ profile }: { profile: any }) {
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
               {TEMPLATES.map(t => (
-                <button key={t.label} onClick={() => loadTemplate(t)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', padding: '16px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
+                <button key={t.label} onClick={() => loadTemplate(t)}
+                  style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '6px', padding: '16px', background: 'hsl(240 6% 11%)', border: '1px solid hsl(240 6% 18%)', borderRadius: '12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
                   onMouseEnter={e => (e.currentTarget.style.borderColor = 'hsl(205 90% 48% / 0.5)')}
-                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(240 6% 18%)')}>
+                  onMouseLeave={e => (e.currentTarget.style.borderColor = 'hsl(240 6% 18%)')}
+                >
                   <span style={{ fontSize: '24px' }}>{t.emoji}</span>
                   <span style={{ fontSize: '14px', fontWeight: 600, color: 'hsl(0 0% 90%)' }}>{t.label}</span>
                   <span style={{ fontSize: '12px', color: 'hsl(240 5% 50%)', lineHeight: 1.4 }}>{t.desc}</span>
@@ -1356,9 +1265,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
         </div>
       )}
 
-      <style>{`
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-      `}</style>
+      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
     </div>
   );
 }
