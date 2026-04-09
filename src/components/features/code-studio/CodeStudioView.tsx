@@ -759,8 +759,14 @@ export function CodeStudioView({ profile }: { profile: any }) {
               setFiles(prev => {
                 const next = [...prev];
                 const idx = next.findIndex(f => f.name === ev.path);
-                if (idx >= 0) next[idx] = { ...next[idx], content: ev.content };
-                else next.push({ id: `agent-${Date.now()}-${ev.path}`, name: ev.path, content: ev.content });
+                if (idx >= 0) {
+                  next[idx] = { ...next[idx], content: ev.content };
+                  setActiveFileId(next[idx].id);
+                } else {
+                  const newFile = { id: `agent-${Date.now()}-${ev.path}`, name: ev.path, content: ev.content };
+                  next.push(newFile);
+                  setActiveFileId(newFile.id);
+                }
                 return next;
               });
               setIframeLogs([]);
@@ -952,6 +958,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
       </div>
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <MonacoEditor
+          key={activeFileId}
           height="100%"
           language={getMonacoLang(activeFile?.name || 'index.html')}
           value={activeFile?.content || ''}
