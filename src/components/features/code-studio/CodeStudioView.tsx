@@ -476,9 +476,9 @@ function loadSavedProjects(): Array<{ id: string; name: string; lang: Lang; file
 export function CodeStudioView({ profile }: { profile: any }) {
   const isPro = profile?.plan_tier === 'pro' || profile?.plan_tier === 'plus';
 
-  const [lang, setLang] = useState<Lang>('react');
-  const [files, setFiles] = useState<ProjectFile[]>(DEFAULT_FILES.react);
-  const [activeFileId, setActiveFileId] = useState('react-1');
+  const [lang, setLang] = useState<Lang>('html');
+  const [files, setFiles] = useState<ProjectFile[]>([BLANK_FILE]);
+  const [activeFileId, setActiveFileId] = useState(BLANK_FILE.id);
   const [outputTab, setOutputTab] = useState<OutputTab>('preview');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('editor');
   const [isMobile, setIsMobile] = useState(false);
@@ -489,8 +489,9 @@ export function CodeStudioView({ profile }: { profile: any }) {
 
   const [chatInput, setChatInput] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
   const [chatMessages, setChatMessages] = useState<Array<{ role: 'user' | 'assistant'; content: string; toolCalls?: string[]; appliedCode?: boolean }>>([]);
-  const [previewSrc, setPreviewSrc] = useState(() => buildPreviewSrcdoc(DEFAULT_FILES.react, 'react'));
+  const [previewSrc, setPreviewSrc] = useState('');
   const [iframeLogs, setIframeLogs] = useState<Array<{ level: string; text: string }>>([]);
   const [showLangPicker, setShowLangPicker] = useState(false);
   const [newFileName, setNewFileName] = useState('');
@@ -755,6 +756,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
 
             case 'file_update':
               filesModified = true;
+              setEditorKey(k => k + 1);
               setFiles(prev => {
                 const next = [...prev];
                 const idx = next.findIndex(f => f.name === ev.path);
@@ -1045,7 +1047,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
       {/* Monaco */}
       <div style={{ flex: 1, overflow: 'hidden' }}>
         <MonacoEditor
-          key={activeFileId}
+          key={`${activeFileId}-${editorKey}`}
           height="100%"
           language={getMonacoLang(activeFile?.name || 'index.html')}
           value={activeFile?.content || ''}
