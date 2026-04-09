@@ -507,6 +507,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const langBtnRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<any>(null);
+  const streamingRef = useRef<{ path: string; content: string } | null>(null);
   const [langBtnRect, setLangBtnRect] = useState<{ left: number; top: number }>({ left: 0, top: 50 });
   const activeFile = files.find(f => f.id === activeFileId) || files[0];
 
@@ -749,14 +751,52 @@ export function CodeStudioView({ profile }: { profile: any }) {
               flush();
               break;
 
-            case 'tool_call':
-              accTools = [...accTools, toolLabel(ev.tool, ev.path, ev.language)];
+            case 'file_start': {
+              // Show "Writing filename..." in tool call area
+              if (!accTools.includes(`Writing ${ev.path}`)) {
+                accTools = [...accTools, `Writing ${ev.path}`];
+              }
               flush();
-              break;
-
-            case 'file_update':
               filesModified = true;
-              setEditorKey(k => k + 1);
+              streamingRef.current = { path: ev.path, content: '' };
+              // Create or find the file in state and switch to it
+              setFiles(prev => {
+                const next = [...prev];
+                const idx = next.findIndex(f => f.name === ev.path);
+                if (idx >= 0) {
+                  next[idx] = { ...next[idx], content: '' };
+                  setActiveFileId(next[idx].id);
+                } else {
+                  const newFile = { id: `agent-${Date.now()}-${ev.path}`, name: ev.path, content: '' };
+                  next.push(newFile);
+                  setActiveFileId(newFile.id);
+                }
+                return next;
+              });
+              if (isMobile) setMobilePanel('editor');
+              // Clear the editor immediately for visual "writing from scratch" effect
+              setTimeout(() => { editorRef.current?.setValue(''); }, 0);
+              break;
+            }
+
+            case 'file_chunk': {
+              if (streamingRef.current && streamingRef.current.path === ev.path) {
+                streamingRef.current.content += ev.chunk;
+                // Imperatively update Monaco without React re-render (fast streaming)
+                editorRef.current?.setValue(streamingRef.current.content);
+                // Scroll editor to bottom as code streams in
+                const model = editorRef.current?.getModel();
+                if (model) {
+                  const lastLine = model.getLineCount();
+                  editorRef.current?.revealLine(lastLine);
+                }
+              }
+              break;
+            }
+
+            case 'file_done': {
+              streamingRef.current = null;
+              // Commit final content to React state + force Monaco remount for clean state
               setFiles(prev => {
                 const next = [...prev];
                 const idx = next.findIndex(f => f.name === ev.path);
@@ -770,31 +810,11 @@ export function CodeStudioView({ profile }: { profile: any }) {
                 }
                 return next;
               });
+              setEditorKey(k => k + 1);
               setIframeLogs([]);
-              if (isMobile) setMobilePanel('editor');
               flush();
               break;
-
-            case 'file_delete':
-              setFiles(prev => {
-                const remaining = prev.filter(f => f.name !== ev.path);
-                if (remaining.length === 0) {
-                  const blank = { id: `blank-${Date.now()}`, name: 'index.html', content: '' };
-                  setActiveFileId(blank.id);
-                  return [blank];
-                }
-                setActiveFileId(cur => {
-                  const deleted = prev.find(f => f.name === ev.path);
-                  return deleted?.id === cur ? remaining[0].id : cur;
-                });
-                return remaining;
-              });
-              break;
-
-            case 'run_output':
-              setConsoleOutput(ev.output || '');
-              setOutputTab('console');
-              break;
+            }
 
             case 'error':
               toast.error(ev.message || 'Agent error');
@@ -808,6 +828,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
       toast.error(err.message || 'Agent failed');
     } finally {
       setChatLoading(false);
+      streamingRef.current = null;
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
   }
@@ -942,11 +963,11 @@ export function CodeStudioView({ profile }: { profile: any }) {
                       const isLast = j === msg.toolCalls!.length - 1;
                       const isRunning = chatLoading && i === chatMessages.length - 1 && isLast;
                       return (
-                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 10px', background: 'hsl(240 6% 9%)', border: '1px solid hsl(240 6% 14%)', borderRadius: '8px', fontSize: '12px', color: 'hsl(240 5% 58%)', fontFamily: 'ui-monospace, monospace' }}>
+                        <div key={j} style={{ display: 'flex', alignItems: 'center', gap: '7px', padding: '6px 10px', background: 'hsl(240 6% 9%)', border: `1px solid ${isRunning ? 'hsl(262 83% 58% / 0.3)' : 'hsl(240 6% 14%)'}`, borderRadius: '8px', fontSize: '12px', color: 'hsl(240 5% 58%)', fontFamily: 'ui-monospace, monospace' }}>
                           {isRunning
                             ? <Loader2 size={10} style={{ animation: 'spin 1s linear infinite', flexShrink: 0 }} color="hsl(262,83%,65%)" />
                             : <Check size={10} color="hsl(142,70%,55%)" style={{ flexShrink: 0 }} />}
-                          {tc}
+                          <span style={{ color: isRunning ? 'hsl(262,83%,75%)' : 'inherit' }}>{tc}</span>
                         </div>
                       );
                     })}
@@ -1052,6 +1073,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
           language={getMonacoLang(activeFile?.name || 'index.html')}
           value={activeFile?.content || ''}
           onChange={v => updateActiveFile(v || '')}
+          onMount={(editor) => { editorRef.current = editor; }}
           theme="vs-dark"
           options={{
             minimap: { enabled: false },
