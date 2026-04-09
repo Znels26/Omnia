@@ -65,45 +65,32 @@ const TOOLS = [
 function buildSystemPrompt(language: string, fileNames: string[]): string {
   const fileList = fileNames.length > 0
     ? `Current project files:\n${fileNames.map(f => `  - ${f}`).join('\n')}`
-    : 'The project is currently empty.';
+    : 'The project is currently empty — you must create all files from scratch.';
 
   const langGuide = (language === 'python' || language === 'nodejs')
     ? `Language: ${language === 'python' ? 'Python 3' : 'Node.js'}
 Write clean, idiomatic, well-structured code. Handle errors. Use run_code to verify after writing.`
     : language === 'react'
       ? `Language: React (JSX with ES modules)
-Use ES module imports: import { useState } from 'react' — not React.useState globals.
-Export default components. Import CSS files directly (import './App.css').
-Build impressive, production-quality UIs. Use framer-motion for animations if needed.
-npm packages available via esm.sh — no install needed.`
+Use ES module imports: import { useState } from 'react'. Export default components. Import CSS directly.
+Build impressive, production-quality UIs. npm packages available via esm.sh.`
       : `Language: HTML / CSS / JavaScript
-Write semantic HTML5, modern CSS (Grid/Flexbox), and vanilla JS.
-No frameworks, no Bootstrap. Real content — no Lorem Ipsum.
-Add hover effects, smooth transitions, and animations.`;
+Write semantic HTML5, modern CSS (Grid/Flexbox/animations), and vanilla JS.
+No frameworks, no Bootstrap. Real content — no Lorem Ipsum. Include hover effects and animations.`;
 
-  return `You are an expert software engineer inside Omnia Code Studio — an AI coding agent with full file access via tools.
+  return `You are an expert software engineer in Omnia Code Studio. You write code by calling tools — never in text.
 
 ${langGuide}
 
-━━━ CRITICAL RULES — FOLLOW EXACTLY ━━━
-1. ALWAYS call list_files first to see what exists
-2. ALWAYS call read_file before modifying any existing file
-3. ALWAYS write code using write_file — NEVER put code in your text response
-4. Write the COMPLETE file content every time — never partial, never truncated
-5. For Python/Node.js: call run_code after writing to verify it works
-6. After all writes are done: write 1-2 sentences summarising what you built (no code blocks)
+${fileList}
 
-If the project is empty, create all needed files from scratch.
-If files exist, read them first, then overwrite with improvements.
-
-━━━ TOOLS ━━━
-- list_files  → see what files exist
-- read_file   → read before editing
-- write_file  → create or overwrite (ALWAYS full content)
-- delete_file → remove a file
-- run_code    → execute Python or Node.js and capture output
-
-${fileList}`;
+━━━ HOW YOU MUST BEHAVE ━━━
+- IMMEDIATELY call write_file to create or update files. Do NOT output any planning or explanation first.
+- If the project is empty: call write_file directly. Do not list or read first — just write.
+- If files exist: call read_file first, then call write_file with the updated content.
+- Write the COMPLETE file content every time. Never truncate. Never use placeholders.
+- After ALL files are written, write 1 short sentence summarising what was built.
+- NEVER output code in your text response. ALL code goes through write_file only.`;
 }
 
 // ── E2B code execution ───────────────────────────────────────────────────────
@@ -146,6 +133,137 @@ function send(controller: ReadableStreamDefaultController, encoder: TextEncoder,
   controller.enqueue(encoder.encode(`data: ${JSON.stringify(data)}\n\n`));
 }
 
+// ── One Claude iteration ─────────────────────────────────────────────────────
+// Returns { stopReason, toolResults, wroteFile }
+
+async function runOneIteration(
+  apiKey: string,
+  e2bKey: string | undefined,
+  systemPrompt: string,
+  currentMessages: any[],
+  fileMap: Map<string, string>,
+  controller: ReadableStreamDefaultController,
+  encoder: TextEncoder,
+): Promise<{ stopReason: string; toolResults: { id: string; content: string }[]; wroteFile: boolean }> {
+
+  const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+    },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: 8192,
+      system: systemPrompt,
+      tools: TOOLS,
+      messages: currentMessages,
+      stream: true,
+    }),
+  });
+
+  if (!claudeRes.ok) {
+    const err = await claudeRes.text();
+    send(controller, encoder, { type: 'error', message: `AI error: ${err}` });
+    return { stopReason: 'error', toolResults: [], wroteFile: false };
+  }
+
+  const reader = claudeRes.body!.getReader();
+  const dec = new TextDecoder();
+
+  const assistantContent: any[] = [];
+  const toolResults: { id: string; content: string }[] = [];
+  let stopReason = 'end_turn';
+  let curText = '';
+  let curTool: { id: string; name: string; json: string } | null = null;
+  let wroteFile = false;
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+
+    const chunk = dec.decode(value, { stream: true });
+    for (const line of chunk.split('\n')) {
+      if (!line.startsWith('data: ')) continue;
+      const raw = line.slice(6);
+      if (raw === '[DONE]') continue;
+      let ev: any;
+      try { ev = JSON.parse(raw); } catch { continue; }
+
+      if (ev.type === 'content_block_start') {
+        if (ev.content_block.type === 'text') {
+          curText = '';
+        } else if (ev.content_block.type === 'tool_use') {
+          if (curText) { assistantContent.push({ type: 'text', text: curText }); curText = ''; }
+          curTool = { id: ev.content_block.id, name: ev.content_block.name, json: '' };
+        }
+
+      } else if (ev.type === 'content_block_delta') {
+        if (ev.delta.type === 'text_delta') {
+          curText += ev.delta.text;
+          send(controller, encoder, { type: 'text', text: ev.delta.text });
+        } else if (ev.delta.type === 'input_json_delta' && curTool) {
+          curTool.json += ev.delta.partial_json;
+        }
+
+      } else if (ev.type === 'content_block_stop') {
+        if (curText) {
+          assistantContent.push({ type: 'text', text: curText });
+          curText = '';
+        }
+        if (curTool) {
+          const tool = curTool;
+          let input: any = {};
+          try { input = JSON.parse(tool.json || '{}'); } catch {}
+
+          assistantContent.push({ type: 'tool_use', id: tool.id, name: tool.name, input });
+          send(controller, encoder, { type: 'tool_call', tool: tool.name, path: input.path, language: input.language });
+
+          let result = '';
+
+          if (tool.name === 'read_file') {
+            result = fileMap.has(input.path) ? fileMap.get(input.path)! : `File not found: ${input.path}`;
+
+          } else if (tool.name === 'write_file') {
+            fileMap.set(input.path, input.content ?? '');
+            result = `Written: ${input.path}`;
+            wroteFile = true;
+            send(controller, encoder, { type: 'file_update', path: input.path, content: input.content ?? '' });
+
+          } else if (tool.name === 'list_files') {
+            const names = Array.from(fileMap.keys());
+            result = names.length > 0 ? names.join('\n') : '(empty project)';
+
+          } else if (tool.name === 'delete_file') {
+            const had = fileMap.has(input.path);
+            fileMap.delete(input.path);
+            result = had ? `Deleted: ${input.path}` : `Not found: ${input.path}`;
+            if (had) send(controller, encoder, { type: 'file_delete', path: input.path });
+
+          } else if (tool.name === 'run_code') {
+            if (!e2bKey) {
+              result = 'E2B_API_KEY not configured — cannot execute code in this environment';
+            } else {
+              result = await runInSandbox(input.code, input.language, e2bKey);
+              send(controller, encoder, { type: 'run_output', output: result });
+            }
+          }
+
+          toolResults.push({ id: tool.id, content: result });
+          curTool = null;
+        }
+
+      } else if (ev.type === 'message_delta') {
+        stopReason = ev.delta.stop_reason ?? 'end_turn';
+      }
+    }
+  }
+
+  currentMessages.push({ role: 'assistant', content: assistantContent });
+  return { stopReason, toolResults, wroteFile };
+}
+
 // ── Route handler ────────────────────────────────────────────────────────────
 
 export async function POST(req: NextRequest) {
@@ -160,7 +278,6 @@ export async function POST(req: NextRequest) {
 
   if (!messages?.length) return NextResponse.json({ error: 'Messages required' }, { status: 400 });
 
-  // Build mutable file map so tools can read/write during the loop
   const fileMap = new Map<string, string>();
   for (const f of (inputFiles || [])) fileMap.set(f.name, f.content);
 
@@ -171,137 +288,52 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       const MAX_ITERATIONS = 20;
       const currentMessages = [...messages];
+      let wroteAnyFile = false;
 
       try {
+        // ── Main agentic loop ──
         for (let i = 0; i < MAX_ITERATIONS; i++) {
-          // ── Call Claude ──────────────────────────────────────────────────
-          const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'x-api-key': apiKey,
-              'anthropic-version': '2023-06-01',
-            },
-            body: JSON.stringify({
-              model: 'claude-sonnet-4-6',
-              max_tokens: 8192,
-              system: systemPrompt,
-              tools: TOOLS,
-              messages: currentMessages,
-              stream: true,
-            }),
-          });
+          const { stopReason, toolResults, wroteFile } = await runOneIteration(
+            apiKey, e2bKey, systemPrompt, currentMessages, fileMap, controller, encoder,
+          );
 
-          if (!claudeRes.ok) {
-            const err = await claudeRes.text();
-            send(controller, encoder, { type: 'error', message: `AI error: ${err}` });
-            break;
-          }
+          if (wroteFile) wroteAnyFile = true;
+          if (stopReason === 'error') break;
 
-          // ── Parse streaming response ─────────────────────────────────────
-          const reader = claudeRes.body!.getReader();
-          const dec = new TextDecoder();
-
-          const assistantContent: any[] = [];
-          const toolResults: { id: string; content: string }[] = [];
-          let stopReason = 'end_turn';
-          let curText = '';
-          let curTool: { id: string; name: string; json: string } | null = null;
-
-          while (true) {
-            const { done, value } = await reader.read();
-            if (done) break;
-
-            const chunk = dec.decode(value, { stream: true });
-            for (const line of chunk.split('\n')) {
-              if (!line.startsWith('data: ')) continue;
-              const raw = line.slice(6);
-              if (raw === '[DONE]') continue;
-              let ev: any;
-              try { ev = JSON.parse(raw); } catch { continue; }
-
-              if (ev.type === 'content_block_start') {
-                if (ev.content_block.type === 'text') {
-                  curText = '';
-                } else if (ev.content_block.type === 'tool_use') {
-                  if (curText) { assistantContent.push({ type: 'text', text: curText }); curText = ''; }
-                  curTool = { id: ev.content_block.id, name: ev.content_block.name, json: '' };
-                }
-
-              } else if (ev.type === 'content_block_delta') {
-                if (ev.delta.type === 'text_delta') {
-                  curText += ev.delta.text;
-                  send(controller, encoder, { type: 'text', text: ev.delta.text });
-                } else if (ev.delta.type === 'input_json_delta' && curTool) {
-                  curTool.json += ev.delta.partial_json;
-                }
-
-              } else if (ev.type === 'content_block_stop') {
-                if (curText) {
-                  assistantContent.push({ type: 'text', text: curText });
-                  curText = '';
-                }
-                if (curTool) {
-                  const tool = curTool;
-                  let input: any = {};
-                  try { input = JSON.parse(tool.json || '{}'); } catch {}
-
-                  assistantContent.push({ type: 'tool_use', id: tool.id, name: tool.name, input });
-
-                  // ── Notify client which tool is running ──────────────────
-                  send(controller, encoder, { type: 'tool_call', tool: tool.name, path: input.path, language: input.language });
-
-                  // ── Execute tool ─────────────────────────────────────────
-                  let result = '';
-
-                  if (tool.name === 'read_file') {
-                    result = fileMap.has(input.path) ? fileMap.get(input.path)! : `File not found: ${input.path}`;
-
-                  } else if (tool.name === 'write_file') {
-                    fileMap.set(input.path, input.content ?? '');
-                    result = `Written: ${input.path}`;
-                    send(controller, encoder, { type: 'file_update', path: input.path, content: input.content ?? '' });
-
-                  } else if (tool.name === 'list_files') {
-                    const names = Array.from(fileMap.keys());
-                    result = names.length > 0 ? names.join('\n') : '(empty project)';
-
-                  } else if (tool.name === 'delete_file') {
-                    const had = fileMap.has(input.path);
-                    fileMap.delete(input.path);
-                    result = had ? `Deleted: ${input.path}` : `Not found: ${input.path}`;
-                    if (had) send(controller, encoder, { type: 'file_delete', path: input.path });
-
-                  } else if (tool.name === 'run_code') {
-                    if (!e2bKey) {
-                      result = 'E2B_API_KEY not configured — cannot execute code in this environment';
-                    } else {
-                      result = await runInSandbox(input.code, input.language, e2bKey);
-                      send(controller, encoder, { type: 'run_output', output: result });
-                    }
-                  }
-
-                  toolResults.push({ id: tool.id, content: result });
-                  curTool = null;
-                }
-
-              } else if (ev.type === 'message_delta') {
-                stopReason = ev.delta.stop_reason ?? 'end_turn';
-              }
-            }
-          }
-
-          // Add assistant turn to history
-          currentMessages.push({ role: 'assistant', content: assistantContent });
-
-          // If Claude is done (not requesting more tool calls), stop
+          // Loop continues only if there are pending tool results
           if (stopReason !== 'tool_use' || toolResults.length === 0) break;
 
-          // Otherwise feed tool results back and loop
           currentMessages.push({
             role: 'user',
             content: toolResults.map(r => ({ type: 'tool_result', tool_use_id: r.id, content: r.content })),
           });
+        }
+
+        // ── Nudge pass — if agent explained plans but never wrote files ──
+        if (!wroteAnyFile) {
+          send(controller, encoder, {
+            type: 'text',
+            text: '\n\n*(Writing files now…)*\n\n',
+          });
+          currentMessages.push({
+            role: 'user',
+            content: 'You have not written any files yet. Use write_file RIGHT NOW to create the code. Do not explain — just call write_file immediately with complete, production-quality content.',
+          });
+
+          // One more full loop pass after the nudge
+          for (let i = 0; i < MAX_ITERATIONS; i++) {
+            const { stopReason, toolResults } = await runOneIteration(
+              apiKey, e2bKey, systemPrompt, currentMessages, fileMap, controller, encoder,
+            );
+
+            if (stopReason === 'error') break;
+            if (stopReason !== 'tool_use' || toolResults.length === 0) break;
+
+            currentMessages.push({
+              role: 'user',
+              content: toolResults.map(r => ({ type: 'tool_result', tool_use_id: r.id, content: r.content })),
+            });
+          }
         }
 
         send(controller, encoder, { type: 'done' });
