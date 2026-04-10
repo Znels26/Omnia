@@ -477,8 +477,8 @@ export function CodeStudioView({ profile }: { profile: any }) {
   const isPro = profile?.plan_tier === 'pro' || profile?.plan_tier === 'plus';
 
   const [lang, setLang] = useState<Lang>('html');
-  const [files, setFiles] = useState<ProjectFile[]>([BLANK_FILE]);
-  const [activeFileId, setActiveFileId] = useState(BLANK_FILE.id);
+  const [files, setFiles] = useState<ProjectFile[]>([]);
+  const [activeFileId, setActiveFileId] = useState('');
   const [outputTab, setOutputTab] = useState<OutputTab>('preview');
   const [mobilePanel, setMobilePanel] = useState<MobilePanel>('editor');
   const [isMobile, setIsMobile] = useState(false);
@@ -557,13 +557,25 @@ export function CodeStudioView({ profile }: { profile: any }) {
 
   function switchLang(newLang: Lang) {
     setLang(newLang);
-    const preset = DEFAULT_FILES[newLang];
-    setFiles(preset);
-    setActiveFileId(preset[0].id);
+    setFiles([]);
+    setActiveFileId('');
     setConsoleOutput('');
     setDeployUrl('');
     setIframeLogs([]);
     setShowLangPicker(false);
+  }
+
+  function clearProject() {
+    setFiles([]);
+    setActiveFileId('');
+    setConsoleOutput('');
+    setDeployUrl('');
+    setGithubRepoUrl('');
+    setIframeLogs([]);
+    setChatMessages([]);
+    setPreviewSrc('');
+    setProjectId(Date.now().toString());
+    setProjectName('my-project');
   }
 
   function updateActiveFile(content: string) {
@@ -581,16 +593,9 @@ export function CodeStudioView({ profile }: { profile: any }) {
   }
 
   function deleteFile(id: string) {
-    if (files.length === 1) {
-      // Replace with a blank file rather than blocking deletion
-      const blank: ProjectFile = { id: `blank-${Date.now()}`, name: 'index.html', content: '' };
-      setFiles([blank]);
-      setActiveFileId(blank.id);
-      return;
-    }
     const remaining = files.filter(f => f.id !== id);
     setFiles(remaining);
-    if (activeFileId === id) setActiveFileId(remaining[0].id);
+    if (activeFileId === id) setActiveFileId(remaining[0]?.id ?? '');
   }
 
   async function runCode() {
@@ -602,7 +607,7 @@ export function CodeStudioView({ profile }: { profile: any }) {
     setConsoleOutput('Running…\n');
     try {
       const code = files.find(f => f.name === (lang === 'python' ? 'main.py' : 'index.js'))?.content
-        || activeFile.content;
+        || activeFile?.content || '';
       const res = await fetch('/api/code-studio/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1065,32 +1070,39 @@ export function CodeStudioView({ profile }: { profile: any }) {
         </div>
       )}
 
-      {/* Monaco */}
-      <div style={{ flex: 1, overflow: 'hidden' }}>
-        <MonacoEditor
-          key={`${activeFileId}-${editorKey}`}
-          height="100%"
-          language={getMonacoLang(activeFile?.name || 'index.html')}
-          value={activeFile?.content || ''}
-          onChange={v => updateActiveFile(v || '')}
-          onMount={(editor) => { editorRef.current = editor; }}
-          theme="vs-dark"
-          options={{
-            minimap: { enabled: false },
-            fontSize: isMobile ? 14 : 13,
-            tabSize: 2,
-            wordWrap: 'on',
-            padding: { top: 12, bottom: 12 },
-            scrollBeyondLastLine: false,
-            smoothScrolling: true,
-            cursorBlinking: 'smooth',
-            bracketPairColorization: { enabled: true },
-            renderLineHighlight: 'gutter',
-            fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace",
-            fontLigatures: !isMobile,
-            scrollbar: { verticalScrollbarSize: isMobile ? 8 : 6, useShadows: false },
-          }}
-        />
+      {/* Monaco or empty state */}
+      <div style={{ flex: 1, overflow: 'hidden', position: 'relative' }}>
+        {files.length === 0 ? (
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#1e1e1e', color: 'hsl(240 5% 40%)', textAlign: 'center', padding: '24px', gap: '10px' }}>
+            <FileCode size={36} style={{ opacity: 0.2 }} />
+            <p style={{ margin: 0, fontSize: '14px', lineHeight: 1.6 }}>Send a prompt in the chat to generate code.<br />Files will appear here as the AI writes them.</p>
+          </div>
+        ) : (
+          <MonacoEditor
+            key={`${activeFileId}-${editorKey}`}
+            height="100%"
+            language={getMonacoLang(activeFile?.name || 'index.html')}
+            value={activeFile?.content || ''}
+            onChange={v => updateActiveFile(v || '')}
+            onMount={(editor) => { editorRef.current = editor; }}
+            theme="vs-dark"
+            options={{
+              minimap: { enabled: false },
+              fontSize: isMobile ? 14 : 13,
+              tabSize: 2,
+              wordWrap: 'on',
+              padding: { top: 12, bottom: 12 },
+              scrollBeyondLastLine: false,
+              smoothScrolling: true,
+              cursorBlinking: 'smooth',
+              bracketPairColorization: { enabled: true },
+              renderLineHighlight: 'gutter',
+              fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace",
+              fontLigatures: !isMobile,
+              scrollbar: { verticalScrollbarSize: isMobile ? 8 : 6, useShadows: false },
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -1194,8 +1206,11 @@ export function CodeStudioView({ profile }: { profile: any }) {
 
         <div style={{ flex: 1 }} />
 
-        <button onClick={() => setShowTemplates(v => !v)} title="New project" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 9px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: 'hsl(240 5% 60%)', fontSize: '12.5px', cursor: 'pointer', flexShrink: 0 }}>
-          <LayoutTemplate size={12} />{!isMobile && <span>New</span>}
+        <button onClick={clearProject} title="Clear and start fresh" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 9px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: 'hsl(240 5% 60%)', fontSize: '12.5px', cursor: 'pointer', flexShrink: 0 }}>
+          <RefreshCw size={12} />{!isMobile && <span>Clear</span>}
+        </button>
+        <button onClick={() => setShowTemplates(v => !v)} title="Load a template" style={{ display: 'flex', alignItems: 'center', gap: '4px', padding: '5px 9px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: 'hsl(240 5% 60%)', fontSize: '12.5px', cursor: 'pointer', flexShrink: 0 }}>
+          <LayoutTemplate size={12} />{!isMobile && <span>Templates</span>}
         </button>
         <button onClick={saveProject} title="Save" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '32px', height: '32px', background: 'hsl(240 6% 10%)', border: '1px solid hsl(240 6% 17%)', borderRadius: '7px', color: 'hsl(240 5% 60%)', cursor: 'pointer', flexShrink: 0 }}>
           <Save size={13} />
